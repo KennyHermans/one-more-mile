@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
 import { 
   Plus, 
   Edit2, 
@@ -703,6 +704,18 @@ const AdminTrips = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Map Preview */}
+                {formData.program.length > 0 && formData.program.some(day => day.location) && (
+                  <div>
+                    <label className="block text-sm font-medium mb-4">Itinerary Map Preview</label>
+                    <TripItineraryMap 
+                      program={formData.program} 
+                      tripTitle={formData.title}
+                      className="h-64"
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
