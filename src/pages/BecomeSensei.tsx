@@ -142,7 +142,7 @@ const BecomeSensei = () => {
         phone: formData.get('phone') as string || null,
         location: formData.get('location') as string,
         expertise_areas: expertiseAreas,
-        years_experience: parseInt(formData.get('experience') as string),
+        years_experience: parseInt(formData.get('experience') as string) || 0,
         languages: languages,
         bio: formData.get('bio') as string,
         why_sensei: formData.get('whySensei') as string,
@@ -152,11 +152,16 @@ const BecomeSensei = () => {
         cv_file_url: cvFileUrl,
       };
 
+      console.log('Submitting application data:', applicationData);
+
       const { error } = await supabase
         .from('applications')
         .insert([applicationData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Application Submitted!",
@@ -167,9 +172,10 @@ const BecomeSensei = () => {
       e.currentTarget.reset();
       setCvFile(null);
     } catch (error) {
+      console.error('Application submission error:', error);
       toast({
         title: "Submission Failed",
-        description: "There was an error submitting your application. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error submitting your application. Please try again.",
         variant: "destructive",
       });
     } finally {
