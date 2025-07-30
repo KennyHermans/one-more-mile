@@ -95,7 +95,16 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
             "cape town city center": [18.4241, -33.9249],
             "cape town city centre": [18.4241, -33.9249],
             "v&a waterfront": [18.4194, -33.9030],
-            "waterfront": [18.4194, -33.9030]
+            "waterfront": [18.4194, -33.9030],
+            // More specific matches for the exact trip locations
+            "cape town international airport, south africa": [18.5954, -33.9702],
+            "table mountain, south africa": [18.4107, -33.9628],
+            "camps bay beach, south africa": [18.3782, -33.9511],
+            "university of cape town sports science lab, south africa": [18.4628, -33.9558],
+            "lion's head peak, south africa": [18.3984, -33.9370],
+            "stellenbosch wine region, south africa": [18.8600, -33.9381],
+            "muizenberg beach, south africa": [18.4879, -34.0968],
+            "cape town city center, south africa": [18.4241, -33.9249]
           };
           
           for (let i = 0; i < program.length; i++) {
@@ -104,15 +113,22 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
 
             let coordinates_found: [number, number] | null = null;
             
-            // First check if we have known coordinates
+            // First check if we have known coordinates (exact match first, then partial)
             const locationKey = day.location.toLowerCase();
             console.log(`Processing location: "${day.location}" -> "${locationKey}"`);
             
-            for (const [key, coords] of Object.entries(knownLocations)) {
-              if (locationKey.includes(key)) {
-                coordinates_found = coords;
-                console.log(`Found known coordinates for "${day.location}": [${coords[0]}, ${coords[1]}]`);
-                break;
+            // Try exact match first
+            if (knownLocations[locationKey]) {
+              coordinates_found = knownLocations[locationKey];
+              console.log(`Found exact match for "${day.location}": [${coordinates_found[0]}, ${coordinates_found[1]}]`);
+            } else {
+              // Try partial match
+              for (const [key, coords] of Object.entries(knownLocations)) {
+                if (locationKey.includes(key)) {
+                  coordinates_found = coords;
+                  console.log(`Found partial match for "${day.location}" using key "${key}": [${coords[0]}, ${coords[1]}]`);
+                  break;
+                }
               }
             }
             
