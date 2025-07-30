@@ -10,6 +10,9 @@ export function Navigation() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
 
+  // Check if current user is admin
+  const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -57,9 +60,11 @@ export function Navigation() {
               <Link to="/my-applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                 My Applications
               </Link>
-              <Link to="/admin/applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                Admin
-              </Link>
+              {isAdmin && (
+                <Link to="/admin/applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                  Admin
+                </Link>
+              )}
               <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                 <Link to="/sensei-profile">
                   <User className="w-4 h-4 mr-2" />
@@ -126,11 +131,13 @@ export function Navigation() {
                       My Applications
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/admin/applications" onClick={() => setIsOpen(false)}>
-                      Admin
-                    </Link>
-                  </Button>
+                  {isAdmin && (
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/admin/applications" onClick={() => setIsOpen(false)}>
+                        Admin
+                      </Link>
+                    </Button>
+                  )}
                   <Button asChild variant="outline" className="w-full">
                     <Link to="/sensei-profile" onClick={() => setIsOpen(false)}>
                       <User className="w-4 h-4 mr-2" />

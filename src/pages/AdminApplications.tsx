@@ -31,7 +31,38 @@ const AdminApplications = () => {
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || user.email !== 'kenny_hermans93@hotmail.com') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access this page.",
+          variant: "destructive",
+        });
+        window.location.href = '/';
+        return;
+      }
+      
+      setUser(user);
+      fetchApplications();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to authenticate.",
+        variant: "destructive",
+      });
+      window.location.href = '/';
+    }
+  };
 
   useEffect(() => {
     fetchApplications();
@@ -157,12 +188,12 @@ const AdminApplications = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <Navigation />
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading applications...</div>
+          <div className="text-lg">Loading...</div>
         </div>
       </div>
     );
