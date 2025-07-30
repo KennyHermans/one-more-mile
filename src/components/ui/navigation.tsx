@@ -35,7 +35,9 @@ export function Navigation() {
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-3 group">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent transition-transform duration-300 group-hover:scale-105"></div>
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+            <span className="text-white font-bold text-sm">OMM</span>
+          </div>
           <span className="text-2xl font-serif font-semibold text-foreground group-hover:text-primary transition-colors">
             One More Mile
           </span>
