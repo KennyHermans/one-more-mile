@@ -6,24 +6,47 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast, toast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { CheckCircle, Upload, Users, Globe, Heart, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User } from '@supabase/supabase-js';
+import { CheckCircle, Upload, Users, Globe, Heart, Star, LogIn } from "lucide-react";
 
 const BecomeSensei = () => {
   const toastHook = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check current auth status
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    checkAuth();
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      // User is already checked to exist at this point
       if (!user) {
         toast({
-          title: "Authentication Required",
-          description: "Please log in to submit your application.",
+          title: "Authentication Error",
+          description: "Please refresh the page and try again.",
           variant: "destructive",
         });
         return;
@@ -103,6 +126,17 @@ const BecomeSensei = () => {
     "Fluency in English (additional languages are a plus)",
     "Flexibility to travel for 1-3 weeks per trip"
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -235,6 +269,50 @@ const BecomeSensei = () => {
                 Ready to join our community of expert guides? Fill out the application below and we'll be in touch within 48 hours.
               </p>
             </div>
+
+            {!user ? (
+              <Card className="shadow-xl">
+                <CardContent className="p-8 text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="p-4 bg-primary/10 rounded-full">
+                      <LogIn className="h-12 w-12 text-primary" />
+                    </div>
+                  </div>
+                  <h3 className="font-serif text-2xl font-bold text-foreground mb-4">
+                    Account Required
+                  </h3>
+                  <p className="font-sans text-muted-foreground mb-6 leading-relaxed">
+                    To submit your Sensei application, you'll need to create an account first. This allows us to:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-left">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="font-sans text-sm text-muted-foreground">Track your application status</span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="font-sans text-sm text-muted-foreground">Send you updates and notifications</span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="font-sans text-sm text-muted-foreground">Manage your Sensei profile</span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="font-sans text-sm text-muted-foreground">Access your applications history</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <Button asChild size="lg" className="w-full font-sans font-medium">
+                      <a href="/auth">Create Account to Apply</a>
+                    </Button>
+                    <p className="font-sans text-sm text-muted-foreground">
+                      Already have an account? <a href="/auth" className="text-primary hover:underline">Sign in here</a>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
 
             <Card className="shadow-xl">
               <CardContent className="p-8">
@@ -411,6 +489,7 @@ const BecomeSensei = () => {
                 </form>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </section>
