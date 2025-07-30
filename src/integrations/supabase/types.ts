@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      sensei_profiles: {
+        Row: {
+          bio: string
+          created_at: string
+          experience: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          location: string
+          name: string
+          rating: number | null
+          specialties: string[]
+          specialty: string
+          trips_led: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio: string
+          created_at?: string
+          experience: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          location: string
+          name: string
+          rating?: number | null
+          specialties?: string[]
+          specialty: string
+          trips_led?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          experience?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          location?: string
+          name?: string
+          rating?: number | null
+          specialties?: string[]
+          specialty?: string
+          trips_led?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
