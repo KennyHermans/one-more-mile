@@ -19,20 +19,35 @@ const BecomeSensei = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
+    console.log('BecomeSensei: Component mounted, checking auth state');
+    
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      console.log('BecomeSensei: Getting initial session');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('BecomeSensei: Initial session result:', { session, error });
+      
+      if (session?.user) {
+        console.log('BecomeSensei: User found in session:', session.user.id);
+        setUser(session.user);
+      } else {
+        console.log('BecomeSensei: No user in session');
+        setUser(null);
+      }
     };
 
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('BecomeSensei: Auth state change:', event, session?.user?.id);
         setUser(session?.user ?? null);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('BecomeSensei: Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleFileUpload = async (file: File): Promise<string | null> => {
