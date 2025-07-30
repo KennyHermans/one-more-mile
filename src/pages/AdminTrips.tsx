@@ -41,6 +41,9 @@ interface Trip {
   current_participants: number;
   is_active: boolean;
   program: ProgramDay[];
+  included_amenities: string[];
+  excluded_items: string[];
+  requirements: string[];
 }
 
 interface ProgramDay {
@@ -87,7 +90,10 @@ const AdminTrips = () => {
     max_participants: 12,
     current_participants: 0,
     is_active: true,
-    program: [] as ProgramDay[]
+    program: [] as ProgramDay[],
+    included_amenities: [] as string[],
+    excluded_items: [] as string[],
+    requirements: [] as string[]
   });
 
   useEffect(() => {
@@ -235,7 +241,10 @@ const AdminTrips = () => {
       max_participants: 12,
       current_participants: 0,
       is_active: true,
-      program: []
+      program: [],
+      included_amenities: [],
+      excluded_items: [],
+      requirements: []
     });
     setEditingTrip(null);
   };
@@ -258,7 +267,10 @@ const AdminTrips = () => {
       max_participants: trip.max_participants,
       current_participants: trip.current_participants,
       is_active: trip.is_active,
-      program: trip.program || []
+      program: trip.program || [],
+      included_amenities: trip.included_amenities || [],
+      excluded_items: trip.excluded_items || [],
+      requirements: trip.requirements || []
     });
     setEditingTrip(trip);
     setIsDialogOpen(true);
@@ -766,6 +778,60 @@ const AdminTrips = () => {
                       placeholder="12"
                     />
                   </div>
+                </div>
+
+                {/* What's Included */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">What's Included</label>
+                  <Textarea
+                    name="included_amenities"
+                    value={formData.included_amenities.join('\n')}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      included_amenities: e.target.value.split('\n').filter(item => item.trim())
+                    }))}
+                    placeholder="Enter each included item on a new line&#10;e.g.:&#10;Accommodation&#10;Meals&#10;Transportation"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter each item on a new line
+                  </p>
+                </div>
+
+                {/* What's Not Included */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">What's Not Included</label>
+                  <Textarea
+                    name="excluded_items"
+                    value={formData.excluded_items.join('\n')}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      excluded_items: e.target.value.split('\n').filter(item => item.trim())
+                    }))}
+                    placeholder="Enter each excluded item on a new line&#10;e.g.:&#10;International flights&#10;Travel insurance&#10;Personal expenses"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter each item on a new line
+                  </p>
+                </div>
+
+                {/* Requirements */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Requirements</label>
+                  <Textarea
+                    name="requirements"
+                    value={formData.requirements.join('\n')}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      requirements: e.target.value.split('\n').filter(item => item.trim())
+                    }))}
+                    placeholder="Enter each requirement on a new line&#10;e.g.:&#10;Intermediate fitness level&#10;Swimming ability&#10;Valid passport"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enter each requirement on a new line
+                  </p>
                 </div>
 
                 <div className="flex items-center space-x-2">
