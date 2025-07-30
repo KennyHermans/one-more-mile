@@ -35,9 +35,11 @@ export function Navigation() {
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-3 group">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-            <span className="text-white font-bold text-sm">OMM</span>
-          </div>
+          <img 
+            src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png" 
+            alt="One More Mile Logo" 
+            className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+          />
           <span className="text-2xl font-serif font-semibold text-foreground group-hover:text-primary transition-colors">
             One More Mile
           </span>
