@@ -129,21 +129,26 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
             
             // If no direct coordinates, check known locations
             if (!coordinates_found) {
-              const locationKey = day.location.toLowerCase();
+              const locationKey = day.location.toLowerCase().trim();
               console.log(`Processing Day ${day.day} location: "${day.location}" -> "${locationKey}"`);
+              console.log('Available known locations:', Object.keys(knownLocations));
               
               // Try exact match first
               if (knownLocations[locationKey]) {
                 coordinates_found = knownLocations[locationKey];
-                console.log(`Found exact match for Day ${day.day} "${day.location}": [${coordinates_found[0]}, ${coordinates_found[1]}]`);
+                console.log(`✅ Found EXACT match for Day ${day.day} "${day.location}": [${coordinates_found[0]}, ${coordinates_found[1]}]`);
               } else {
+                console.log(`❌ No exact match found for "${locationKey}"`);
                 // Try partial match
                 for (const [key, coords] of Object.entries(knownLocations)) {
-                  if (locationKey.includes(key)) {
+                  if (locationKey.includes(key) || key.includes(locationKey)) {
                     coordinates_found = coords;
-                    console.log(`Found partial match for Day ${day.day} "${day.location}" using key "${key}": [${coords[0]}, ${coords[1]}]`);
+                    console.log(`✅ Found PARTIAL match for Day ${day.day} "${day.location}" using key "${key}": [${coords[0]}, ${coords[1]}]`);
                     break;
                   }
+                }
+                if (!coordinates_found) {
+                  console.log(`❌ No partial match found for "${locationKey}"`);
                 }
               }
             }
