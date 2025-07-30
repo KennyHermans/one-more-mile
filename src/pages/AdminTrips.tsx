@@ -58,6 +58,7 @@ const AdminTrips = () => {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -315,6 +316,78 @@ const AdminTrips = () => {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Delete old image if editing and has existing image
+      if (editingTrip && formData.image_url) {
+        const oldImagePath = formData.image_url.split('/').pop();
+        if (oldImagePath && oldImagePath.includes('trip-images')) {
+          await supabase.storage
+            .from('trip-images')
+            .remove([oldImagePath]);
+        }
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+
+      const { error: uploadError } = await supabase.storage
+        .from('trip-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('trip-images')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        image_url: publicUrl
+      }));
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully!",
+      });
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -475,14 +548,34 @@ const AdminTrips = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Image URL *</label>
-                  <Input
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
-                    placeholder="https://images.unsplash.com/..."
-                    required
-                  />
+                  <label className="block text-sm font-medium mb-2">Trip Image *</label>
+                  <div className="space-y-3">
+                    {formData.image_url && (
+                      <div className="relative">
+                        <img 
+                          src={formData.image_url} 
+                          alt="Trip preview" 
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                    {uploading && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading image...
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Upload an image file (max 5MB)
+                    </p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
