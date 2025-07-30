@@ -82,91 +82,144 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
           const coordinates: [number, number][] = [];
           const markers: mapboxgl.Marker[] = [];
           
+          // Known coordinates for common Cape Town locations
+          const knownLocations: { [key: string]: [number, number] } = {
+            "table mountain": [18.4107, -33.9628],
+            "lion's head": [18.3984, -33.9370],
+            "lions head": [18.3984, -33.9370],
+            "camps bay": [18.3782, -33.9511],
+            "cape town international airport": [18.5954, -33.9702],
+            "university of cape town": [18.4628, -33.9558],
+            "stellenbosch": [18.8600, -33.9381],
+            "muizenberg": [18.4879, -34.0968],
+            "cape town city center": [18.4241, -33.9249],
+            "cape town city centre": [18.4241, -33.9249],
+            "v&a waterfront": [18.4194, -33.9030],
+            "waterfront": [18.4194, -33.9030]
+          };
+          
           for (let i = 0; i < program.length; i++) {
             const day = program[i];
             if (!day.location) continue;
 
-            try {
-              const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(day.location)}.json?access_token=${mapboxToken}&limit=1`
-              );
-              
-              if (response.ok) {
-                const data = await response.json();
-                if (data.features && data.features.length > 0) {
-                  const [lng, lat] = data.features[0].center;
-                  coordinates.push([lng, lat]);
-
-                  // Create custom marker element with animation
-                  const markerElement = document.createElement('div');
-                  markerElement.className = 'custom-marker';
-                  markerElement.style.cssText = `
-                    position: relative;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                  `;
-                  markerElement.innerHTML = `
-                    <div style="
-                      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-                      color: white;
-                      border-radius: 50%;
-                      width: 40px;
-                      height: 40px;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-weight: bold;
-                      font-size: 16px;
-                      border: 3px solid white;
-                      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-                      transform: scale(0);
-                      animation: markerPop 0.6s ease-out ${i * 0.2}s forwards;
-                    ">${day.day}</div>
-                    <div style="
-                      position: absolute;
-                      top: 50%;
-                      left: 50%;
-                      transform: translate(-50%, -50%);
-                      width: 60px;
-                      height: 60px;
-                      border: 2px solid #3b82f6;
-                      border-radius: 50%;
-                      opacity: 0;
-                      animation: ripple 2s infinite ${i * 0.2}s;
-                    "></div>
-                  `;
-
-                  // Add hover effects
-                  markerElement.addEventListener('mouseenter', () => {
-                    markerElement.style.transform = 'scale(1.1)';
-                  });
-                  markerElement.addEventListener('mouseleave', () => {
-                    markerElement.style.transform = 'scale(1)';
-                  });
-
-                  // Create popup content
-                  const popupContent = `
-                    <div style="font-family: sans-serif; max-width: 280px;">
-                      <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #1f2937;">
-                        Day ${day.day}: ${day.location}
-                      </h3>
-                      <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
-                        ${day.activities || 'No activities specified'}
-                      </p>
-                    </div>
-                  `;
-
-                  // Add marker with popup
-                  const marker = new mapboxgl.Marker(markerElement)
-                    .setLngLat([lng, lat])
-                    .setPopup(new mapboxgl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(popupContent))
-                    .addTo(map.current!);
-                    
-                  markers.push(marker);
-                }
+            let coordinates_found: [number, number] | null = null;
+            
+            // First check if we have known coordinates
+            const locationKey = day.location.toLowerCase();
+            for (const [key, coords] of Object.entries(knownLocations)) {
+              if (locationKey.includes(key)) {
+                coordinates_found = coords;
+                break;
               }
-            } catch (error) {
-              console.error(`Error geocoding location "${day.location}":`, error);
+            }
+            
+            // If not found in known locations, try geocoding with improved query
+            if (!coordinates_found) {
+              try {
+                // Improve the search query by being more specific about Cape Town
+                let searchQuery = day.location;
+                if (!searchQuery.toLowerCase().includes('cape town') && !searchQuery.toLowerCase().includes('south africa')) {
+                  searchQuery = `${day.location}, Cape Town, South Africa`;
+                }
+                
+                const response = await fetch(
+                  `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&limit=5&proximity=18.4241,-33.9249`
+                );
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.features && data.features.length > 0) {
+                    // Find the best match (prefer results near Cape Town)
+                    let bestFeature = data.features[0];
+                    for (const feature of data.features) {
+                      if (feature.place_name.toLowerCase().includes('cape town') || 
+                          feature.place_name.toLowerCase().includes('western cape')) {
+                        bestFeature = feature;
+                        break;
+                      }
+                    }
+                    
+                    const [lng, lat] = bestFeature.center;
+                    // Validate coordinates are in reasonable range for Cape Town area
+                    if (lng >= 18.0 && lng <= 19.5 && lat >= -35.0 && lat <= -33.0) {
+                      coordinates_found = [lng, lat];
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error(`Error geocoding location "${day.location}":`, error);
+              }
+            }
+            
+            if (coordinates_found) {
+              coordinates.push(coordinates_found);
+
+              // Create custom marker element with animation
+              const markerElement = document.createElement('div');
+              markerElement.className = 'custom-marker';
+              markerElement.style.cssText = `
+                position: relative;
+                cursor: pointer;
+                transition: all 0.3s ease;
+              `;
+              markerElement.innerHTML = `
+                <div style="
+                  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                  color: white;
+                  border-radius: 50%;
+                  width: 40px;
+                  height: 40px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-weight: bold;
+                  font-size: 16px;
+                  border: 3px solid white;
+                  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+                  transform: scale(0);
+                  animation: markerPop 0.6s ease-out ${i * 0.2}s forwards;
+                ">${day.day}</div>
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  width: 60px;
+                  height: 60px;
+                  border: 2px solid #3b82f6;
+                  border-radius: 50%;
+                  opacity: 0;
+                  animation: ripple 2s infinite ${i * 0.2}s;
+                "></div>
+              `;
+
+              // Add hover effects
+              markerElement.addEventListener('mouseenter', () => {
+                markerElement.style.transform = 'scale(1.1)';
+              });
+              markerElement.addEventListener('mouseleave', () => {
+                markerElement.style.transform = 'scale(1)';
+              });
+
+              // Create popup content
+              const popupContent = `
+                <div style="font-family: sans-serif; max-width: 280px;">
+                  <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #1f2937;">
+                    Day ${day.day}: ${day.location}
+                  </h3>
+                  <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
+                    ${day.activities || 'No activities specified'}
+                  </p>
+                </div>
+              `;
+
+              // Add marker with popup
+              const marker = new mapboxgl.Marker(markerElement)
+                .setLngLat(coordinates_found)
+                .setPopup(new mapboxgl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(popupContent))
+                .addTo(map.current!);
+                
+              markers.push(marker);
             }
           }
 
