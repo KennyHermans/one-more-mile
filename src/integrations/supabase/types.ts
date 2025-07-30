@@ -147,6 +147,7 @@ export type Database = {
           price: string
           rating: number | null
           requirements: string[] | null
+          sensei_id: string | null
           sensei_name: string
           theme: string
           title: string
@@ -170,6 +171,7 @@ export type Database = {
           price: string
           rating?: number | null
           requirements?: string[] | null
+          sensei_id?: string | null
           sensei_name: string
           theme: string
           title: string
@@ -193,16 +195,46 @@ export type Database = {
           price?: string
           rating?: number | null
           requirements?: string[] | null
+          sensei_id?: string | null
           sensei_name?: string
           theme?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trips_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "available_senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      available_senseis: {
+        Row: {
+          application_status: string | null
+          bio: string | null
+          experience: string | null
+          id: string | null
+          image_url: string | null
+          location: string | null
+          name: string | null
+          rating: number | null
+          specialty: string | null
+          trips_led: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
