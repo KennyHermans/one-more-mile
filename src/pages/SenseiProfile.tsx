@@ -10,7 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Session } from '@supabase/supabase-js';
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SenseiProfile {
   id?: string;
@@ -21,6 +22,9 @@ interface SenseiProfile {
   experience: string;
   location: string;
   specialties: string[];
+  rating?: number;
+  trips_led?: number;
+  is_active?: boolean;
 }
 
 const SenseiProfile = () => {
@@ -38,9 +42,9 @@ const SenseiProfile = () => {
   const [newSpecialty, setNewSpecialty] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [hasProfile, setHasProfile] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener
@@ -85,11 +89,16 @@ const SenseiProfile = () => {
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
-        setError('Error fetching profile: ' + error.message);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile: " + error.message,
+          variant: "destructive",
+        });
         return;
       }
 
       if (data) {
+        setHasProfile(true);
         setProfile({
           id: data.id,
           name: data.name,
@@ -98,11 +107,20 @@ const SenseiProfile = () => {
           image_url: data.image_url || "",
           experience: data.experience,
           location: data.location,
-          specialties: data.specialties || []
+          specialties: data.specialties || [],
+          rating: data.rating,
+          trips_led: data.trips_led,
+          is_active: data.is_active
         });
+      } else {
+        setHasProfile(false);
       }
     } catch (error: any) {
-      setError('Error fetching profile: ' + error.message);
+      toast({
+        title: "Error",
+        description: "Failed to fetch profile: " + error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -113,8 +131,6 @@ const SenseiProfile = () => {
     if (!user) return;
 
     setSaving(true);
-    setError("");
-    setSuccess("");
 
     try {
       const profileData = {
@@ -125,7 +141,8 @@ const SenseiProfile = () => {
         image_url: profile.image_url || null,
         experience: profile.experience,
         location: profile.location,
-        specialties: profile.specialties
+        specialties: profile.specialties,
+        is_active: profile.is_active ?? true
       };
 
       const { error } = profile.id 
@@ -138,16 +155,27 @@ const SenseiProfile = () => {
             .insert(profileData);
 
       if (error) {
-        setError('Error saving profile: ' + error.message);
+        toast({
+          title: "Error",
+          description: "Failed to save profile: " + error.message,
+          variant: "destructive",
+        });
       } else {
-        setSuccess('Profile saved successfully!');
+        toast({
+          title: "Success",
+          description: "Profile saved successfully!",
+        });
         if (!profile.id) {
           // Refresh to get the new profile ID
           fetchProfile(user.id);
         }
       }
     } catch (error: any) {
-      setError('Error saving profile: ' + error.message);
+      toast({
+        title: "Error",
+        description: "Failed to save profile: " + error.message,
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -201,24 +229,33 @@ const SenseiProfile = () => {
             </Button>
           </div>
 
+          {!hasProfile ? (
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <Alert>
+                  <AlertDescription>
+                    You don't have a Sensei profile yet. This means your application might still be pending approval, 
+                    or you haven't applied to become a Sensei yet. 
+                    <a href="/become-sensei" className="text-primary hover:underline ml-1">Apply here</a> or 
+                    <a href="/my-applications" className="text-primary hover:underline ml-1">check your applications</a>.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle className="font-serif text-2xl">
-                {profile.id ? "Edit Your Profile" : "Create Your Profile"}
+                {hasProfile ? "Edit Your Sensei Profile" : "Create Your Profile"}
               </CardTitle>
+              {hasProfile && (
+                <p className="text-muted-foreground">
+                  Update your information that appears on the "Our Senseis" page
+                </p>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {success && (
-                <Alert>
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
 
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -245,15 +282,18 @@ const SenseiProfile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio">Professional Bio</Label>
                   <Textarea
                     id="bio"
                     value={profile.bio}
                     onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
-                    placeholder="Tell us about yourself and your expertise..."
-                    rows={4}
+                    placeholder="Tell visitors about your expertise, background, and what makes you a great Sensei..."
+                    rows={5}
                     required
                   />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    This bio will be displayed on the "Our Senseis" page
+                  </p>
                 </div>
 
                 <div>
@@ -268,38 +308,42 @@ const SenseiProfile = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="experience">Years of Experience</Label>
+                    <Label htmlFor="experience">Experience</Label>
                     <Input
                       id="experience"
                       value={profile.experience}
                       onChange={(e) => setProfile(prev => ({ ...prev, experience: e.target.value }))}
-                      placeholder="e.g., 15 years"
+                      placeholder="e.g., 15 years, Over a decade"
                       required
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">Location/Base</Label>
                     <Input
                       id="location"
                       value={profile.location}
                       onChange={(e) => setProfile(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="e.g., Based in Nepal"
+                      placeholder="e.g., Based in Kathmandu, Nepal"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label>Specialties</Label>
-                  <div className="flex gap-2 mb-2">
+                  <Label>Areas of Expertise</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Add your specialties and areas of expertise. These will be displayed as badges on your profile.
+                  </p>
+                  <div className="flex gap-2 mb-3">
                     <Input
                       value={newSpecialty}
                       onChange={(e) => setNewSpecialty(e.target.value)}
-                      placeholder="Add a specialty..."
+                      placeholder="Add an area of expertise..."
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialty())}
                     />
-                    <Button type="button" onClick={addSpecialty}>
+                    <Button type="button" onClick={addSpecialty} size="sm">
+                      <Plus className="h-4 w-4 mr-1" />
                       Add
                     </Button>
                   </div>
@@ -316,9 +360,34 @@ const SenseiProfile = () => {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={saving}>
-                  {saving ? "Saving..." : "Save Profile"}
+                {hasProfile && (
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Profile Statistics</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Rating:</span>
+                        <span className="ml-2 font-medium">{profile.rating || '0.0'} ⭐</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Trips Led:</span>
+                        <span className="ml-2 font-medium">{profile.trips_led || 0}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Statistics are updated automatically based on your activity
+                    </p>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={saving || !hasProfile}>
+                  {saving ? "Saving..." : hasProfile ? "Update Profile" : "Profile Not Available"}
                 </Button>
+                
+                {!hasProfile && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    You can only edit your profile after your Sensei application has been approved.
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>
