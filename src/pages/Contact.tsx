@@ -230,8 +230,8 @@ const Contact = () => {
                       <div>
                         <h3 className="font-sans font-semibold text-foreground">Visit Us</h3>
                         <p className="font-sans text-muted-foreground">
-                          123 Adventure Way<br />
-                          San Francisco, CA 94102
+                          Busleidengang 1A<br />
+                          3000 Leuven
                         </p>
                         <p className="font-sans text-sm text-muted-foreground">By appointment only</p>
                       </div>
