@@ -52,10 +52,13 @@ export function Navigation() {
           <Link to="/contact" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
             Contact
           </Link>
-          {user ? (
+           {user ? (
             <div className="flex items-center space-x-4">
               <Link to="/my-applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                 My Applications
+              </Link>
+              <Link to="/admin/applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                Admin
               </Link>
               <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                 <Link to="/sensei-profile">
@@ -116,11 +119,16 @@ export function Navigation() {
               >
                 Contact
               </Link>
-              {user ? (
+               {user ? (
                 <div className="space-y-2">
                   <Button asChild variant="outline" className="w-full">
                     <Link to="/my-applications" onClick={() => setIsOpen(false)}>
                       My Applications
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/admin/applications" onClick={() => setIsOpen(false)}>
+                      Admin
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full">
