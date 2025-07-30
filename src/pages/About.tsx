@@ -30,10 +30,10 @@ const About = () => {
 
   const team = [
     {
-      name: "Elena Rodriguez",
+      name: "Kenny Hermans",
       role: "Founder & CEO",
       bio: "Former travel journalist who discovered the transformative power of purposeful travel after a life-changing trek in the Himalayas.",
-      image: "/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png"
+      image: "/lovable-uploads/0654a4fb-8308-4c54-a2ec-031f19de96db.png"
     },
     {
       name: "Marcus Thompson",
