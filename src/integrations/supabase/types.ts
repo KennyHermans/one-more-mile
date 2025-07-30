@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          availability: string
+          bio: string
+          created_at: string
+          email: string
+          expertise_areas: string[]
+          full_name: string
+          id: string
+          languages: string[]
+          location: string
+          phone: string | null
+          portfolio_url: string | null
+          reference_text: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          why_sensei: string
+          years_experience: number
+        }
+        Insert: {
+          availability: string
+          bio: string
+          created_at?: string
+          email: string
+          expertise_areas?: string[]
+          full_name: string
+          id?: string
+          languages?: string[]
+          location: string
+          phone?: string | null
+          portfolio_url?: string | null
+          reference_text?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          why_sensei: string
+          years_experience: number
+        }
+        Update: {
+          availability?: string
+          bio?: string
+          created_at?: string
+          email?: string
+          expertise_areas?: string[]
+          full_name?: string
+          id?: string
+          languages?: string[]
+          location?: string
+          phone?: string | null
+          portfolio_url?: string | null
+          reference_text?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          why_sensei?: string
+          years_experience?: number
+        }
+        Relationships: []
+      }
       sensei_profiles: {
         Row: {
           bio: string

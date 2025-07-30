@@ -4,9 +4,74 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { CheckCircle, Upload, Users, Globe, Heart, Star } from "lucide-react";
 
 const BecomeSensei = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to submit your application.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formData = new FormData(e.currentTarget);
+      const expertiseAreas = formData.getAll('expertise') as string[];
+      const languages = formData.getAll('languages') as string[];
+
+      const applicationData = {
+        user_id: user.id,
+        email: formData.get('email') as string,
+        full_name: formData.get('fullName') as string,
+        phone: formData.get('phone') as string || null,
+        location: formData.get('location') as string,
+        expertise_areas: expertiseAreas,
+        years_experience: parseInt(formData.get('experience') as string),
+        languages: languages,
+        bio: formData.get('bio') as string,
+        why_sensei: formData.get('whySensei') as string,
+        portfolio_url: formData.get('portfolio') as string || null,
+        reference_text: formData.get('references') as string || null,
+        availability: formData.get('availability') as string,
+      };
+
+      const { error } = await supabase
+        .from('applications')
+        .insert([applicationData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Application Submitted!",
+        description: "We'll review your application and get back to you soon.",
+      });
+
+      // Reset form
+      e.currentTarget.reset();
+    } catch (error) {
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const benefits = [
     {
       icon: Globe,
@@ -173,7 +238,7 @@ const BecomeSensei = () => {
 
             <Card className="shadow-xl">
               <CardContent className="p-8">
-                <form className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Personal Information */}
                   <div>
                     <h3 className="font-serif text-xl font-bold text-foreground mb-4">Personal Information</h3>
@@ -182,13 +247,13 @@ const BecomeSensei = () => {
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           First Name *
                         </label>
-                        <Input placeholder="Your first name" className="font-sans" />
+                        <Input name="fullName" placeholder="Your first name" className="font-sans" required />
                       </div>
                       <div>
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Last Name *
                         </label>
-                        <Input placeholder="Your last name" className="font-sans" />
+                        <Input name="lastName" placeholder="Your last name" className="font-sans" required />
                       </div>
                     </div>
                     
@@ -197,13 +262,13 @@ const BecomeSensei = () => {
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Email Address *
                         </label>
-                        <Input type="email" placeholder="your.email@example.com" className="font-sans" />
+                        <Input name="email" type="email" placeholder="your.email@example.com" className="font-sans" required />
                       </div>
                       <div>
                         <label className="font-sans font-medium text-foreground mb-2 block">
-                          Phone Number *
+                          Phone Number
                         </label>
-                        <Input type="tel" placeholder="+1 (555) 123-4567" className="font-sans" />
+                        <Input name="phone" type="tel" placeholder="+1 (555) 123-4567" className="font-sans" />
                       </div>
                     </div>
 
@@ -211,7 +276,7 @@ const BecomeSensei = () => {
                       <label className="font-sans font-medium text-foreground mb-2 block">
                         Location *
                       </label>
-                      <Input placeholder="City, Country where you're based" className="font-sans" />
+                      <Input name="location" placeholder="City, Country where you're based" className="font-sans" required />
                     </div>
                   </div>
 
@@ -223,24 +288,24 @@ const BecomeSensei = () => {
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Primary Theme *
                         </label>
-                        <select className="w-full px-3 py-2 border border-border rounded-lg font-sans">
+                        <select name="expertise" className="w-full px-3 py-2 border border-border rounded-lg font-sans" required>
                           <option value="">Select your primary expertise</option>
-                          <option value="sports">Sports & Nutrition</option>
-                          <option value="culinary">Culinary Adventures</option>
-                          <option value="wellness">Wellness & Mindfulness</option>
-                          <option value="cultural">Cultural Immersion</option>
+                          <option value="Sports & Nutrition">Sports & Nutrition</option>
+                          <option value="Culinary Adventures">Culinary Adventures</option>
+                          <option value="Wellness & Mindfulness">Wellness & Mindfulness</option>
+                          <option value="Cultural Immersion">Cultural Immersion</option>
                         </select>
                       </div>
                       <div>
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Years of Experience *
                         </label>
-                        <select className="w-full px-3 py-2 border border-border rounded-lg font-sans">
+                        <select name="experience" className="w-full px-3 py-2 border border-border rounded-lg font-sans" required>
                           <option value="">Select experience level</option>
-                          <option value="3-5">3-5 years</option>
-                          <option value="6-10">6-10 years</option>
-                          <option value="11-15">11-15 years</option>
-                          <option value="15+">15+ years</option>
+                          <option value="3">3-5 years</option>
+                          <option value="6">6-10 years</option>
+                          <option value="11">11-15 years</option>
+                          <option value="15">15+ years</option>
                         </select>
                       </div>
                     </div>
@@ -249,7 +314,7 @@ const BecomeSensei = () => {
                       <label className="font-sans font-medium text-foreground mb-2 block">
                         Specific Skills & Certifications
                       </label>
-                      <Input placeholder="e.g., Certified Yoga Instructor, Michelin Star Experience, Mountain Guide License" className="font-sans" />
+                      <Input name="skills" placeholder="e.g., Certified Yoga Instructor, Michelin Star Experience, Mountain Guide License" className="font-sans" />
                     </div>
                   </div>
 
@@ -261,8 +326,10 @@ const BecomeSensei = () => {
                         Professional Bio *
                       </label>
                       <Textarea 
+                        name="bio"
                         placeholder="Share your background, expertise, and what makes you passionate about your field. What unique perspective would you bring to One More Mile adventures?"
                         className="font-sans min-h-[120px]"
+                        required
                       />
                     </div>
 
@@ -271,8 +338,10 @@ const BecomeSensei = () => {
                         Why do you want to become a Sensei? *
                       </label>
                       <Textarea 
+                        name="whySensei"
                         placeholder="What motivates you to share your expertise through travel? How do you envision creating transformative experiences for travelers?"
                         className="font-sans min-h-[120px]"
+                        required
                       />
                     </div>
                   </div>
@@ -299,6 +368,7 @@ const BecomeSensei = () => {
                           Video Introduction (Optional but Recommended)
                         </label>
                         <Input 
+                          name="portfolio"
                           placeholder="Paste a link to your video introduction (YouTube, Vimeo, etc.)" 
                           className="font-sans" 
                         />
@@ -309,8 +379,34 @@ const BecomeSensei = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full font-sans font-medium" size="lg">
-                    Submit Application
+                  <div>
+                    <label className="font-sans font-medium text-foreground mb-2 block">
+                      Availability *
+                    </label>
+                    <Textarea 
+                      name="availability"
+                      placeholder="When are you available to guide trips? (e.g., weekends only, flexible schedule, seasonal availability...)"
+                      className="font-sans min-h-[80px]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-sans font-medium text-foreground mb-2 block">
+                      Languages Spoken *
+                    </label>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      {["English", "Spanish", "French", "German", "Italian", "Portuguese", "Japanese", "Mandarin", "Arabic"].map((lang) => (
+                        <label key={lang} className="flex items-center space-x-2">
+                          <input type="checkbox" name="languages" value={lang} className="rounded" />
+                          <span>{lang}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button className="w-full font-sans font-medium" size="lg" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Submit Application"}
                   </Button>
                 </form>
               </CardContent>
