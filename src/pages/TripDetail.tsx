@@ -27,6 +27,7 @@ interface Trip {
   dates: string;
   group_size: string;
   sensei_name: string;
+  sensei_id: string | null;
   image_url: string;
   theme: string;
   rating: number;
@@ -39,9 +40,22 @@ interface Trip {
   current_participants: number;
 }
 
+interface SenseiProfile {
+  id: string;
+  name: string;
+  specialty: string;
+  bio: string;
+  experience: string;
+  location: string;
+  image_url: string | null;
+  rating: number;
+  trips_led: number;
+}
+
 const TripDetail = () => {
   const { tripId } = useParams();
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -68,6 +82,21 @@ const TripDetail = () => {
         }
 
         setTrip(data);
+
+        // Fetch sensei profile if linked
+        if (data.sensei_id) {
+          const { data: senseiData, error: senseiError } = await supabase
+            .from('sensei_profiles')
+            .select('*')
+            .eq('id', data.sensei_id)
+            .maybeSingle();
+
+          if (senseiError) {
+            console.error('Error fetching sensei profile:', senseiError);
+          } else {
+            setSenseiProfile(senseiData);
+          }
+        }
       } catch (error: any) {
         console.error('Error fetching trip:', error);
         toast({
@@ -276,7 +305,14 @@ const TripDetail = () => {
 
                     <div className="flex items-center justify-between font-sans">
                       <span className="text-sm">Sensei</span>
-                      <span className="text-sm font-medium">{trip.sensei_name}</span>
+                      <div className="text-right">
+                        <span className="text-sm font-medium block">{trip.sensei_name}</span>
+                        {senseiProfile && (
+                          <span className="text-xs text-muted-foreground">
+                            {senseiProfile.specialty} • {senseiProfile.trips_led} trips led
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between font-sans">
@@ -298,6 +334,39 @@ const TripDetail = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Sensei Profile Card */}
+              {senseiProfile && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-serif text-xl font-bold mb-4">Your Sensei</h3>
+                    <div className="flex items-start space-x-4">
+                      {senseiProfile.image_url && (
+                        <img 
+                          src={senseiProfile.image_url} 
+                          alt={senseiProfile.name}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-sans font-semibold text-lg">{senseiProfile.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">{senseiProfile.specialty}</p>
+                        <p className="text-sm font-sans leading-relaxed mb-3">
+                          {senseiProfile.bio.substring(0, 200)}...
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center">
+                            <Star className="mr-1 h-3 w-3 text-yellow-400 fill-current" />
+                            {senseiProfile.rating}
+                          </div>
+                          <span>{senseiProfile.trips_led} trips led</span>
+                          <span>{senseiProfile.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>

@@ -30,6 +30,7 @@ interface Trip {
   dates: string;
   group_size: string;
   sensei_name: string;
+  sensei_id: string | null;
   image_url: string;
   theme: string;
   rating: number;
@@ -40,8 +41,18 @@ interface Trip {
   is_active: boolean;
 }
 
+interface SenseiProfile {
+  id: string;
+  name: string;
+  specialty: string;
+  experience: string;
+  location: string;
+}
+
 const AdminTrips = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [senseis, setSenseis] = useState<SenseiProfile[]>([]);
+  const [approvedSenseiIds, setApprovedSenseiIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
@@ -58,6 +69,7 @@ const AdminTrips = () => {
     dates: "",
     group_size: "",
     sensei_name: "",
+    sensei_id: null as string | null,
     image_url: "",
     theme: "",
     rating: 0,
@@ -98,6 +110,7 @@ const AdminTrips = () => {
   useEffect(() => {
     if (user) {
       fetchTrips();
+      fetchSenseis();
     }
   }, [user]);
 
@@ -122,8 +135,59 @@ const AdminTrips = () => {
     }
   };
 
+  const fetchSenseis = async () => {
+    try {
+      // Fetch sensei profiles
+      const { data: senseiData, error: senseiError } = await supabase
+        .from('sensei_profiles')
+        .select('*')
+        .eq('is_active', true);
+
+      if (senseiError) throw senseiError;
+      setSenseis(senseiData || []);
+
+      // Fetch approved applications
+      const { data: applicationData, error: applicationError } = await supabase
+        .from('applications')
+        .select('user_id')
+        .eq('status', 'approved');
+
+      if (applicationError) throw applicationError;
+      
+      // Create a set of approved user IDs for quick lookup
+      const approvedUserIds = new Set(applicationData?.map(app => app.user_id) || []);
+      
+      // Find sensei profiles that have approved applications
+      const approvedSenseiIds = new Set(
+        senseiData?.filter(sensei => approvedUserIds.has(sensei.user_id))
+                   .map(sensei => sensei.id) || []
+      );
+      
+      setApprovedSenseiIds(approvedSenseiIds);
+    } catch (error: any) {
+      console.error('Error fetching senseis:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load sensei data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    
+    // Handle sensei selection
+    if (name === 'sensei_id') {
+      const selectedSensei = senseis.find(s => s.id === value);
+      setFormData(prev => ({
+        ...prev,
+        sensei_id: value || null,
+        sensei_name: selectedSensei ? selectedSensei.name : ""
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : 
@@ -141,6 +205,7 @@ const AdminTrips = () => {
       dates: "",
       group_size: "",
       sensei_name: "",
+      sensei_id: null,
       image_url: "",
       theme: "",
       rating: 0,
@@ -162,6 +227,7 @@ const AdminTrips = () => {
       dates: trip.dates,
       group_size: trip.group_size,
       sensei_name: trip.sensei_name,
+      sensei_id: trip.sensei_id,
       image_url: trip.image_url,
       theme: trip.theme,
       rating: trip.rating,
@@ -359,15 +425,36 @@ const AdminTrips = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Sensei Name *</label>
+                    <label className="block text-sm font-medium mb-2">Select Sensei</label>
+                    <select
+                      name="sensei_id"
+                      value={formData.sensei_id || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-border rounded-lg"
+                    >
+                      <option value="">Select an approved Sensei</option>
+                      {senseis
+                        .filter(sensei => approvedSenseiIds.has(sensei.id))
+                        .map(sensei => (
+                          <option key={sensei.id} value={sensei.id}>
+                            {sensei.name} - {sensei.specialty} ({sensei.location})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Sensei Name (Auto-filled)</label>
                     <Input
                       name="sensei_name"
                       value={formData.sensei_name}
                       onChange={handleInputChange}
-                      placeholder="John Smith"
-                      required
+                      placeholder="Will be auto-filled when Sensei is selected"
+                      readOnly={formData.sensei_id !== null}
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Theme *</label>
                     <select

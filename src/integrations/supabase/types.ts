@@ -206,13 +206,6 @@ export type Database = {
             foreignKeyName: "trips_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
-            referencedRelation: "available_senseis"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trips_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
             referencedRelation: "sensei_profiles"
             referencedColumns: ["id"]
           },
@@ -220,21 +213,7 @@ export type Database = {
       }
     }
     Views: {
-      available_senseis: {
-        Row: {
-          application_status: string | null
-          bio: string | null
-          experience: string | null
-          id: string | null
-          image_url: string | null
-          location: string | null
-          name: string | null
-          rating: number | null
-          specialty: string | null
-          trips_led: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never
