@@ -461,6 +461,7 @@ const BecomeSensei = () => {
                         </label>
                         <select name="experience" className="w-full px-3 py-2 border border-border rounded-lg font-sans" required>
                           <option value="">Select experience level</option>
+                          <option value="0">No experience</option>
                           <option value="3">3-5 years</option>
                           <option value="6">6-10 years</option>
                           <option value="11">11-15 years</option>
