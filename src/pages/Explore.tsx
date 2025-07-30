@@ -85,22 +85,22 @@ const Explore = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" />
                 <Input 
                   placeholder="Search destinations or activities..."
-                  className="pl-10 bg-white/10 border-white/30 text-white placeholder:text-white/70"
+                  className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 backdrop-blur-sm"
                 />
               </div>
-              <select className="bg-white/10 border border-white/30 text-white rounded-lg px-4 py-2">
-                <option value="">All Themes</option>
-                <option value="sports">Sports & Nutrition</option>
-                <option value="culinary">Culinary Adventures</option>
-                <option value="wellness">Wellness Reboot</option>
-                <option value="cultural">Cultural Immersion</option>
+              <select className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm">
+                <option value="" className="text-foreground bg-background">All Themes</option>
+                <option value="sports" className="text-foreground bg-background">Sports & Nutrition</option>
+                <option value="culinary" className="text-foreground bg-background">Culinary Adventures</option>
+                <option value="wellness" className="text-foreground bg-background">Wellness Reboot</option>
+                <option value="cultural" className="text-foreground bg-background">Cultural Immersion</option>
               </select>
-              <select className="bg-white/10 border border-white/30 text-white rounded-lg px-4 py-2">
-                <option value="">All Destinations</option>
-                <option value="asia">Asia</option>
-                <option value="europe">Europe</option>
-                <option value="africa">Africa</option>
-                <option value="americas">Americas</option>
+              <select className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm">
+                <option value="" className="text-foreground bg-background">All Destinations</option>
+                <option value="asia" className="text-foreground bg-background">Asia</option>
+                <option value="europe" className="text-foreground bg-background">Europe</option>
+                <option value="africa" className="text-foreground bg-background">Africa</option>
+                <option value="americas" className="text-foreground bg-background">Americas</option>
               </select>
             </div>
           </div>
