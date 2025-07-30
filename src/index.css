@@ -8,45 +8,46 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 210 40% 8%;
+    /* Earth tone palette */
+    --background: 45 15% 97%;
+    --foreground: 20 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 40% 8%;
+    --card-foreground: 20 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 40% 8%;
+    --popover-foreground: 20 15% 15%;
 
-    /* Travel-inspired ocean blue primary */
-    --primary: 210 70% 50%;
+    /* Forest green primary */
+    --primary: 150 30% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Warm sandy secondary */
-    --secondary: 45 25% 88%;
-    --secondary-foreground: 210 40% 8%;
+    /* Warm sand secondary */
+    --secondary: 45 25% 85%;
+    --secondary-foreground: 20 15% 15%;
 
-    --muted: 210 20% 95%;
-    --muted-foreground: 210 20% 40%;
+    --muted: 45 15% 92%;
+    --muted-foreground: 20 10% 45%;
 
-    /* Adventure orange accent */
-    --accent: 25 85% 60%;
+    /* Terracotta/gold accent */
+    --accent: 25 75% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 88%;
-    --input: 210 20% 88%;
-    --ring: 210 70% 50%;
+    --border: 45 15% 88%;
+    --input: 45 15% 88%;
+    --ring: 150 30% 25%;
 
     --radius: 0.75rem;
 
-    /* Travel-specific design tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(210 70% 50%), hsl(25 85% 60%));
-    --adventure-green: 150 50% 45%;
-    --sunset-orange: 25 85% 60%;
-    --ocean-blue: 210 70% 50%;
-    --warm-sand: 45 25% 88%;
+    /* Earth tone design tokens */
+    --forest-green: 150 30% 25%;
+    --terracotta: 15 65% 50%;
+    --warm-sand: 45 25% 85%;
+    --earth-brown: 20 15% 15%;
+    --gold-accent: 25 75% 55%;
 
     --sidebar-background: 0 0% 98%;
 
@@ -66,40 +67,40 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 210 40% 8%;
-    --foreground: 210 20% 95%;
+    --background: 20 15% 8%;
+    --foreground: 45 15% 95%;
 
-    --card: 210 35% 12%;
-    --card-foreground: 210 20% 95%;
+    --card: 20 15% 12%;
+    --card-foreground: 45 15% 95%;
 
-    --popover: 210 35% 12%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 20 15% 12%;
+    --popover-foreground: 45 15% 95%;
 
-    --primary: 210 70% 55%;
+    --primary: 150 40% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 30% 18%;
-    --secondary-foreground: 210 20% 95%;
+    --secondary: 20 10% 18%;
+    --secondary-foreground: 45 15% 95%;
 
-    --muted: 210 30% 18%;
-    --muted-foreground: 210 20% 65%;
+    --muted: 20 10% 18%;
+    --muted-foreground: 45 10% 65%;
 
-    --accent: 25 85% 65%;
+    --accent: 25 75% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 30% 18%;
-    --input: 210 30% 18%;
-    --ring: 210 70% 55%;
+    --border: 20 10% 18%;
+    --input: 20 10% 18%;
+    --ring: 150 40% 35%;
 
-    /* Dark mode travel tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(210 70% 55%), hsl(25 85% 65%));
-    --adventure-green: 150 50% 50%;
-    --sunset-orange: 25 85% 65%;
-    --ocean-blue: 210 70% 55%;
-    --warm-sand: 45 25% 25%;
+    /* Dark mode earth tokens */
+    --forest-green: 150 40% 35%;
+    --terracotta: 15 65% 55%;
+    --warm-sand: 45 15% 25%;
+    --earth-brown: 45 15% 95%;
+    --gold-accent: 25 75% 60%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

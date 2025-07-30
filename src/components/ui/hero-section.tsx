@@ -5,30 +5,30 @@ import { ArrowRight, Mail } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary opacity-90"></div>
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      {/* Background gradient with earth tones */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary/80"></div>
       
       {/* Content */}
-      <div className="relative z-10 container text-center text-white">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+      <div className="relative z-10 container text-center text-white animate-fade-in">
+        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold mb-6 leading-tight">
           Travel with Purpose.
           <br />
-          <span className="text-accent-foreground">Connect through Experiences.</span>
+          <span className="font-sans font-light text-white/95">Connect through Experiences.</span>
         </h1>
         
-        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
+        <p className="font-sans text-lg md:text-xl mb-8 max-w-3xl mx-auto text-white/90 leading-relaxed">
           Join our expert Senseis on transformative journeys around the world. 
           From sports retreats to culinary adventures, discover your next unforgettable experience.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <Button asChild size="lg" variant="secondary" className="font-sans font-medium bg-white text-primary hover:bg-white/90 transition-all duration-300 hover:scale-105">
             <Link to="/explore">
               Explore Trips <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+          <Button asChild size="lg" variant="outline" className="font-sans font-medium border-white text-white hover:bg-white hover:text-primary transition-all duration-300">
             <Link to="/become-sensei">Become a Sensei</Link>
           </Button>
         </div>
@@ -43,7 +43,7 @@ export function HeroSection() {
                 className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
               />
             </div>
-            <Button variant="secondary" className="bg-white text-primary hover:bg-white/90">
+            <Button variant="secondary" className="font-sans font-medium bg-white text-primary hover:bg-white/90 transition-all duration-300">
               Subscribe
             </Button>
           </div>
