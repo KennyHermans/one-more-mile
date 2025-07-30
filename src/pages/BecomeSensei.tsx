@@ -13,6 +13,7 @@ import { Upload, FileText, X } from "lucide-react";
 
 const BecomeSensei = () => {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const { toast } = useToast();
@@ -30,9 +31,11 @@ const BecomeSensei = () => {
         console.log('BecomeSensei: User found in session:', session.user.id);
         setUser(session.user);
       } else {
-        console.log('BecomeSensei: No user in session');
-        setUser(null);
+        console.log('BecomeSensei: No user in session, redirecting to auth');
+        window.location.href = '/auth';
+        return;
       }
+      setLoading(false);
     };
 
     getInitialSession();
@@ -40,7 +43,12 @@ const BecomeSensei = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('BecomeSensei: Auth state change:', event, session?.user?.id);
-        setUser(session?.user ?? null);
+        if (session?.user) {
+          setUser(session.user);
+          setLoading(false);
+        } else {
+          window.location.href = '/auth';
+        }
       }
     );
 
@@ -219,7 +227,7 @@ const BecomeSensei = () => {
     }
   };
 
-  if (!user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-lg">Loading...</div>
