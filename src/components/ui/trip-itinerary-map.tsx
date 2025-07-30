@@ -106,15 +106,19 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
             
             // First check if we have known coordinates
             const locationKey = day.location.toLowerCase();
+            console.log(`Processing location: "${day.location}" -> "${locationKey}"`);
+            
             for (const [key, coords] of Object.entries(knownLocations)) {
               if (locationKey.includes(key)) {
                 coordinates_found = coords;
+                console.log(`Found known coordinates for "${day.location}": [${coords[0]}, ${coords[1]}]`);
                 break;
               }
             }
             
             // If not found in known locations, try geocoding with improved query
             if (!coordinates_found) {
+              console.log(`Geocoding location: "${day.location}"`);
               try {
                 // Improve the search query by being more specific about Cape Town
                 let searchQuery = day.location;
@@ -122,12 +126,15 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
                   searchQuery = `${day.location}, Cape Town, South Africa`;
                 }
                 
+                console.log(`Geocoding query: "${searchQuery}"`);
                 const response = await fetch(
                   `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&limit=5&proximity=18.4241,-33.9249`
                 );
                 
                 if (response.ok) {
                   const data = await response.json();
+                  console.log(`Geocoding results for "${day.location}":`, data.features?.map(f => ({ name: f.place_name, center: f.center })));
+                  
                   if (data.features && data.features.length > 0) {
                     // Find the best match (prefer results near Cape Town)
                     let bestFeature = data.features[0];
@@ -140,9 +147,13 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
                     }
                     
                     const [lng, lat] = bestFeature.center;
+                    console.log(`Selected coordinates for "${day.location}": [${lng}, ${lat}] from "${bestFeature.place_name}"`);
+                    
                     // Validate coordinates are in reasonable range for Cape Town area
                     if (lng >= 18.0 && lng <= 19.5 && lat >= -35.0 && lat <= -33.0) {
                       coordinates_found = [lng, lat];
+                    } else {
+                      console.warn(`Coordinates [${lng}, ${lat}] for "${day.location}" are outside Cape Town area, rejecting`);
                     }
                   }
                 }
