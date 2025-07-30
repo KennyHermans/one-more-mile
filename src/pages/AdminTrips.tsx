@@ -15,12 +15,114 @@ import {
   MapPin,
   Calendar,
   Users,
-  Loader2
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
+
+// Known Cape Town locations with coordinates
+const KNOWN_LOCATIONS: Array<{ name: string; coords: [number, number] }> = [
+  { name: "Cape Town International Airport", coords: [18.5954, -33.9702] },
+  { name: "Table Mountain", coords: [18.4107, -33.9628] },
+  { name: "Lion's Head Peak", coords: [18.3984, -33.9370] },
+  { name: "Camps Bay Beach", coords: [18.3782, -33.9511] },
+  { name: "University of Cape Town", coords: [18.4628, -33.9558] },
+  { name: "University of Cape Town Sports Science Lab", coords: [18.4628, -33.9558] },
+  { name: "Stellenbosch Wine Region", coords: [18.8600, -33.9381] },
+  { name: "Muizenberg Beach", coords: [18.4879, -34.0968] },
+  { name: "Cape Town City Center", coords: [18.4241, -33.9249] },
+  { name: "V&A Waterfront", coords: [18.4194, -33.9030] },
+  { name: "Kirstenbosch Botanical Gardens", coords: [18.4338, -33.9881] },
+  { name: "Robben Island", coords: [18.3673, -33.8067] },
+  { name: "Chapman's Peak", coords: [18.3577, -34.1456] },
+  { name: "Boulder's Beach (Penguins)", coords: [18.4509, -34.1975] },
+  { name: "Signal Hill", coords: [18.4089, -33.9227] },
+  { name: "Constantia Wine Route", coords: [18.4187, -34.0244] },
+  { name: "Hermanus (Whale Watching)", coords: [19.2347, -34.4187] },
+  { name: "Cape Point", coords: [18.4977, -34.3570] },
+  { name: "Hout Bay", coords: [18.3501, -34.0544] }
+];
+
+interface LocationInputProps {
+  value: string;
+  onChange: (location: string, coordinates?: [number, number]) => void;
+  placeholder?: string;
+}
+
+const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filteredLocations, setFilteredLocations] = useState(KNOWN_LOCATIONS);
+
+  const handleInputChange = (inputValue: string) => {
+    onChange(inputValue);
+    
+    // Filter locations based on input
+    const filtered = KNOWN_LOCATIONS.filter(location =>
+      location.name.toLowerCase().includes(inputValue.toLowerCase())
+    );
+    setFilteredLocations(filtered);
+    setIsOpen(inputValue.length > 0 && filtered.length > 0);
+  };
+
+  const handleLocationSelect = (location: typeof KNOWN_LOCATIONS[0]) => {
+    onChange(location.name, location.coords);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Input
+          placeholder={placeholder || "Start typing or select from suggestions"}
+          value={value}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={() => {
+            if (value.length > 0) {
+              const filtered = KNOWN_LOCATIONS.filter(location =>
+                location.name.toLowerCase().includes(value.toLowerCase())
+              );
+              setFilteredLocations(filtered);
+              setIsOpen(filtered.length > 0);
+            } else {
+              setFilteredLocations(KNOWN_LOCATIONS);
+              setIsOpen(true);
+            }
+          }}
+          onBlur={() => {
+            // Delay closing to allow for selection
+            setTimeout(() => setIsOpen(false), 200);
+          }}
+        />
+        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+          {filteredLocations.map((location, index) => (
+            <div
+              key={index}
+              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+              onMouseDown={() => handleLocationSelect(location)}
+            >
+              <div className="font-medium">{location.name}</div>
+              <div className="text-xs text-muted-foreground">
+                Cape Town, South Africa
+              </div>
+            </div>
+          ))}
+          {filteredLocations.length === 0 && value.length > 0 && (
+            <div className="px-3 py-2 text-sm text-muted-foreground">
+              No suggestions found. You can still enter a custom location.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface Trip {
   id: string;
@@ -697,38 +799,22 @@ const AdminTrips = () => {
                           <div className="grid grid-cols-1 gap-4">
                             <div className="space-y-2">
                               <label className="block text-xs font-medium mb-1">Location</label>
-                              <Input
-                                placeholder="City or region (e.g., Cape Town, South Africa)"
+                              <LocationInput
                                 value={day.location}
-                                onChange={(e) => updateProgramDay(index, 'location', e.target.value)}
+                                onChange={(location, coordinates) => {
+                                  updateProgramDay(index, 'location', location);
+                                  if (coordinates) {
+                                    updateProgramDay(index, 'latitude', coordinates[1].toString());
+                                    updateProgramDay(index, 'longitude', coordinates[0].toString());
+                                  }
+                                }}
+                                placeholder="Select from Cape Town locations or enter custom"
                               />
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block text-xs text-muted-foreground mb-1">Latitude (optional)</label>
-                                  <Input
-                                    type="number"
-                                    step="any"
-                                    placeholder="-33.9249"
-                                    value={day.latitude || ''}
-                                    onChange={(e) => updateProgramDay(index, 'latitude', e.target.value)}
-                                    className="text-xs"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-muted-foreground mb-1">Longitude (optional)</label>
-                                  <Input
-                                    type="number"
-                                    step="any"
-                                    placeholder="18.4241"
-                                    value={day.longitude || ''}
-                                    onChange={(e) => updateProgramDay(index, 'longitude', e.target.value)}
-                                    className="text-xs"
-                                  />
-                                </div>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Add coordinates for precise map positioning. Leave empty to use automatic geocoding.
-                              </p>
+                              {day.latitude && day.longitude && (
+                                <p className="text-xs text-green-600">
+                                  📍 Coordinates set: {parseFloat(day.latitude).toFixed(4)}, {parseFloat(day.longitude).toFixed(4)}
+                                </p>
+                              )}
                             </div>
                             <div>
                               <label className="block text-xs font-medium mb-1">Activities</label>
