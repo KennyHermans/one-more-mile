@@ -5,10 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Award, 
+  Calendar,
+  Star,
+  TrendingUp,
+  Users,
+  Loader2,
+  Save,
+  Upload,
+  Camera
+} from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +43,7 @@ interface SenseiProfile {
 }
 
 const SenseiProfile = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<SenseiProfile>({
     name: "",
@@ -42,6 +57,7 @@ const SenseiProfile = () => {
   const [newSpecialty, setNewSpecialty] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -198,6 +214,91 @@ const SenseiProfile = () => {
     }));
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile.${fileExt}`;
+
+      // Delete existing image if it exists
+      if (profile.image_url) {
+        const existingPath = profile.image_url.split('/').slice(-2).join('/');
+        await supabase.storage
+          .from('sensei-profiles')
+          .remove([existingPath]);
+      }
+
+      // Upload new image
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('sensei-profiles')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('sensei-profiles')
+        .getPublicUrl(fileName);
+
+      const imageUrl = urlData.publicUrl;
+
+      // Update profile data and save to database
+      setProfile(prev => ({ ...prev, image_url: imageUrl }));
+
+      if (profile.id) {
+        const { error: updateError } = await supabase
+          .from('sensei_profiles')
+          .update({ image_url: imageUrl })
+          .eq('user_id', user.id);
+
+        if (updateError) throw updateError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile image updated successfully!",
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
@@ -256,6 +357,47 @@ const SenseiProfile = () => {
               )}
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Profile Image Upload Section */}
+              <div className="text-center">
+                <div className="relative inline-block mb-6">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 bg-muted">
+                    {profile.image_url ? (
+                      <img 
+                        src={profile.image_url} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Camera className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {hasProfile && (
+                    <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                      {uploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4" />
+                      )}
+                    </label>
+                  )}
+                </div>
+                
+                {hasProfile && (
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Click the upload button to change your profile picture
+                  </p>
+                )}
+              </div>
 
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -297,13 +439,16 @@ const SenseiProfile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="image_url">Profile Image URL</Label>
+                  <Label htmlFor="image_url">Profile Image URL (Optional)</Label>
                   <Input
                     id="image_url"
                     value={profile.image_url}
                     onChange={(e) => setProfile(prev => ({ ...prev, image_url: e.target.value }))}
-                    placeholder="https://example.com/your-image.jpg"
+                    placeholder="Or paste an image URL here"
                   />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You can either upload an image above or paste a URL here
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
