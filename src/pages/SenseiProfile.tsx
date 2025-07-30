@@ -438,18 +438,6 @@ const SenseiProfile = () => {
                   </p>
                 </div>
 
-                <div>
-                  <Label htmlFor="image_url">Profile Image URL (Optional)</Label>
-                  <Input
-                    id="image_url"
-                    value={profile.image_url}
-                    onChange={(e) => setProfile(prev => ({ ...prev, image_url: e.target.value }))}
-                    placeholder="Or paste an image URL here"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    You can either upload an image above or paste a URL here
-                  </p>
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
