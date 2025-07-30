@@ -1,7 +1,9 @@
 import { Navigation } from "@/components/ui/navigation";
 import { HeroSection } from "@/components/ui/hero-section";
+import { StatsSection } from "@/components/ui/stats-section";
 import { ThemeCard } from "@/components/ui/theme-card";
 import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
+import { TestimonialsSection } from "@/components/ui/testimonials-section";
 import { Dumbbell, ChefHat, Heart, Globe } from "lucide-react";
 
 const Index = () => {
@@ -62,6 +64,8 @@ const Index = () => {
       
       <HeroSection />
       
+      <StatsSection />
+      
       {/* Themes Section */}
       <section className="py-16 bg-secondary/30">
         <div className="container">
@@ -81,6 +85,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      <TestimonialsSection />
       
       {/* Featured Trips Section */}
       <section className="py-16">
