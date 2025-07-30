@@ -49,8 +49,11 @@ const BecomeSensei = () => {
         return null;
       }
 
-      const cvFileUrl = `${supabase.storageUrl}/object/public/${data.Key}`;
-      return cvFileUrl;
+      const { data: urlData } = supabase.storage
+        .from('cv-uploads')
+        .getPublicUrl(data.path);
+      
+      return urlData.publicUrl;
     } catch (error) {
       console.error("Unexpected error during file upload:", error);
       toast({
