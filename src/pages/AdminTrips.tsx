@@ -50,6 +50,8 @@ interface ProgramDay {
   day: number;
   location: string;
   activities: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 interface SenseiProfile {
@@ -692,20 +694,47 @@ const AdminTrips = () => {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
                               <label className="block text-xs font-medium mb-1">Location</label>
                               <Input
-                                placeholder="City or region"
+                                placeholder="City or region (e.g., Cape Town, South Africa)"
                                 value={day.location}
                                 onChange={(e) => updateProgramDay(index, 'location', e.target.value)}
                               />
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs text-muted-foreground mb-1">Latitude (optional)</label>
+                                  <Input
+                                    type="number"
+                                    step="any"
+                                    placeholder="-33.9249"
+                                    value={day.latitude || ''}
+                                    onChange={(e) => updateProgramDay(index, 'latitude', e.target.value)}
+                                    className="text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs text-muted-foreground mb-1">Longitude (optional)</label>
+                                  <Input
+                                    type="number"
+                                    step="any"
+                                    placeholder="18.4241"
+                                    value={day.longitude || ''}
+                                    onChange={(e) => updateProgramDay(index, 'longitude', e.target.value)}
+                                    className="text-xs"
+                                  />
+                                </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Add coordinates for precise map positioning. Leave empty to use automatic geocoding.
+                              </p>
                             </div>
                             <div>
                               <label className="block text-xs font-medium mb-1">Activities</label>
                               <Textarea
                                 placeholder="Describe the day's activities"
-                                rows={2}
+                                rows={3}
                                 value={day.activities}
                                 onChange={(e) => updateProgramDay(index, 'activities', e.target.value)}
                               />
