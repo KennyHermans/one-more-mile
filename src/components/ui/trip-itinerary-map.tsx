@@ -86,6 +86,17 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
           
           // Known coordinates for common Cape Town locations
           const knownLocations: { [key: string]: [number, number] } = {
+            // Exact matches for current trip data
+            "cape town international airport, south africa": [18.5954, -33.9702],
+            "table mountain, south africa": [18.4107, -33.9628],
+            "camps bay beach, south africa": [18.3782, -33.9511],
+            "university of cape town sports science lab, south africa": [18.4628, -33.9558],
+            "lion's head peak, south africa": [18.3984, -33.9370],
+            "stellenbosch wine region, south africa": [18.8600, -33.9381],
+            "muizenberg beach, south africa": [18.4879, -34.0968],
+            "cape town city center, south africa": [18.4241, -33.9249],
+            
+            // Additional Cape Town locations
             "table mountain": [18.4107, -33.9628],
             "lion's head": [18.3984, -33.9370],
             "lions head": [18.3984, -33.9370],
@@ -97,16 +108,7 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
             "cape town city center": [18.4241, -33.9249],
             "cape town city centre": [18.4241, -33.9249],
             "v&a waterfront": [18.4194, -33.9030],
-            "waterfront": [18.4194, -33.9030],
-            // More specific matches for the exact trip locations
-            "cape town international airport, south africa": [18.5954, -33.9702],
-            "table mountain, south africa": [18.4107, -33.9628],
-            "camps bay beach, south africa": [18.3782, -33.9511],
-            "university of cape town sports science lab, south africa": [18.4628, -33.9558],
-            "lion's head peak, south africa": [18.3984, -33.9370],
-            "stellenbosch wine region, south africa": [18.8600, -33.9381],
-            "muizenberg beach, south africa": [18.4879, -34.0968],
-            "cape town city center, south africa": [18.4241, -33.9249]
+            "waterfront": [18.4194, -33.9030]
           };
           
           for (let i = 0; i < program.length; i++) {
