@@ -1,12 +1,82 @@
+import { useState } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: formData
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you within 24 hours.",
+      });
+
+      // Reset form
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: ""
+      });
+
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -42,19 +112,33 @@ const Contact = () => {
 
               <Card className="shadow-lg">
                 <CardContent className="p-8">
-                  <form className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           First Name *
                         </label>
-                        <Input placeholder="Your first name" className="font-sans" />
+                        <Input 
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          placeholder="Your first name" 
+                          className="font-sans"
+                          required 
+                        />
                       </div>
                       <div>
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Last Name *
                         </label>
-                        <Input placeholder="Your last name" className="font-sans" />
+                        <Input 
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          placeholder="Your last name" 
+                          className="font-sans"
+                          required 
+                        />
                       </div>
                     </div>
                     
@@ -62,21 +146,42 @@ const Contact = () => {
                       <label className="font-sans font-medium text-foreground mb-2 block">
                         Email Address *
                       </label>
-                      <Input type="email" placeholder="your.email@example.com" className="font-sans" />
+                      <Input 
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="your.email@example.com" 
+                        className="font-sans"
+                        required 
+                      />
                     </div>
                     
                     <div>
                       <label className="font-sans font-medium text-foreground mb-2 block">
                         Phone Number
                       </label>
-                      <Input type="tel" placeholder="+1 (555) 123-4567" className="font-sans" />
+                      <Input 
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="+1 (555) 123-4567" 
+                        className="font-sans" 
+                      />
                     </div>
                     
                     <div>
                       <label className="font-sans font-medium text-foreground mb-2 block">
                         Subject *
                       </label>
-                      <select className="w-full px-3 py-2 border border-border rounded-lg font-sans">
+                      <select 
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-border rounded-lg font-sans"
+                        required
+                      >
                         <option value="">Select a topic</option>
                         <option value="general">General Inquiry</option>
                         <option value="booking">Trip Booking</option>
@@ -92,14 +197,32 @@ const Contact = () => {
                         Message *
                       </label>
                       <Textarea 
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
                         placeholder="Tell us about your travel interests, questions, or how we can help you..."
                         className="font-sans min-h-[120px]"
+                        required
                       />
                     </div>
                     
-                    <Button className="w-full font-sans font-medium" size="lg">
-                      <Send className="mr-2 h-5 w-5" />
-                      Send Message
+                    <Button 
+                      type="submit"
+                      className="w-full font-sans font-medium" 
+                      size="lg"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Sending Message...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-5 w-5" />
+                          Send Message
+                        </>
+                      )}
                     </Button>
                   </form>
                 </CardContent>
