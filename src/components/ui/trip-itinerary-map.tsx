@@ -121,34 +121,34 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
               const lng = parseFloat(day.longitude);
               if (!isNaN(lat) && !isNaN(lng)) {
                 coordinates_found = [lng, lat];
-                console.log(`Using provided coordinates for "${day.location}": [${lng}, ${lat}]`);
+                console.log(`Using provided coordinates for Day ${day.day} "${day.location}": [${lng}, ${lat}]`);
               }
             }
             
             // If no direct coordinates, check known locations
             if (!coordinates_found) {
               const locationKey = day.location.toLowerCase();
-              console.log(`Processing location: "${day.location}" -> "${locationKey}"`);
+              console.log(`Processing Day ${day.day} location: "${day.location}" -> "${locationKey}"`);
               
               // Try exact match first
               if (knownLocations[locationKey]) {
                 coordinates_found = knownLocations[locationKey];
-                console.log(`Found exact match for "${day.location}": [${coordinates_found[0]}, ${coordinates_found[1]}]`);
+                console.log(`Found exact match for Day ${day.day} "${day.location}": [${coordinates_found[0]}, ${coordinates_found[1]}]`);
               } else {
                 // Try partial match
                 for (const [key, coords] of Object.entries(knownLocations)) {
                   if (locationKey.includes(key)) {
                     coordinates_found = coords;
-                    console.log(`Found partial match for "${day.location}" using key "${key}": [${coords[0]}, ${coords[1]}]`);
+                    console.log(`Found partial match for Day ${day.day} "${day.location}" using key "${key}": [${coords[0]}, ${coords[1]}]`);
                     break;
                   }
                 }
               }
             }
             
-            // If not found in known locations, try geocoding with improved query
+            // If still no coordinates, try geocoding with improved query
             if (!coordinates_found) {
-              console.log(`Geocoding location: "${day.location}"`);
+              console.log(`Geocoding Day ${day.day} location: "${day.location}"`);
               try {
                 // Improve the search query by being more specific about Cape Town
                 let searchQuery = day.location;
@@ -156,14 +156,14 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
                   searchQuery = `${day.location}, Cape Town, South Africa`;
                 }
                 
-                console.log(`Geocoding query: "${searchQuery}"`);
+                console.log(`Geocoding query for Day ${day.day}: "${searchQuery}"`);
                 const response = await fetch(
                   `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&limit=5&proximity=18.4241,-33.9249`
                 );
                 
                 if (response.ok) {
                   const data = await response.json();
-                  console.log(`Geocoding results for "${day.location}":`, data.features?.map(f => ({ name: f.place_name, center: f.center })));
+                  console.log(`Geocoding results for Day ${day.day} "${day.location}":`, data.features?.map(f => ({ name: f.place_name, center: f.center })));
                   
                   if (data.features && data.features.length > 0) {
                     // Find the best match (prefer results near Cape Town)
@@ -177,91 +177,96 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
                     }
                     
                     const [lng, lat] = bestFeature.center;
-                    console.log(`Selected coordinates for "${day.location}": [${lng}, ${lat}] from "${bestFeature.place_name}"`);
+                    console.log(`Selected coordinates for Day ${day.day} "${day.location}": [${lng}, ${lat}] from "${bestFeature.place_name}"`);
                     
                     // Validate coordinates are in reasonable range for Cape Town area
                     if (lng >= 18.0 && lng <= 19.5 && lat >= -35.0 && lat <= -33.0) {
                       coordinates_found = [lng, lat];
                     } else {
-                      console.warn(`Coordinates [${lng}, ${lat}] for "${day.location}" are outside Cape Town area, rejecting`);
+                      console.warn(`Coordinates [${lng}, ${lat}] for Day ${day.day} "${day.location}" are outside Cape Town area, rejecting`);
                     }
                   }
                 }
               } catch (error) {
-                console.error(`Error geocoding location "${day.location}":`, error);
+                console.error(`Error geocoding Day ${day.day} location "${day.location}":`, error);
               }
             }
             
-            if (coordinates_found) {
-              coordinates.push(coordinates_found);
-
-              // Create custom marker element with animation
-              const markerElement = document.createElement('div');
-              markerElement.className = 'custom-marker';
-              markerElement.style.cssText = `
-                position: relative;
-                cursor: pointer;
-                transition: all 0.3s ease;
-              `;
-              markerElement.innerHTML = `
-                <div style="
-                  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-                  color: white;
-                  border-radius: 50%;
-                  width: 40px;
-                  height: 40px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  font-weight: bold;
-                  font-size: 16px;
-                  border: 3px solid white;
-                  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-                  transform: scale(0);
-                  animation: markerPop 0.6s ease-out ${i * 0.2}s forwards;
-                ">${day.day}</div>
-                <div style="
-                  position: absolute;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%);
-                  width: 60px;
-                  height: 60px;
-                  border: 2px solid #3b82f6;
-                  border-radius: 50%;
-                  opacity: 0;
-                  animation: ripple 2s infinite ${i * 0.2}s;
-                "></div>
-              `;
-
-              // Add hover effects
-              markerElement.addEventListener('mouseenter', () => {
-                markerElement.style.transform = 'scale(1.1)';
-              });
-              markerElement.addEventListener('mouseleave', () => {
-                markerElement.style.transform = 'scale(1)';
-              });
-
-              // Create popup content
-              const popupContent = `
-                <div style="font-family: sans-serif; max-width: 280px;">
-                  <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #1f2937;">
-                    Day ${day.day}: ${day.location}
-                  </h3>
-                  <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
-                    ${day.activities || 'No activities specified'}
-                  </p>
-                </div>
-              `;
-
-              // Add marker with popup
-              const marker = new mapboxgl.Marker(markerElement)
-                .setLngLat(coordinates_found)
-                .setPopup(new mapboxgl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(popupContent))
-                .addTo(map.current!);
-                
-              markers.push(marker);
+            // If still no coordinates found, use a default Cape Town location
+            if (!coordinates_found) {
+              coordinates_found = [18.4241, -33.9249]; // Cape Town City Center as fallback
+              console.warn(`No coordinates found for Day ${day.day} "${day.location}", using Cape Town City Center as fallback`);
             }
+            
+            // Now we always have coordinates, so create the marker
+            coordinates.push(coordinates_found);
+
+            // Create custom marker element with animation - use actual day number
+            const markerElement = document.createElement('div');
+            markerElement.className = 'custom-marker';
+            markerElement.style.cssText = `
+              position: relative;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            `;
+            markerElement.innerHTML = `
+              <div style="
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                color: white;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 16px;
+                border: 3px solid white;
+                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+                transform: scale(0);
+                animation: markerPop 0.6s ease-out ${i * 0.2}s forwards;
+              ">${day.day}</div>
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 60px;
+                height: 60px;
+                border: 2px solid #3b82f6;
+                border-radius: 50%;
+                opacity: 0;
+                animation: ripple 2s infinite ${i * 0.2}s;
+              "></div>
+            `;
+
+            // Add hover effects
+            markerElement.addEventListener('mouseenter', () => {
+              markerElement.style.transform = 'scale(1.1)';
+            });
+            markerElement.addEventListener('mouseleave', () => {
+              markerElement.style.transform = 'scale(1)';
+            });
+
+            // Create popup content
+            const popupContent = `
+              <div style="font-family: sans-serif; max-width: 280px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #1f2937;">
+                  Day ${day.day}: ${day.location}
+                </h3>
+                <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
+                  ${day.activities || 'No activities specified'}
+                </p>
+              </div>
+            `;
+
+            // Add marker with popup
+            const marker = new mapboxgl.Marker(markerElement)
+              .setLngLat(coordinates_found)
+              .setPopup(new mapboxgl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(popupContent))
+              .addTo(map.current!);
+              
+            markers.push(marker);
           }
 
           // Store coordinates and markers for animation
