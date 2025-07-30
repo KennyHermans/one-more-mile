@@ -145,6 +145,7 @@ export type Database = {
           is_active: boolean | null
           max_participants: number
           price: string
+          program: Json | null
           rating: number | null
           requirements: string[] | null
           sensei_id: string | null
@@ -169,6 +170,7 @@ export type Database = {
           is_active?: boolean | null
           max_participants?: number
           price: string
+          program?: Json | null
           rating?: number | null
           requirements?: string[] | null
           sensei_id?: string | null
@@ -193,6 +195,7 @@ export type Database = {
           is_active?: boolean | null
           max_participants?: number
           price?: string
+          program?: Json | null
           rating?: number | null
           requirements?: string[] | null
           sensei_id?: string | null

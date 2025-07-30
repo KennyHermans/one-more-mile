@@ -39,6 +39,13 @@ interface Trip {
   max_participants: number;
   current_participants: number;
   is_active: boolean;
+  program: ProgramDay[];
+}
+
+interface ProgramDay {
+  day: number;
+  location: string;
+  activities: string;
 }
 
 interface SenseiProfile {
@@ -78,7 +85,8 @@ const AdminTrips = () => {
     difficulty_level: "Moderate",
     max_participants: 12,
     current_participants: 0,
-    is_active: true
+    is_active: true,
+    program: [] as ProgramDay[]
   });
 
   useEffect(() => {
@@ -123,7 +131,18 @@ const AdminTrips = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTrips(data || []);
+      
+      // Transform the data to ensure program is properly typed
+      const transformedData = (data || []).map(trip => ({
+        ...trip,
+        program: typeof trip.program === 'string' 
+          ? JSON.parse(trip.program) 
+          : Array.isArray(trip.program) 
+            ? trip.program as unknown as ProgramDay[] 
+            : []
+      })) as Trip[];
+      
+      setTrips(transformedData);
     } catch (error: any) {
       console.error('Error fetching trips:', error);
       toast({
@@ -214,7 +233,8 @@ const AdminTrips = () => {
       difficulty_level: "Moderate",
       max_participants: 12,
       current_participants: 0,
-      is_active: true
+      is_active: true,
+      program: []
     });
     setEditingTrip(null);
   };
@@ -236,7 +256,8 @@ const AdminTrips = () => {
       difficulty_level: trip.difficulty_level,
       max_participants: trip.max_participants,
       current_participants: trip.current_participants,
-      is_active: trip.is_active
+      is_active: trip.is_active,
+      program: trip.program || []
     });
     setEditingTrip(trip);
     setIsDialogOpen(true);
@@ -247,11 +268,17 @@ const AdminTrips = () => {
     setIsSubmitting(true);
 
     try {
+      // Prepare data for database, converting program array to JSON for storage
+      const tripData = {
+        ...formData,
+        program: JSON.stringify(formData.program)
+      };
+
       if (editingTrip) {
         // Update existing trip
         const { error } = await supabase
           .from('trips')
-          .update(formData)
+          .update(tripData)
           .eq('id', editingTrip.id);
 
         if (error) throw error;
@@ -264,7 +291,7 @@ const AdminTrips = () => {
         // Create new trip
         const { error } = await supabase
           .from('trips')
-          .insert([formData]);
+          .insert([tripData]);
 
         if (error) throw error;
 
@@ -386,6 +413,38 @@ const AdminTrips = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Program management functions
+  const addProgramDay = () => {
+    const newDay = {
+      day: formData.program.length + 1,
+      location: "",
+      activities: ""
+    };
+    setFormData(prev => ({
+      ...prev,
+      program: [...prev.program, newDay]
+    }));
+  };
+
+  const removeProgramDay = (dayIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      program: prev.program.filter((_, index) => index !== dayIndex)
+        .map((day, index) => ({ ...day, day: index + 1 })) // Renumber days
+    }));
+  };
+
+  const updateProgramDay = (dayIndex: number, field: keyof ProgramDay, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      program: prev.program.map((day, index) => 
+        index === dayIndex 
+          ? { ...day, [field]: field === 'day' ? parseInt(value) || 1 : value }
+          : day
+      )
+    }));
   };
 
   if (loading) {
@@ -576,6 +635,73 @@ const AdminTrips = () => {
                       Upload an image file (max 5MB)
                     </p>
                   </div>
+                </div>
+
+                {/* Day-by-Day Program */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-medium">Day-by-Day Program</label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={addProgramDay}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Day
+                    </Button>
+                  </div>
+                  
+                  {formData.program.length === 0 ? (
+                    <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                      <p className="text-muted-foreground mb-4">No program days added yet</p>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={addProgramDay}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add First Day
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-60 overflow-y-auto border rounded-lg p-4">
+                      {formData.program.map((day, index) => (
+                        <div key={index} className="border-b pb-4 last:border-b-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">Day {day.day}</h4>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeProgramDay(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Location</label>
+                              <Input
+                                placeholder="City or region"
+                                value={day.location}
+                                onChange={(e) => updateProgramDay(index, 'location', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Activities</label>
+                              <Textarea
+                                placeholder="Describe the day's activities"
+                                rows={2}
+                                value={day.activities}
+                                onChange={(e) => updateProgramDay(index, 'activities', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
