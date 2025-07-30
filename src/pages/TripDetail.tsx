@@ -4,6 +4,7 @@ import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -17,6 +18,12 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface ProgramDay {
+  day: number;
+  location: string;
+  activities: string;
+}
 
 interface Trip {
   id: string;
@@ -38,6 +45,7 @@ interface Trip {
   requirements: string[];
   max_participants: number;
   current_participants: number;
+  program: ProgramDay[];
 }
 
 interface SenseiProfile {
@@ -81,7 +89,12 @@ const TripDetail = () => {
           return;
         }
 
-        setTrip(data);
+        // Parse program JSON if it exists
+        const parsedTrip = {
+          ...data,
+          program: data.program ? (Array.isArray(data.program) ? data.program : JSON.parse(data.program as string)) : []
+        };
+        setTrip(parsedTrip);
 
         // Fetch sensei profile if linked
         if (data.sensei_id) {
@@ -255,6 +268,48 @@ const TripDetail = () => {
                     </ul>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Day-by-Day Program */}
+              {trip.program && trip.program.length > 0 && (
+                <div>
+                  <h2 className="font-serif text-3xl font-bold mb-6">Day-by-Day Itinerary</h2>
+                  <div className="space-y-6">
+                    {trip.program.map((day, index) => (
+                      <Card key={index} className="overflow-hidden">
+                        <CardContent className="p-6">
+                          <div className="flex items-start space-x-4">
+                            <div className="flex-shrink-0">
+                              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                                {day.day}
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-serif text-xl font-bold mb-2">
+                                Day {day.day}: {day.location}
+                              </h3>
+                              <p className="font-sans text-muted-foreground leading-relaxed">
+                                {day.activities}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trip Map */}
+              {trip.program && trip.program.length > 0 && (
+                <div>
+                  <h2 className="font-serif text-3xl font-bold mb-6">Trip Locations</h2>
+                  <TripItineraryMap 
+                    program={trip.program} 
+                    tripTitle={trip.title}
+                    className="w-full"
+                  />
+                </div>
               )}
             </div>
 
