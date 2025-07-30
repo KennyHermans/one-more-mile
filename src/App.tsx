@@ -13,6 +13,8 @@ import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
 import MyApplications from "./pages/MyApplications";
 import AdminApplications from "./pages/AdminApplications";
+import AdminTrips from "./pages/AdminTrips";
+import TripDetail from "./pages/TripDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,12 +28,14 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/trip/:tripId" element={<TripDetail />} />
             <Route path="/senseis" element={<Senseis />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/become-sensei" element={<BecomeSensei />} />
             <Route path="/my-applications" element={<MyApplications />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
+            <Route path="/admin/trips" element={<AdminTrips />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

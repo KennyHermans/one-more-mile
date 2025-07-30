@@ -128,6 +128,78 @@ export type Database = {
         }
         Relationships: []
       }
+      trips: {
+        Row: {
+          created_at: string
+          current_participants: number | null
+          dates: string
+          description: string
+          destination: string
+          difficulty_level: string
+          duration_days: number
+          excluded_items: string[] | null
+          group_size: string
+          id: string
+          image_url: string
+          included_amenities: string[] | null
+          is_active: boolean | null
+          max_participants: number
+          price: string
+          rating: number | null
+          requirements: string[] | null
+          sensei_name: string
+          theme: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number | null
+          dates: string
+          description: string
+          destination: string
+          difficulty_level?: string
+          duration_days: number
+          excluded_items?: string[] | null
+          group_size: string
+          id?: string
+          image_url: string
+          included_amenities?: string[] | null
+          is_active?: boolean | null
+          max_participants?: number
+          price: string
+          rating?: number | null
+          requirements?: string[] | null
+          sensei_name: string
+          theme: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number | null
+          dates?: string
+          description?: string
+          destination?: string
+          difficulty_level?: string
+          duration_days?: number
+          excluded_items?: string[] | null
+          group_size?: string
+          id?: string
+          image_url?: string
+          included_amenities?: string[] | null
+          is_active?: boolean | null
+          max_participants?: number
+          price?: string
+          rating?: number | null
+          requirements?: string[] | null
+          sensei_name?: string
+          theme?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

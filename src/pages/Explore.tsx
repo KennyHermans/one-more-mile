@@ -1,66 +1,93 @@
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Search, Filter, MapPin, Calendar, Users, Star } from "lucide-react";
+import { Search, Filter, MapPin, Calendar, Users, Star, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Trip {
+  id: string;
+  title: string;
+  destination: string;
+  description: string;
+  price: string;
+  dates: string;
+  group_size: string;
+  sensei_name: string;
+  image_url: string;
+  theme: string;
+  rating: number;
+}
 
 const Explore = () => {
-  const trips = [
-    {
-      id: "1",
-      title: "Himalayan Trekking & Mindfulness Retreat",
-      destination: "Nepal",
-      description: "A transformative 14-day journey combining high-altitude trekking with daily meditation and mindfulness practices.",
-      price: "$3,299",
-      dates: "Apr 15-28, 2024",
-      groupSize: "8-12 people",
-      sensei: "Maya Chen",
-      image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop",
-      theme: "Wellness",
-      rating: 4.9
-    },
-    {
-      id: "2", 
-      title: "Italian Culinary Masterclass Tour",
-      destination: "Tuscany, Italy",
-      description: "Learn authentic Italian cooking from Michelin-starred chefs while exploring vineyards and local markets.",
-      price: "$2,799",
-      dates: "May 10-17, 2024",
-      groupSize: "6-10 people",
-      sensei: "Giuseppe Romano",
-      image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop",
-      theme: "Culinary",
-      rating: 4.8
-    },
-    {
-      id: "3",
-      title: "South African Safari & Conservation",
-      destination: "Kruger National Park, South Africa",
-      description: "Experience wildlife conservation firsthand while enjoying luxury safari accommodations and cultural exchanges.",
-      price: "$4,599",
-      dates: "Jun 2-12, 2024",
-      groupSize: "10-16 people",
-      sensei: "Thabo Mokoena",
-      image: "https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=800&h=600&fit=crop",
-      theme: "Cultural",
-      rating: 4.9
-    },
-    {
-      id: "4",
-      title: "Alpine Skiing & Fitness Retreat",
-      destination: "Swiss Alps",
-      description: "Combine world-class skiing with comprehensive fitness training in the breathtaking Swiss Alps.",
-      price: "$3,899",
-      dates: "Feb 5-12, 2024",
-      groupSize: "8-14 people",
-      sensei: "Klaus Weber",
-      image: "https://images.unsplash.com/photo-1458668383970-8ddd3927deed?w=800&h=600&fit=crop",
-      theme: "Sports",
-      rating: 4.7
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  const fetchTrips = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTrips(data || []);
+    } catch (error: any) {
+      console.error('Error fetching trips:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load trips. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Filter trips based on search and filters
+  const filteredTrips = trips.filter(trip => {
+    const matchesSearch = searchQuery === "" || 
+      trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      trip.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      trip.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesTheme = selectedTheme === "" || trip.theme.toLowerCase() === selectedTheme;
+    
+    const matchesDestination = selectedDestination === "" || 
+      (selectedDestination === "asia" && (trip.destination.toLowerCase().includes("nepal") || trip.destination.toLowerCase().includes("asia"))) ||
+      (selectedDestination === "europe" && (trip.destination.toLowerCase().includes("italy") || trip.destination.toLowerCase().includes("swiss") || trip.destination.toLowerCase().includes("europe"))) ||
+      (selectedDestination === "africa" && trip.destination.toLowerCase().includes("africa")) ||
+      (selectedDestination === "americas" && (trip.destination.toLowerCase().includes("america") || trip.destination.toLowerCase().includes("usa") || trip.destination.toLowerCase().includes("canada")));
+
+    return matchesSearch && matchesTheme && matchesDestination;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container py-20">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading adventures...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,16 +113,26 @@ const Explore = () => {
                 <Input 
                   placeholder="Search destinations or activities..."
                   className="pl-10 bg-white/20 border-white/30 text-white placeholder:text-white/70 backdrop-blur-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <select className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm">
+              <select 
+                className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm"
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value)}
+              >
                 <option value="" className="text-foreground bg-background">All Themes</option>
-                <option value="sports" className="text-foreground bg-background">Sports & Nutrition</option>
-                <option value="culinary" className="text-foreground bg-background">Culinary Adventures</option>
-                <option value="wellness" className="text-foreground bg-background">Wellness Reboot</option>
-                <option value="cultural" className="text-foreground bg-background">Cultural Immersion</option>
+                <option value="sports" className="text-foreground bg-background">Sports</option>
+                <option value="culinary" className="text-foreground bg-background">Culinary</option>
+                <option value="wellness" className="text-foreground bg-background">Wellness</option>
+                <option value="cultural" className="text-foreground bg-background">Cultural</option>
               </select>
-              <select className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm">
+              <select 
+                className="bg-white/20 border border-white/30 text-white rounded-lg px-4 py-2 backdrop-blur-sm"
+                value={selectedDestination}
+                onChange={(e) => setSelectedDestination(e.target.value)}
+              >
                 <option value="" className="text-foreground bg-background">All Destinations</option>
                 <option value="asia" className="text-foreground bg-background">Asia</option>
                 <option value="europe" className="text-foreground bg-background">Europe</option>
@@ -116,69 +153,85 @@ const Explore = () => {
             </h2>
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-muted-foreground" />
-              <span className="font-sans text-muted-foreground">{trips.length} trips found</span>
+              <span className="font-sans text-muted-foreground">{filteredTrips.length} trips found</span>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {trips.map((trip) => (
-              <Card key={trip.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={trip.image} 
-                    alt={trip.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-4 left-4">
-                    <Badge variant="secondary" className="bg-white/90 text-primary">
-                      {trip.theme}
-                    </Badge>
-                  </div>
-                  <div className="absolute top-4 right-4 flex items-center bg-white/90 rounded-full px-2 py-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                    <span className="font-sans text-sm font-medium">{trip.rating}</span>
-                  </div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span className="font-sans text-sm font-medium">{trip.destination}</span>
+          {filteredTrips.length === 0 ? (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">No trips found</h3>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your search criteria or check back later for new adventures.
+              </p>
+              <Button onClick={() => {
+                setSearchQuery("");
+                setSelectedTheme("");
+                setSelectedDestination("");
+              }}>
+                Clear Filters
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+              {filteredTrips.map((trip) => (
+                <Card key={trip.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className="relative h-64 overflow-hidden">
+                    <img 
+                      src={trip.image_url} 
+                      alt={trip.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute top-4 left-4">
+                      <Badge variant="secondary" className="bg-white/90 text-primary">
+                        {trip.theme}
+                      </Badge>
                     </div>
-                  </div>
-                </div>
-                
-                <CardHeader>
-                  <CardTitle className="font-serif text-xl text-foreground group-hover:text-primary transition-colors">
-                    {trip.title}
-                  </CardTitle>
-                  <p className="font-sans text-muted-foreground line-clamp-2">{trip.description}</p>
-                </CardHeader>
-                
-                <CardContent className="space-y-4 font-sans">
-                  <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{trip.dates}</span>
+                    <div className="absolute top-4 right-4 flex items-center bg-white/90 rounded-full px-2 py-1">
+                      <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
+                      <span className="font-sans text-sm font-medium">{trip.rating}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>{trip.groupSize}</span>
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        <span className="font-sans text-sm font-medium">{trip.destination}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Led by Sensei {trip.sensei}</p>
-                      <p className="text-lg font-bold text-primary">{trip.price}</p>
+                  <CardHeader>
+                    <CardTitle className="font-serif text-xl text-foreground group-hover:text-primary transition-colors">
+                      {trip.title}
+                    </CardTitle>
+                    <p className="font-sans text-muted-foreground line-clamp-2">{trip.description}</p>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4 font-sans">
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{trip.dates}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{trip.group_size}</span>
+                      </div>
                     </div>
-                    <Button asChild className="font-medium">
-                      <Link to={`/trip/${trip.id}`}>Learn More</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Led by Sensei {trip.sensei_name}</p>
+                        <p className="text-lg font-bold text-primary">{trip.price}</p>
+                      </div>
+                      <Button asChild className="font-medium">
+                        <Link to={`/trip/${trip.id}`}>Learn More</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
