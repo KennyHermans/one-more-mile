@@ -1,10 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
@@ -30,9 +52,23 @@ export function Navigation() {
           <Link to="/contact" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
             Contact
           </Link>
-          <Button asChild className="font-sans font-medium transition-all duration-300 hover:scale-105">
-            <Link to="/become-sensei">Become a Sensei</Link>
-          </Button>
+          {user ? (
+            <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+              <Link to="/sensei-profile">
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                <Link to="/auth">Login</Link>
+              </Button>
+              <Button asChild className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                <Link to="/become-sensei">Become a Sensei</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -75,11 +111,27 @@ export function Navigation() {
               >
                 Contact
               </Link>
-              <Button asChild className="w-full">
-                <Link to="/become-sensei" onClick={() => setIsOpen(false)}>
-                  Become a Sensei
-                </Link>
-              </Button>
+              {user ? (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/sensei-profile" onClick={() => setIsOpen(false)}>
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline" className="w-full mb-2">
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                      Login
+                    </Link>
+                  </Button>
+                  <Button asChild className="w-full">
+                    <Link to="/become-sensei" onClick={() => setIsOpen(false)}>
+                      Become a Sensei
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}

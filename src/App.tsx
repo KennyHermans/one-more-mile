@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Senseis from "./pages/Senseis";
 import About from "./pages/About";
+import Auth from "./pages/Auth";
+import SenseiProfile from "./pages/SenseiProfile";
 import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
 import NotFound from "./pages/NotFound";
@@ -19,13 +21,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/senseis" element={<Senseis />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/become-sensei" element={<BecomeSensei />} />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/senseis" element={<Senseis />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/become-sensei" element={<BecomeSensei />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/sensei-profile" element={<SenseiProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
