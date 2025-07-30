@@ -20,21 +20,9 @@ const BecomeSensei = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    console.log('BecomeSensei: Component mounted, checking auth state');
-    
     const getInitialSession = async () => {
-      console.log('BecomeSensei: Getting initial session');
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log('BecomeSensei: Initial session result:', { session, error });
-      
-      if (session?.user) {
-        console.log('BecomeSensei: User found in session:', session.user.id);
-        setUser(session.user);
-      } else {
-        console.log('BecomeSensei: No user in session, redirecting to auth');
-        window.location.href = '/auth';
-        return;
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
       setLoading(false);
     };
 
@@ -42,20 +30,12 @@ const BecomeSensei = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('BecomeSensei: Auth state change:', event, session?.user?.id);
-        if (session?.user) {
-          setUser(session.user);
-          setLoading(false);
-        } else {
-          window.location.href = '/auth';
-        }
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
 
-    return () => {
-      console.log('BecomeSensei: Cleaning up auth subscription');
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleFileUpload = async (file: File): Promise<string | null> => {
@@ -235,6 +215,143 @@ const BecomeSensei = () => {
     );
   }
 
+  // Show landing page for non-authenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navigation />
+        
+        {/* Hero Section */}
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <div className="text-center mb-16">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              Become a <span className="text-blue-600">Sensei</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Join our community of expert guides and share your passion with travelers from around the world. 
+              Turn your expertise into meaningful connections and unforgettable experiences.
+            </p>
+          </div>
+
+          {/* Benefits Grid */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <div className="bg-white rounded-lg p-8 shadow-lg">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Earn Income</h3>
+              <p className="text-gray-600">
+                Monetize your expertise by guiding travelers on personalized journeys. Set your own rates and schedule.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-8 shadow-lg">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Build Community</h3>
+              <p className="text-gray-600">
+                Connect with like-minded travelers and create lasting relationships while sharing your passion.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-8 shadow-lg">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Share Expertise</h3>
+              <p className="text-gray-600">
+                Use your unique skills and local knowledge to create transformative experiences for others.
+              </p>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="text-center">
+            <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Ready to Start Your Journey as a Sensei?
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Join our community of passionate guides and start making a difference in travelers' lives today.
+              </p>
+              <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <a href="/auth">Get Started</a>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                  <a href="/senseis">Meet Our Senseis</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Requirements Preview */}
+          <div className="mt-16 bg-white rounded-lg p-8 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              What We're Looking For
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Experience & Expertise</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Specialized knowledge in your field
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Proven track record of success
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Passion for teaching and mentoring
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Personal Qualities</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Excellent communication skills
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Cultural sensitivity and adaptability
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Commitment to creating great experiences
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show application form for authenticated users
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navigation />
