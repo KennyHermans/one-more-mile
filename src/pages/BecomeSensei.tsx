@@ -15,6 +15,8 @@ const BecomeSensei = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [uploadingCV, setUploadingCV] = useState(false);
 
   useEffect(() => {
     // Check current auth status
@@ -37,6 +39,73 @@ const BecomeSensei = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleFileUpload = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+
+    try {
+      setUploadingCV(true);
+      
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error } = await supabase.storage
+        .from('cv-uploads')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('cv-uploads')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload CV. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingCV(false);
+    }
+  };
+
+  const handleCVFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF, DOC, or DOCX file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCvFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -56,6 +125,16 @@ const BecomeSensei = () => {
       const expertiseAreas = formData.getAll('expertise') as string[];
       const languages = formData.getAll('languages') as string[];
 
+      // Upload CV if provided
+      let cvFileUrl = null;
+      if (cvFile) {
+        cvFileUrl = await handleFileUpload(cvFile);
+        if (!cvFileUrl) {
+          setIsSubmitting(false);
+          return; // Stop submission if CV upload failed
+        }
+      }
+
       const applicationData = {
         user_id: user.id,
         email: formData.get('email') as string,
@@ -70,6 +149,7 @@ const BecomeSensei = () => {
         portfolio_url: formData.get('portfolio') as string || null,
         reference_text: formData.get('references') as string || null,
         availability: formData.get('availability') as string,
+        cv_file_url: cvFileUrl,
       };
 
       const { error } = await supabase
@@ -85,6 +165,7 @@ const BecomeSensei = () => {
 
       // Reset form
       e.currentTarget.reset();
+      setCvFile(null);
     } catch (error) {
       toast({
         title: "Submission Failed",
@@ -432,12 +513,38 @@ const BecomeSensei = () => {
                         <label className="font-sans font-medium text-foreground mb-2 block">
                           Upload CV/Resume *
                         </label>
-                        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors">
-                          <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="font-sans text-muted-foreground">
-                            Drag and drop your CV here, or <span className="text-primary cursor-pointer">browse files</span>
-                          </p>
-                          <p className="font-sans text-sm text-muted-foreground mt-1">PDF, DOC, or DOCX (max 5MB)</p>
+                        <div className="space-y-2">
+                          <input
+                            type="file"
+                            id="cv-upload"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleCVFileChange}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="cv-upload"
+                            className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer block"
+                          >
+                            <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                            {cvFile ? (
+                              <div>
+                                <p className="font-sans text-foreground font-medium">{cvFile.name}</p>
+                                <p className="font-sans text-sm text-muted-foreground">
+                                  {(cvFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="font-sans text-muted-foreground">
+                                  Drag and drop your CV here, or <span className="text-primary cursor-pointer">browse files</span>
+                                </p>
+                                <p className="font-sans text-sm text-muted-foreground mt-1">PDF, DOC, or DOCX (max 5MB)</p>
+                              </>
+                            )}
+                          </label>
+                          {uploadingCV && (
+                            <p className="text-sm text-muted-foreground">Uploading CV...</p>
+                          )}
                         </div>
                       </div>
 
@@ -483,8 +590,8 @@ const BecomeSensei = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full font-sans font-medium" size="lg" type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Submitting..." : "Submit Application"}
+                  <Button className="w-full font-sans font-medium" size="lg" type="submit" disabled={isSubmitting || uploadingCV}>
+                    {isSubmitting ? "Submitting..." : uploadingCV ? "Uploading CV..." : "Submit Application"}
                   </Button>
                 </form>
               </CardContent>

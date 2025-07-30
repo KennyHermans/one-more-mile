@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, CheckCircle, XCircle, Eye } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Eye, Download } from "lucide-react";
 
 interface Application {
   id: string;
@@ -22,6 +22,7 @@ interface Application {
   portfolio_url?: string;
   reference_text?: string;
   availability: string;
+  cv_file_url?: string;
 }
 
 const MyApplications = () => {
@@ -262,6 +263,21 @@ const MyApplications = () => {
                           className="text-blue-600 hover:underline"
                         >
                           {selectedApplication.portfolio_url}
+                        </a>
+                      </div>
+                    )}
+
+                    {selectedApplication.cv_file_url && (
+                      <div>
+                        <h3 className="font-semibold mb-2">CV/Resume</h3>
+                        <a 
+                          href={selectedApplication.cv_file_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 text-blue-600 hover:underline"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download CV</span>
                         </a>
                       </div>
                     )}

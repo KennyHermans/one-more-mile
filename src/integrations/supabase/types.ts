@@ -19,6 +19,7 @@ export type Database = {
           availability: string
           bio: string
           created_at: string
+          cv_file_url: string | null
           email: string
           expertise_areas: string[]
           full_name: string
@@ -38,6 +39,7 @@ export type Database = {
           availability: string
           bio: string
           created_at?: string
+          cv_file_url?: string | null
           email: string
           expertise_areas?: string[]
           full_name: string
@@ -57,6 +59,7 @@ export type Database = {
           availability?: string
           bio?: string
           created_at?: string
+          cv_file_url?: string | null
           email?: string
           expertise_areas?: string[]
           full_name?: string
