@@ -12,6 +12,7 @@ import SenseiProfile from "./pages/SenseiProfile";
 import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
 import MyApplications from "./pages/MyApplications";
+import AdminApplications from "./pages/AdminApplications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/become-sensei" element={<BecomeSensei />} />
             <Route path="/my-applications" element={<MyApplications />} />
+            <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
