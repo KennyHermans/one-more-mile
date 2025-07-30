@@ -110,9 +110,12 @@ const BecomeSensei = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log('=== STARTING APPLICATION SUBMISSION ===');
+
     try {
       // User is already checked to exist at this point
       if (!user) {
+        console.log('ERROR: No user found');
         toast({
           title: "Authentication Error",
           description: "Please refresh the page and try again.",
@@ -121,18 +124,31 @@ const BecomeSensei = () => {
         return;
       }
 
+      console.log('User authenticated:', user.id);
+
       const formData = new FormData(e.currentTarget);
       const expertiseAreas = formData.getAll('expertise') as string[];
       const languages = formData.getAll('languages') as string[];
 
+      console.log('Form data collected:', {
+        expertiseAreas,
+        languages,
+        experience: formData.get('experience')
+      });
+
       // Upload CV if provided
       let cvFileUrl = null;
       if (cvFile) {
+        console.log('Uploading CV file:', cvFile.name);
         cvFileUrl = await handleFileUpload(cvFile);
         if (!cvFileUrl) {
+          console.log('ERROR: CV upload failed');
           setIsSubmitting(false);
           return; // Stop submission if CV upload failed
         }
+        console.log('CV uploaded successfully:', cvFileUrl);
+      } else {
+        console.log('No CV file to upload');
       }
 
       const applicationData = {
@@ -152,17 +168,22 @@ const BecomeSensei = () => {
         cv_file_url: cvFileUrl,
       };
 
-      console.log('Submitting application data:', applicationData);
+      console.log('=== SUBMITTING TO DATABASE ===');
+      console.log('Application data:', applicationData);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('applications')
-        .insert([applicationData]);
+        .insert([applicationData])
+        .select();
+
+      console.log('Database response:', { data, error });
 
       if (error) {
         console.error('Database error:', error);
         throw error;
       }
 
+      console.log('=== SUCCESS! ===');
       toast({
         title: "Application Submitted!",
         description: "We'll review your application and get back to you soon.",
@@ -171,14 +192,21 @@ const BecomeSensei = () => {
       // Reset form
       e.currentTarget.reset();
       setCvFile(null);
+      console.log('Form reset completed');
+
     } catch (error) {
-      console.error('Application submission error:', error);
+      console.error('=== ERROR IN SUBMISSION ===');
+      console.error('Full error object:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+      
       toast({
         title: "Submission Failed",
         description: error instanceof Error ? error.message : "There was an error submitting your application. Please try again.",
         variant: "destructive",
       });
     } finally {
+      console.log('=== SUBMISSION PROCESS COMPLETED ===');
       setIsSubmitting(false);
     }
   };
