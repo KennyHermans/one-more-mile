@@ -33,7 +33,7 @@ const About = () => {
       name: "Elena Rodriguez",
       role: "Founder & CEO",
       bio: "Former travel journalist who discovered the transformative power of purposeful travel after a life-changing trek in the Himalayas.",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b385?w=300&h=300&fit=crop&crop=face"
+      image: "/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png"
     },
     {
       name: "Marcus Thompson",
