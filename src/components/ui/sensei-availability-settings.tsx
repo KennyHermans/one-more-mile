@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SenseiProfile {
@@ -58,6 +58,11 @@ export function SenseiAvailabilitySettings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const setAlwaysAvailable = () => {
+    setIsOffline(false);
+    setUnavailableMonths([]);
   };
 
   const handleSave = async () => {
@@ -134,6 +139,18 @@ export function SenseiAvailabilitySettings() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Quick Actions */}
+          <div className="flex gap-2 pb-4 border-b">
+            <Button 
+              variant="outline" 
+              onClick={setAlwaysAvailable}
+              className="flex items-center gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Always Available
+            </Button>
+          </div>
+
           {/* Offline Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
