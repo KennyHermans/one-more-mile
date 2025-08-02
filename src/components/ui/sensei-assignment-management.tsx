@@ -1,9 +1,11 @@
+// Updated sensei assignment management - combines suggestions and backup
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { SenseiSuggestionsOverview } from "./sensei-suggestions-overview";
 import { BackupSenseiManagement } from "./backup-sensei-management";
 import { UserCheck, UserPlus, Search } from "lucide-react";
 
 export function SenseiAssignmentManagement() {
+  console.log("SenseiAssignmentManagement component loaded");
   return (
     <div className="space-y-6">
       <Tabs defaultValue="suggestions" className="w-full">

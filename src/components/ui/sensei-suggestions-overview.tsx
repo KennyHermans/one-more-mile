@@ -62,6 +62,7 @@ interface SenseiSuggestion {
 }
 
 export function SenseiSuggestionsOverview() {
+  console.log("SenseiSuggestionsOverview component loaded");
   const [tripsNeedingSenseis, setTripsNeedingSenseis] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
