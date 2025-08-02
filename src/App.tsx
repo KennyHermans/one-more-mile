@@ -14,6 +14,7 @@ import BecomeSensei from "./pages/BecomeSensei";
 import MyApplications from "./pages/MyApplications";
 import AdminApplications from "./pages/AdminApplications";
 import AdminTrips from "./pages/AdminTrips";
+import SenseiTrips from "./pages/SenseiTrips";
 import TripDetail from "./pages/TripDetail";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/my-applications" element={<MyApplications />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/admin/trips" element={<AdminTrips />} />
+            <Route path="/sensei/trips" element={<SenseiTrips />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

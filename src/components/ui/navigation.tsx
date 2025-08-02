@@ -9,9 +9,19 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isSensei, setIsSensei] = useState(false);
 
   // Check if current user is admin
   const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
+
+  const checkSenseiStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from('sensei_profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    setIsSensei(!!data);
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -19,6 +29,11 @@ export function Navigation() {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        if (session?.user) {
+          checkSenseiStatus(session.user.id);
+        } else {
+          setIsSensei(false);
+        }
       }
     );
 
@@ -26,6 +41,9 @@ export function Navigation() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        checkSenseiStatus(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -64,6 +82,11 @@ export function Navigation() {
               <Link to="/my-applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                 My Applications
               </Link>
+              {isSensei && (
+                <Link to="/sensei/trips" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                  My Trips
+                </Link>
+              )}
                {isAdmin && (
                  <>
                    <Link to="/admin/applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
@@ -135,12 +158,19 @@ export function Navigation() {
               </Link>
                {user ? (
                 <div className="space-y-2">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/my-applications" onClick={() => setIsOpen(false)}>
-                      My Applications
-                    </Link>
-                  </Button>
-                   {isAdmin && (
+                   <Button asChild variant="outline" className="w-full">
+                     <Link to="/my-applications" onClick={() => setIsOpen(false)}>
+                       My Applications
+                     </Link>
+                   </Button>
+                   {isSensei && (
+                     <Button asChild variant="outline" className="w-full">
+                       <Link to="/sensei/trips" onClick={() => setIsOpen(false)}>
+                         My Trips
+                       </Link>
+                     </Button>
+                   )}
+                    {isAdmin && (
                      <>
                        <Button asChild variant="outline" className="w-full">
                          <Link to="/admin/applications" onClick={() => setIsOpen(false)}>

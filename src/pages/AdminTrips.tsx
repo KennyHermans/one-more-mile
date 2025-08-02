@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
+import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { 
   Plus, 
   Edit2, 
@@ -16,7 +17,8 @@ import {
   Calendar,
   Users,
   Loader2,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -174,6 +176,8 @@ const AdminTrips = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
+  const [selectedTripForPermissions, setSelectedTripForPermissions] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -1053,6 +1057,19 @@ const AdminTrips = () => {
                     <Edit2 className="mr-1 h-4 w-4" />
                     Edit
                   </Button>
+                  {trip.sensei_id && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTripForPermissions(trip.id);
+                        setPermissionsDialogOpen(true);
+                      }}
+                      title="Manage Sensei Permissions"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button 
                     variant="destructive" 
                     size="sm"
@@ -1074,6 +1091,23 @@ const AdminTrips = () => {
             </p>
           </div>
         )}
+
+        {/* Sensei Permissions Dialog */}
+        <SenseiPermissionsDialog
+          tripId={selectedTripForPermissions}
+          isOpen={permissionsDialogOpen}
+          onClose={() => {
+            setPermissionsDialogOpen(false);
+            setSelectedTripForPermissions("");
+          }}
+          onSave={() => {
+            // Optionally refresh data here
+            toast({
+              title: "Success",
+              description: "Sensei permissions updated successfully!",
+            });
+          }}
+        />
       </div>
     </div>
   );
