@@ -228,6 +228,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_feedback: {
+        Row: {
+          created_at: string
+          feedback_text: string
+          id: string
+          rating: number
+          sensei_id: string
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_text: string
+          id?: string
+          rating: number
+          sensei_id: string
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_text?: string
+          id?: string
+          rating?: number
+          sensei_id?: string
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sensei_profiles: {
         Row: {
           bio: string
@@ -421,6 +454,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trip_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          review_text: string | null
+          sensei_id: string
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          review_text?: string | null
+          sensei_id: string
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          review_text?: string | null
+          sensei_id?: string
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       trips: {
         Row: {

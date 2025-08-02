@@ -111,6 +111,7 @@ const AdminDashboard = () => {
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings[]>([]);
   const [tripBookings, setTripBookings] = useState<{[tripId: string]: TripBooking[]}>({});
   const [loadingBookings, setLoadingBookings] = useState<{[tripId: string]: boolean}>({});
+  const [senseiFeedback, setSenseiFeedback] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -144,7 +145,7 @@ const AdminDashboard = () => {
       }
       
       setUser(user);
-      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings()]);
+      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings(), fetchSenseiFeedback()]);
     } catch (error) {
       toast({
         title: "Error",
@@ -220,6 +221,29 @@ const AdminDashboard = () => {
       setPaymentSettings(data || []);
     } catch (error) {
       console.error('Error fetching payment settings:', error);
+    }
+  };
+
+  const fetchSenseiFeedback = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sensei_feedback')
+        .select(`
+          *,
+          trips (
+            title,
+            destination
+          ),
+          sensei_profiles (
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSenseiFeedback(data || []);
+    } catch (error) {
+      console.error('Error fetching sensei feedback:', error);
     }
   };
 
@@ -489,11 +513,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="trips">Trips & Senseis</TabsTrigger>
+            <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
             <TabsTrigger value="settings">Payment Settings</TabsTrigger>
           </TabsList>
 
@@ -741,6 +766,60 @@ const AdminDashboard = () => {
                                </div>
                              )}
                            </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Sensei Feedback Tab */}
+          <TabsContent value="feedback" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Sensei Feedback</h2>
+              <p className="text-sm text-gray-600">Private feedback from customers about Senseis</p>
+            </div>
+
+            {senseiFeedback.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No feedback received yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {senseiFeedback.map((feedback) => (
+                  <Card key={feedback.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">{feedback.trips?.title}</h3>
+                          <p className="text-gray-600">{feedback.trips?.destination}</p>
+                          <p className="text-sm text-gray-500">Sensei: {feedback.sensei_profiles?.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`h-4 w-4 ${i < feedback.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+                            ))}
+                          </div>
+                          <Badge variant={feedback.rating >= 4 ? "default" : feedback.rating >= 3 ? "secondary" : "destructive"}>
+                            {feedback.rating}/5
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-1">Private Feedback:</h4>
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{feedback.feedback_text}</p>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
+                          <span>Submitted: {new Date(feedback.created_at).toLocaleDateString()}</span>
+                          {feedback.rating < 3 && (
+                            <Badge variant="destructive" className="text-xs">⚠️ Low Rating - Review Required</Badge>
+                          )}
                         </div>
                       </div>
                     </CardContent>

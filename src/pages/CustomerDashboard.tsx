@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
+import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle } from "lucide-react";
+import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 
 interface CustomerProfile {
@@ -38,6 +39,7 @@ interface TripBooking {
     dates: string;
     image_url: string;
     sensei_name: string;
+    sensei_id: string;
   };
 }
 
@@ -68,6 +70,9 @@ const CustomerDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [newTodo, setNewTodo] = useState({ title: "", description: "", due_date: "" });
   const [uploading, setUploading] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedTripForReview, setSelectedTripForReview] = useState<any>(null);
+  const [userReviews, setUserReviews] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -86,7 +91,8 @@ const CustomerDashboard = () => {
         fetchProfile(user.id),
         fetchBookings(user.id),
         fetchTodos(user.id),
-        fetchDocuments(user.id)
+        fetchDocuments(user.id),
+        fetchUserReviews(user.id)
       ]);
     } catch (error: any) {
       toast({
@@ -122,7 +128,8 @@ const CustomerDashboard = () => {
           destination,
           dates,
           image_url,
-          sensei_name
+          sensei_name,
+          sensei_id
         )
       `)
       .eq('user_id', userId);
@@ -151,6 +158,41 @@ const CustomerDashboard = () => {
     
     if (error) throw error;
     setDocuments(data || []);
+  };
+
+  const fetchUserReviews = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('trip_reviews')
+      .select(`
+        *,
+        trips (
+          title,
+          destination,
+          sensei_name,
+          sensei_id
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    setUserReviews(data || []);
+  };
+
+  const handleReviewTrip = (booking: TripBooking) => {
+    setSelectedTripForReview({
+      id: booking.trip_id,
+      title: booking.trips.title,
+      sensei_name: booking.trips.sensei_name,
+      sensei_id: booking.trips.sensei_id || '' // Add fallback since sensei_id might not be in the booking
+    });
+    setReviewDialogOpen(true);
+  };
+
+  const handleReviewSuccess = () => {
+    if (user) {
+      fetchUserReviews(user.id);
+    }
   };
 
   const updateProfile = async () => {
@@ -312,7 +354,7 @@ const CustomerDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="trips" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               My Trips
@@ -320,6 +362,10 @@ const CustomerDashboard = () => {
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
               Messages
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Reviews
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -446,6 +492,105 @@ const CustomerDashboard = () => {
                       ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Trip Reviews</CardTitle>
+                <CardDescription>Review your completed trips and see your past reviews</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Trips that can be reviewed */}
+                <div className="space-y-4 mb-8">
+                  <h3 className="font-semibold">Trips Available for Review</h3>
+                  {bookings
+                    .filter(booking => 
+                      booking.payment_status === 'paid' && 
+                      !userReviews.some(review => review.trip_id === booking.trip_id)
+                    )
+                    .length === 0 ? (
+                    <p className="text-muted-foreground">No trips available for review.</p>
+                  ) : (
+                    <div className="grid gap-4">
+                      {bookings
+                        .filter(booking => 
+                          booking.payment_status === 'paid' && 
+                          !userReviews.some(review => review.trip_id === booking.trip_id)
+                        )
+                        .map((booking) => (
+                          <Card key={booking.id} className="overflow-hidden">
+                            <div className="flex">
+                              <img 
+                                src={booking.trips.image_url} 
+                                alt={booking.trips.title}
+                                className="w-24 h-24 object-cover"
+                              />
+                              <CardContent className="flex-1 p-4">
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <h4 className="font-semibold">{booking.trips.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{booking.trips.destination}</p>
+                                    <p className="text-sm">Sensei: {booking.trips.sensei_name}</p>
+                                  </div>
+                                  <Button 
+                                    onClick={() => handleReviewTrip(booking)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Star className="h-4 w-4" />
+                                    Write Review
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </div>
+                          </Card>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Past reviews */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Your Reviews</h3>
+                  {userReviews.length === 0 ? (
+                    <p className="text-muted-foreground">You haven't written any reviews yet.</p>
+                  ) : (
+                    <div className="grid gap-4">
+                      {userReviews.map((review) => (
+                        <Card key={review.id}>
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="font-semibold">{review.trips?.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {review.trips?.destination} • Sensei: {review.trips?.sensei_name}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            {review.review_text && (
+                              <p className="text-sm text-muted-foreground mb-2">{review.review_text}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Reviewed on {new Date(review.created_at).toLocaleDateString()}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -620,6 +765,16 @@ const CustomerDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Review Dialog */}
+        {selectedTripForReview && (
+          <TripReviewDialog
+            open={reviewDialogOpen}
+            onOpenChange={setReviewDialogOpen}
+            trip={selectedTripForReview}
+            onSuccess={handleReviewSuccess}
+          />
+        )}
       </div>
     </div>
   );
