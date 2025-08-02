@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star } from "lucide-react";
+import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 
 interface CustomerProfile {
@@ -60,6 +60,20 @@ interface Document {
   uploaded_at: string;
 }
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: 'normal' | 'high' | 'urgent';
+  trip_id?: string;
+  created_at: string;
+  is_active: boolean;
+  trips?: {
+    title: string;
+    destination: string;
+  };
+}
+
 const CustomerDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
@@ -73,6 +87,7 @@ const CustomerDashboard = () => {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedTripForReview, setSelectedTripForReview] = useState<any>(null);
   const [userReviews, setUserReviews] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,7 +107,8 @@ const CustomerDashboard = () => {
         fetchBookings(user.id),
         fetchTodos(user.id),
         fetchDocuments(user.id),
-        fetchUserReviews(user.id)
+        fetchUserReviews(user.id),
+        fetchAnnouncements(user.id)
       ]);
     } catch (error: any) {
       toast({
@@ -187,6 +203,41 @@ const CustomerDashboard = () => {
       sensei_id: booking.trips.sensei_id || '' // Add fallback since sensei_id might not be in the booking
     });
     setReviewDialogOpen(true);
+  };
+
+  const fetchAnnouncements = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Get trip titles for trip-specific announcements
+      const announcementsWithTrips = await Promise.all(
+        (data || []).map(async (announcement: any) => {
+          if (announcement.trip_id) {
+            const { data: tripData } = await supabase
+              .from('trips')
+              .select('title, destination')
+              .eq('id', announcement.trip_id)
+              .single();
+            
+            return {
+              ...announcement,
+              trips: tripData
+            };
+          }
+          return announcement;
+        })
+      );
+      
+      setAnnouncements(announcementsWithTrips as Announcement[]);
+    } catch (error: any) {
+      console.error('Error fetching announcements:', error);
+    }
   };
 
   const handleReviewSuccess = () => {
@@ -354,10 +405,14 @@ const CustomerDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
             <TabsTrigger value="trips" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span className="hidden sm:inline">My Trips</span>
+            </TabsTrigger>
+            <TabsTrigger value="news" className="flex items-center gap-2">
+              <Megaphone className="h-4 w-4" />
+              <span className="hidden sm:inline">News</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
@@ -490,6 +545,96 @@ const CustomerDashboard = () => {
                           </CardContent>
                         </Card>
                       ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* News Feed Tab */}
+          <TabsContent value="news" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Megaphone className="h-5 w-5" />
+                  News & Announcements
+                </CardTitle>
+                <CardDescription>
+                  Stay updated with important information and updates from your senseis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {announcements.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Megaphone className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-muted-foreground">No announcements yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      Check back later for updates from your senseis
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {announcements.map((announcement) => {
+                      const priorityIcon = announcement.priority === 'urgent' ? AlertTriangle : 
+                                         announcement.priority === 'high' ? Info : 
+                                         Megaphone;
+                      const PriorityIcon = priorityIcon;
+                      
+                      return (
+                        <Card 
+                          key={announcement.id} 
+                          className={`border-l-4 ${
+                            announcement.priority === 'urgent' ? 'border-l-red-500 bg-red-50' :
+                            announcement.priority === 'high' ? 'border-l-yellow-500 bg-yellow-50' :
+                            'border-l-blue-500 bg-blue-50'
+                          }`}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-3">
+                                <PriorityIcon className={`h-5 w-5 mt-1 ${
+                                  announcement.priority === 'urgent' ? 'text-red-600' :
+                                  announcement.priority === 'high' ? 'text-yellow-600' :
+                                  'text-blue-600'
+                                }`} />
+                                <div>
+                                  <h3 className="font-semibold text-lg">{announcement.title}</h3>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge 
+                                      variant={
+                                        announcement.priority === 'urgent' ? 'destructive' :
+                                        announcement.priority === 'high' ? 'default' : 'secondary'
+                                      }
+                                      className="text-xs"
+                                    >
+                                      {announcement.priority}
+                                    </Badge>
+                                    {announcement.trip_id && announcement.trips && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {announcement.trips.title}
+                                      </Badge>
+                                    )}
+                                    {!announcement.trip_id && (
+                                      <Badge variant="outline" className="text-xs">
+                                        General
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(announcement.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                              {announcement.content}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

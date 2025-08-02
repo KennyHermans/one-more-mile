@@ -133,6 +133,21 @@ interface Application {
   cv_file_url?: string;
 }
 
+// Announcement interfaces
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: 'normal' | 'high' | 'urgent';
+  trip_id?: string;
+  created_at: string;
+  is_active: boolean;
+  trips?: {
+    title: string;
+    destination: string;
+  };
+}
+
 // New interfaces for Trips functionality  
 interface TripPermissions {
   description?: boolean;
@@ -179,6 +194,16 @@ const SenseiDashboard = () => {
   // New state for Trips functionality
   const [permissions, setPermissions] = useState<{ [key: string]: TripPermissions }>({});
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  
+  // New state for Announcements functionality
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [createAnnouncementOpen, setCreateAnnouncementOpen] = useState(false);
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: '',
+    content: '',
+    priority: 'normal' as 'normal' | 'high' | 'urgent',
+    trip_id: ''
+  });
   
   const { toast } = useToast();
 
@@ -236,7 +261,8 @@ const SenseiDashboard = () => {
         fetchSenseiTrips(user.id),
         fetchTodos(user.id),
         fetchApplications(user.id),
-        fetchTripPermissions(user.id)
+        fetchTripPermissions(user.id),
+        fetchAnnouncements(user.id)
       ]);
     } catch (error) {
       toast({
@@ -442,6 +468,122 @@ const SenseiDashboard = () => {
       setPermissions(permissionsMap);
     } catch (error) {
       console.error('Error fetching permissions:', error);
+    }
+  };
+
+  // Announcements functionality
+  const fetchAnnouncements = async (userId: string) => {
+    try {
+      // First get the sensei profile to get the sensei ID
+      const { data: senseiData } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!senseiData) return;
+
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('sensei_id', senseiData.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Get trip titles for trip-specific announcements
+      const announcementsWithTrips = await Promise.all(
+        (data || []).map(async (announcement: any) => {
+          if (announcement.trip_id) {
+            const { data: tripData } = await supabase
+              .from('trips')
+              .select('title, destination')
+              .eq('id', announcement.trip_id)
+              .single();
+            
+            return {
+              ...announcement,
+              trips: tripData
+            };
+          }
+          return announcement;
+        })
+      );
+      
+      setAnnouncements(announcementsWithTrips as Announcement[]);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+    }
+  };
+
+  const createAnnouncement = async () => {
+    if (!senseiProfile || !announcementForm.title.trim() || !announcementForm.content.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .insert({
+          sensei_id: senseiProfile.id,
+          title: announcementForm.title.trim(),
+          content: announcementForm.content.trim(),
+          priority: announcementForm.priority,
+          trip_id: announcementForm.trip_id || null
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Announcement created successfully!",
+      });
+
+      setCreateAnnouncementOpen(false);
+      setAnnouncementForm({
+        title: '',
+        content: '',
+        priority: 'normal',
+        trip_id: ''
+      });
+      fetchAnnouncements(user.id);
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create announcement.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleAnnouncementStatus = async (announcementId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .update({ is_active: !currentStatus })
+        .eq('id', announcementId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Announcement ${!currentStatus ? 'activated' : 'deactivated'} successfully!`,
+      });
+
+      fetchAnnouncements(user.id);
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update announcement.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -865,12 +1007,13 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="trip-editor">Editor</TabsTrigger>
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
+            <TabsTrigger value="announcements">News</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Messages</span>
@@ -1424,6 +1567,144 @@ const SenseiDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Announcements Tab */}
+          <TabsContent value="announcements" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">News & Announcements</h2>
+              <Button onClick={() => setCreateAnnouncementOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Announcement
+              </Button>
+            </div>
+
+            {announcements.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No announcements yet. Create your first announcement to keep participants informed.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {announcements.map((announcement) => (
+                  <Card key={announcement.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CardTitle className="text-lg">{announcement.title}</CardTitle>
+                            <Badge 
+                              variant={
+                                announcement.priority === 'urgent' ? 'destructive' :
+                                announcement.priority === 'high' ? 'default' : 'secondary'
+                              }
+                            >
+                              {announcement.priority}
+                            </Badge>
+                            <Badge variant={announcement.is_active ? 'default' : 'secondary'}>
+                              {announcement.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {announcement.trip_id ? 
+                              `Trip-specific: ${announcement.trips?.title || 'Unknown Trip'}` : 
+                              'General announcement'
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Created: {new Date(announcement.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant={announcement.is_active ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => toggleAnnouncementStatus(announcement.id, announcement.is_active)}
+                        >
+                          {announcement.is_active ? 'Deactivate' : 'Activate'}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 whitespace-pre-wrap">{announcement.content}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Create Announcement Dialog */}
+            <Dialog open={createAnnouncementOpen} onOpenChange={setCreateAnnouncementOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New Announcement</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="announcement-title">Title *</Label>
+                    <Input
+                      id="announcement-title"
+                      placeholder="e.g., Don't forget to apply for your visa"
+                      value={announcementForm.title}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="announcement-content">Content *</Label>
+                    <Textarea
+                      id="announcement-content"
+                      placeholder="Detailed information for participants..."
+                      rows={4}
+                      value={announcementForm.content}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="announcement-priority">Priority</Label>
+                      <select
+                        id="announcement-priority"
+                        className="w-full p-2 border rounded-md"
+                        value={announcementForm.priority}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, priority: e.target.value as 'normal' | 'high' | 'urgent'})}
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="announcement-trip">Trip (Optional)</Label>
+                      <select
+                        id="announcement-trip"
+                        className="w-full p-2 border rounded-md"
+                        value={announcementForm.trip_id}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, trip_id: e.target.value})}
+                      >
+                        <option value="">All participants (General)</option>
+                        {trips.filter(trip => trip.is_active).map((trip) => (
+                          <option key={trip.id} value={trip.id}>
+                            {trip.title} - {trip.destination}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setCreateAnnouncementOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={createAnnouncement}>
+                      Create Announcement
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Trip Proposals Tab */}
