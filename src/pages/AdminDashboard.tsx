@@ -33,6 +33,7 @@ import {
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
+import { TripCalendar } from "@/components/ui/trip-calendar";
 
 interface Application {
   id: string;
@@ -754,13 +755,14 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
             <TabsTrigger value="applications">
               <span className="flex items-center gap-2">
                 Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
               </span>
             </TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="senseis">Senseis</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -1255,6 +1257,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Calendar Tab */}
+          <TabsContent value="calendar" className="space-y-6">
+            <TripCalendar />
           </TabsContent>
 
           {/* Trip Cancellations Tab */}
