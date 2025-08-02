@@ -258,8 +258,11 @@ export type Database = {
           booking_status: string
           created_at: string
           id: string
+          last_reminder_sent: string | null
           notes: string | null
+          payment_deadline: string | null
           payment_status: string
+          reminder_count: number | null
           total_amount: number | null
           trip_id: string | null
           updated_at: string
@@ -270,8 +273,11 @@ export type Database = {
           booking_status?: string
           created_at?: string
           id?: string
+          last_reminder_sent?: string | null
           notes?: string | null
+          payment_deadline?: string | null
           payment_status?: string
+          reminder_count?: number | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
@@ -282,8 +288,11 @@ export type Database = {
           booking_status?: string
           created_at?: string
           id?: string
+          last_reminder_sent?: string | null
           notes?: string | null
+          payment_deadline?: string | null
           payment_status?: string
+          reminder_count?: number | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
@@ -432,7 +441,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_payment_deadline: {
+        Args: { trip_start_date: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
