@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
+import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { 
   Calendar as CalendarIcon,
   MapPin,
@@ -1024,12 +1025,13 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="trip-editor">Editor</TabsTrigger>
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
+            <TabsTrigger value="certificates">Certificates</TabsTrigger>
             <TabsTrigger value="announcements">News</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
@@ -1583,6 +1585,20 @@ const SenseiDashboard = () => {
                   </Card>
                 ))}
               </div>
+            )}
+          </TabsContent>
+
+          {/* Certificates & Skills Tab */}
+          <TabsContent value="certificates" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Certificates & Skills</h2>
+              <Badge variant="outline" className="text-sm">
+                Manage your qualifications
+              </Badge>
+            </div>
+            
+            {senseiProfile?.id && (
+              <SenseiCertificatesManagement senseiId={senseiProfile.id} />
             )}
           </TabsContent>
 

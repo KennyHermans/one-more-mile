@@ -351,6 +351,68 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_certificates: {
+        Row: {
+          certificate_file_url: string | null
+          certificate_name: string
+          certificate_number: string | null
+          certificate_type: string
+          created_at: string
+          expiry_date: string | null
+          id: string
+          is_active: boolean
+          issue_date: string | null
+          issuing_organization: string | null
+          sensei_id: string
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by_admin: boolean | null
+        }
+        Insert: {
+          certificate_file_url?: string | null
+          certificate_name: string
+          certificate_number?: string | null
+          certificate_type: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          issue_date?: string | null
+          issuing_organization?: string | null
+          sensei_id: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by_admin?: boolean | null
+        }
+        Update: {
+          certificate_file_url?: string | null
+          certificate_name?: string
+          certificate_number?: string | null
+          certificate_type?: string
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          issue_date?: string | null
+          issuing_organization?: string | null
+          sensei_id?: string
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by_admin?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_sensei_certificates_sensei"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sensei_feedback: {
         Row: {
           created_at: string
@@ -470,6 +532,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sensei_skills: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_verified: boolean | null
+          proficiency_level: string
+          sensei_id: string
+          skill_category: string
+          skill_name: string
+          updated_at: string
+          verified_at: string | null
+          verified_by_admin: boolean | null
+          years_experience: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean | null
+          proficiency_level?: string
+          sensei_id: string
+          skill_category: string
+          skill_name: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by_admin?: boolean | null
+          years_experience?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean | null
+          proficiency_level?: string
+          sensei_id?: string
+          skill_category?: string
+          skill_name?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by_admin?: boolean | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_sensei_skills_sensei"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trip_bookings: {
         Row: {
@@ -675,6 +793,50 @@ export type Database = {
           },
         ]
       }
+      trip_requirements: {
+        Row: {
+          created_at: string
+          id: string
+          is_mandatory: boolean
+          minimum_level: string | null
+          requirement_description: string | null
+          requirement_name: string
+          requirement_type: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean
+          minimum_level?: string | null
+          requirement_description?: string | null
+          requirement_name: string
+          requirement_type: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean
+          minimum_level?: string | null
+          requirement_description?: string | null
+          requirement_name?: string
+          requirement_type?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_trip_requirements_trip"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_reviews: {
         Row: {
           created_at: string
@@ -859,6 +1021,23 @@ export type Database = {
           location: string
           rating: number
           is_available: boolean
+        }[]
+      }
+      suggest_senseis_for_trip_enhanced: {
+        Args: { trip_theme: string; trip_months?: string[]; trip_id?: string }
+        Returns: {
+          sensei_id: string
+          sensei_name: string
+          match_score: number
+          matching_specialties: string[]
+          matching_certifications: string[]
+          matching_skills: string[]
+          verified_certificates: string[]
+          missing_requirements: string[]
+          location: string
+          rating: number
+          is_available: boolean
+          requirements_met_percentage: number
         }[]
       }
     }
