@@ -711,10 +711,45 @@ const SenseiDashboard = () => {
 
       if (tripError) throw tripError;
 
-      toast({
-        title: "Trip Cancelled",
-        description: "The trip has been cancelled and admin has been notified for replacement.",
-      });
+      // Automatically assign backup sensei
+      try {
+        const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke(
+          'assign-backup-sensei',
+          {
+            body: {
+              tripId: selectedTripForCancel.id,
+              cancellationReason: cancellationReason.trim(),
+              originalSenseiName: senseiProfile.name
+            }
+          }
+        );
+
+        if (assignmentError) {
+          console.error('Error assigning backup sensei:', assignmentError);
+          toast({
+            title: "Trip Cancelled",
+            description: "Trip cancelled but there was an issue assigning backup sensei. Admin has been notified.",
+            variant: "destructive",
+          });
+        } else if (assignmentResult?.success) {
+          toast({
+            title: "Trip Reassigned",
+            description: `Trip cancelled and automatically reassigned to backup sensei: ${assignmentResult.backupSenseiName}`,
+          });
+        } else {
+          toast({
+            title: "Trip Cancelled",
+            description: assignmentResult?.message || "Trip cancelled. Admin has been notified to find a replacement.",
+          });
+        }
+      } catch (backupError) {
+        console.error('Error in backup assignment:', backupError);
+        toast({
+          title: "Trip Cancelled",
+          description: "Trip cancelled but backup assignment failed. Admin has been notified.",
+          variant: "destructive",
+        });
+      }
 
       setCancelTripOpen(false);
       setSelectedTripForCancel(null);
