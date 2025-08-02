@@ -830,19 +830,15 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
-            <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
-            <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              Messages
+              <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="todos">To-Do List</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
+            <TabsTrigger value="availability">Settings</TabsTrigger>
           </TabsList>
 
           {/* My Trips Tab */}

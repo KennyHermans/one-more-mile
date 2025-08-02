@@ -754,22 +754,15 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
             <TabsTrigger value="applications">
-              Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
+              <span className="flex items-center gap-2">
+                Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
+              </span>
             </TabsTrigger>
-            <TabsTrigger value="trip-management">Trip Management</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
-            <TabsTrigger value="senseis">Sensei Management</TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
-            <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
-            <TabsTrigger value="cancellations">
-              Cancellations {tripCancellations.filter(c => !c.replacement_sensei_id).length > 0 && 
-                <Badge className="ml-2">{tripCancellations.filter(c => !c.replacement_sensei_id).length}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
-            <TabsTrigger value="settings">Payment Settings</TabsTrigger>
-            <TabsTrigger value="sensei-overview">Sensei Overview</TabsTrigger>
+            <TabsTrigger value="senseis">Senseis</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}

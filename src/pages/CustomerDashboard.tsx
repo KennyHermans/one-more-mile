@@ -347,41 +347,41 @@ const CustomerDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">My Dashboard</h1>
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl lg:text-3xl font-bold">My Dashboard</h1>
           <p className="text-muted-foreground">Manage your trips, profile, and documents</p>
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
             <TabsTrigger value="trips" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              My Trips
+              <span className="hidden sm:inline">My Trips</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              Messages
+              <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex items-center gap-2">
               <Star className="h-4 w-4" />
-              Reviews
+              <span className="hidden sm:inline">Reviews</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Profile
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
-              Calendar
+              <span className="hidden sm:inline">Calendar</span>
             </TabsTrigger>
             <TabsTrigger value="todos" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
-              To-Do List
+              <span className="hidden sm:inline">To-Do</span>
             </TabsTrigger>
             <TabsTrigger value="documents" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Documents
+              <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
           </TabsList>
 
