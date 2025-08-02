@@ -20,7 +20,7 @@ export function HeroSection() {
         
         {/* Main title content */}
         <div className="relative z-10 container text-center text-white animate-fade-in px-4">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto space-y-8">
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
               One More Mile
               <br />
