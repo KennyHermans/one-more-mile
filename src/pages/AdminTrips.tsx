@@ -25,28 +25,16 @@ import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
 
-// Known Cape Town locations with coordinates
-const KNOWN_LOCATIONS: Array<{ name: string; coords: [number, number] }> = [
-  { name: "Cape Town International Airport", coords: [18.5954, -33.9702] },
-  { name: "Table Mountain", coords: [18.4107, -33.9628] },
-  { name: "Lion's Head Peak", coords: [18.3984, -33.9370] },
-  { name: "Camps Bay Beach", coords: [18.3782, -33.9511] },
-  { name: "University of Cape Town", coords: [18.4628, -33.9558] },
-  { name: "University of Cape Town Sports Science Lab", coords: [18.4628, -33.9558] },
-  { name: "Stellenbosch Wine Region", coords: [18.8600, -33.9381] },
-  { name: "Muizenberg Beach", coords: [18.4879, -34.0968] },
-  { name: "Cape Town City Center", coords: [18.4241, -33.9249] },
-  { name: "V&A Waterfront", coords: [18.4194, -33.9030] },
-  { name: "Kirstenbosch Botanical Gardens", coords: [18.4338, -33.9881] },
-  { name: "Robben Island", coords: [18.3673, -33.8067] },
-  { name: "Chapman's Peak", coords: [18.3577, -34.1456] },
-  { name: "Boulder's Beach (Penguins)", coords: [18.4509, -34.1975] },
-  { name: "Signal Hill", coords: [18.4089, -33.9227] },
-  { name: "Constantia Wine Route", coords: [18.4187, -34.0244] },
-  { name: "Hermanus (Whale Watching)", coords: [19.2347, -34.4187] },
-  { name: "Cape Point", coords: [18.4977, -34.3570] },
-  { name: "Hout Bay", coords: [18.3501, -34.0544] }
-];
+// Helper function to get Mapbox token
+const getMapboxToken = async (): Promise<string | null> => {
+  try {
+    const { data } = await supabase.functions.invoke('get-mapbox-token');
+    return data?.token || null;
+  } catch (error) {
+    console.error('Error getting Mapbox token:', error);
+    return null;
+  }
+};
 
 interface LocationInputProps {
   value: string;
@@ -56,43 +44,73 @@ interface LocationInputProps {
 
 const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredLocations, setFilteredLocations] = useState(KNOWN_LOCATIONS);
+  const [suggestions, setSuggestions] = useState<Array<{ name: string; coords: [number, number]; context: string }>>([]);
+  const [loading, setLoading] = useState(false);
+
+  const searchLocations = async (query: string) => {
+    if (!query || query.length < 3) {
+      setSuggestions([]);
+      setIsOpen(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await getMapboxToken();
+      if (!token) {
+        console.error('No Mapbox token available');
+        return;
+      }
+
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=5`
+      );
+      
+      if (!response.ok) throw new Error('Geocoding request failed');
+      
+      const data = await response.json();
+      
+      const formattedSuggestions = data.features?.map((feature: any) => ({
+        name: feature.place_name.split(',')[0], // First part is usually the main location name
+        coords: feature.center as [number, number],
+        context: feature.place_name // Full address for context
+      })) || [];
+
+      setSuggestions(formattedSuggestions);
+      setIsOpen(formattedSuggestions.length > 0);
+    } catch (error) {
+      console.error('Error searching locations:', error);
+      setSuggestions([]);
+      setIsOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (inputValue: string) => {
     onChange(inputValue);
     
-    // Filter locations based on input
-    const filtered = KNOWN_LOCATIONS.filter(location =>
-      location.name.toLowerCase().includes(inputValue.toLowerCase())
-    );
-    setFilteredLocations(filtered);
-    setIsOpen(inputValue.length > 0 && filtered.length > 0);
+    // Debounce the search
+    const timeoutId = setTimeout(() => {
+      searchLocations(inputValue);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   };
 
-  const handleLocationSelect = (location: typeof KNOWN_LOCATIONS[0]) => {
-    onChange(location.name, location.coords);
+  const handleLocationSelect = (location: { name: string; coords: [number, number]; context: string }) => {
+    onChange(location.context, location.coords); // Use full context as location name
     setIsOpen(false);
+    setSuggestions([]);
   };
 
   return (
     <div className="relative">
       <div className="relative">
         <Input
-          placeholder={placeholder || "Start typing or select from suggestions"}
+          placeholder={placeholder || "Search for any location worldwide..."}
           value={value}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => {
-            if (value.length > 0) {
-              const filtered = KNOWN_LOCATIONS.filter(location =>
-                location.name.toLowerCase().includes(value.toLowerCase())
-              );
-              setFilteredLocations(filtered);
-              setIsOpen(filtered.length > 0);
-            } else {
-              setFilteredLocations(KNOWN_LOCATIONS);
-              setIsOpen(true);
-            }
-          }}
           onBlur={() => {
             // Delay closing to allow for selection
             setTimeout(() => setIsOpen(false), 200);
@@ -103,7 +121,13 @@ const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, placehol
       
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-          {filteredLocations.map((location, index) => (
+          {loading && (
+            <div className="px-3 py-2 text-sm text-muted-foreground flex items-center">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Searching locations...
+            </div>
+          )}
+          {!loading && suggestions.map((location, index) => (
             <div
               key={index}
               className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
@@ -111,13 +135,18 @@ const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, placehol
             >
               <div className="font-medium">{location.name}</div>
               <div className="text-xs text-muted-foreground">
-                Cape Town, South Africa
+                {location.context}
               </div>
             </div>
           ))}
-          {filteredLocations.length === 0 && value.length > 0 && (
+          {!loading && suggestions.length === 0 && value.length >= 3 && (
             <div className="px-3 py-2 text-sm text-muted-foreground">
-              No suggestions found. You can still enter a custom location.
+              No locations found. You can still enter a custom location.
+            </div>
+          )}
+          {!loading && value.length > 0 && value.length < 3 && (
+            <div className="px-3 py-2 text-sm text-muted-foreground">
+              Type at least 3 characters to search...
             </div>
           )}
         </div>
@@ -812,7 +841,7 @@ const AdminTrips = () => {
                                     updateProgramDay(index, 'longitude', coordinates[0].toString());
                                   }
                                 }}
-                                placeholder="Select from Cape Town locations or enter custom"
+                                placeholder="Search for any location worldwide..."
                               />
                               {day.latitude && day.longitude && (
                                 <p className="text-xs text-green-600">
