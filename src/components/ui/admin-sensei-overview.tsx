@@ -102,6 +102,26 @@ export function AdminSenseiOverview() {
     }
   };
 
+  const assignSenseiToTrip = async (tripId: string, senseiId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ sensei_id: senseiId })
+        .eq('id', tripId);
+
+      if (error) throw error;
+      
+      toast.success('Sensei assigned to trip successfully');
+      
+      // Refresh data
+      fetchSenseiStatus();
+      fetchTrips();
+    } catch (error) {
+      console.error('Error assigning sensei:', error);
+      toast.error('Failed to assign sensei to trip');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -243,6 +263,7 @@ export function AdminSenseiOverview() {
                                 <TableHead>Availability</TableHead>
                                 <TableHead>Rating</TableHead>
                                 <TableHead>Matching Skills</TableHead>
+                                <TableHead>Actions</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -297,6 +318,15 @@ export function AdminSenseiOverview() {
                                       )}
                                     </div>
                                   </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => assignSenseiToTrip(selectedTrip?.id || '', suggestion.sensei_id)}
+                                      disabled={!suggestion.is_available}
+                                    >
+                                      Assign
+                                    </Button>
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -311,6 +341,37 @@ export function AdminSenseiOverview() {
                   </Dialog>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Assignment Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Trip Assignment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {trips.filter(trip => !trip.sensei_id).map((trip) => (
+              <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-semibold">{trip.title}</h3>
+                  <p className="text-sm text-muted-foreground">Theme: {trip.theme} | {trip.dates}</p>
+                </div>
+                <div className="flex gap-2">
+                  {senseis.filter(s => s.is_available).map((sensei) => (
+                    <Button
+                      key={sensei.sensei_id}
+                      size="sm"
+                      variant="outline"
+                      onClick={() => assignSenseiToTrip(trip.id, sensei.sensei_id)}
+                    >
+                      Assign {sensei.sensei_name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </CardContent>
