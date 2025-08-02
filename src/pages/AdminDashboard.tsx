@@ -93,6 +93,9 @@ interface Trip {
   included_amenities: string[];
   excluded_items: string[];
   requirements: string[];
+  trip_status?: string;
+  created_by_sensei?: boolean;
+  created_by_user_id?: string;
 }
 
 interface SenseiProfile {
@@ -118,6 +121,7 @@ const AdminDashboard = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedTripForPermissions, setSelectedTripForPermissions] = useState<string>("");
+  const [tripProposals, setTripProposals] = useState<Trip[]>([]);
   const { toast } = useToast();
 
   // Stats
@@ -191,6 +195,7 @@ const AdminDashboard = () => {
       })) as Trip[];
       
       setTrips(transformedData);
+      setTripProposals(transformedData.filter(trip => trip.created_by_sensei && trip.trip_status !== 'approved'));
     } catch (error) {
       console.error('Error fetching trips:', error);
     }
@@ -421,6 +426,57 @@ const AdminDashboard = () => {
     }
   };
 
+  const approveTripProposal = async (tripId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ 
+          trip_status: 'approved',
+          is_active: true 
+        })
+        .eq('id', tripId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Trip Approved",
+        description: "The trip proposal has been approved and is now live!",
+      });
+
+      fetchTrips();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve trip proposal.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const rejectTripProposal = async (tripId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'rejected' })
+        .eq('id', tripId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Trip Rejected",
+        description: "The trip proposal has been rejected.",
+      });
+
+      fetchTrips();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject trip proposal.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
@@ -513,11 +569,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="trips">Trips & Senseis</TabsTrigger>
+            <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
             <TabsTrigger value="settings">Payment Settings</TabsTrigger>
           </TabsList>
@@ -766,6 +823,125 @@ const AdminDashboard = () => {
                                </div>
                              )}
                            </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Trip Proposals Tab */}
+          <TabsContent value="proposals" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Proposals</h2>
+              <Badge variant="outline" className="text-sm">
+                {tripProposals.length} proposals to review
+              </Badge>
+            </div>
+
+            {tripProposals.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No trip proposals to review.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {tripProposals.map((proposal) => (
+                  <Card key={proposal.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{proposal.title}</h3>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {proposal.destination}
+                              </p>
+                              <p className="text-gray-600 flex items-center">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                {proposal.dates}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Proposed by: {proposal.sensei_name}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={
+                                  proposal.trip_status === 'pending_approval' ? 'secondary' :
+                                  proposal.trip_status === 'draft' ? 'outline' : 'destructive'
+                                }
+                              >
+                                {proposal.trip_status === 'pending_approval' ? 'Pending Review' : 
+                                 proposal.trip_status === 'draft' ? 'Draft' : 'Rejected'}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Price</p>
+                              <p className="text-sm">{proposal.price}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Duration</p>
+                              <p className="text-sm">{proposal.duration_days} days</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Max Participants</p>
+                              <p className="text-sm">{proposal.max_participants}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Difficulty</p>
+                              <p className="text-sm">{proposal.difficulty_level}</p>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <h4 className="font-semibold mb-2">Description</h4>
+                            <p className="text-sm text-gray-700 line-clamp-3">{proposal.description}</p>
+                          </div>
+
+                          {proposal.trip_status === 'pending_approval' && (
+                            <div className="flex gap-2 pt-4 border-t">
+                              <Button
+                                onClick={() => approveTripProposal(proposal.id)}
+                                className="bg-green-600 hover:bg-green-700"
+                                size="sm"
+                              >
+                                <Check className="w-4 h-4 mr-1" />
+                                Approve & Publish
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => rejectTripProposal(proposal.id)}
+                                size="sm"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Reject
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => window.location.href = `/admin/trips`}
+                                size="sm"
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View Details
+                              </Button>
+                            </div>
+                          )}
+
+                          {proposal.trip_status === 'draft' && (
+                            <div className="pt-4 border-t">
+                              <p className="text-sm text-gray-500 italic">
+                                This proposal is still in draft status. The Sensei hasn't submitted it for review yet.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

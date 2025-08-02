@@ -14,6 +14,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { 
   Calendar as CalendarIcon,
   MapPin,
@@ -43,6 +44,10 @@ interface Trip {
   current_participants: number;
   is_active: boolean;
   sensei_id: string;
+  trip_status?: string;
+  created_by_sensei?: boolean;
+  created_by_user_id?: string;
+  duration_days?: number;
 }
 
 interface SenseiProfile {
@@ -98,6 +103,7 @@ const SenseiDashboard = () => {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [newTodo, setNewTodo] = useState("");
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [createTripOpen, setCreateTripOpen] = useState(false);
   const { toast } = useToast();
 
   // Profile form data
@@ -464,8 +470,9 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
+            <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
               Messages
@@ -594,6 +601,130 @@ const SenseiDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Trip Proposals Tab */}
+          <TabsContent value="proposals" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Proposals</h2>
+              <Button 
+                onClick={() => setCreateTripOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create New Proposal
+              </Button>
+            </div>
+
+            {trips.filter(trip => trip.created_by_sensei).length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600 mb-4">You haven't created any trip proposals yet.</p>
+                  <Button onClick={() => setCreateTripOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Your First Proposal
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {trips.filter(trip => trip.created_by_sensei).map((trip) => (
+                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{trip.title}</h3>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {trip.destination}
+                              </p>
+                              <p className="text-gray-600 flex items-center">
+                                <CalendarIcon className="w-4 h-4 mr-1" />
+                                {trip.dates}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={
+                                  trip.trip_status === 'approved' ? 'default' :
+                                  trip.trip_status === 'pending_approval' ? 'secondary' :
+                                  trip.trip_status === 'draft' ? 'outline' : 'destructive'
+                                }
+                              >
+                                {trip.trip_status === 'pending_approval' ? 'Pending Review' : 
+                                 trip.trip_status === 'approved' ? 'Approved' :
+                                 trip.trip_status === 'draft' ? 'Draft' : 'Rejected'}
+                              </Badge>
+                              {(trip.trip_status === 'draft' || trip.trip_status === 'pending_approval') && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => window.location.href = `/sensei/trips`}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Status</p>
+                              <p className="text-sm capitalize">{trip.trip_status?.replace('_', ' ')}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Duration</p>
+                              <p className="text-sm">{trip.duration_days} days</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Max Participants</p>
+                              <p className="text-sm">{trip.max_participants}</p>
+                            </div>
+                          </div>
+
+                          {trip.trip_status === 'approved' && (
+                            <div className="border-t pt-4">
+                              <div className="flex items-center gap-2 text-green-600">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="text-sm font-medium">This trip is now live and accepting bookings!</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {trip.trip_status === 'rejected' && (
+                            <div className="border-t pt-4">
+                              <div className="flex items-center gap-2 text-red-600">
+                                <X className="w-4 h-4" />
+                                <span className="text-sm font-medium">This proposal was not approved. Contact admin for feedback.</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Create Trip Proposal Dialog */}
+            <Dialog open={createTripOpen} onOpenChange={setCreateTripOpen}>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create Trip Proposal</DialogTitle>
+                </DialogHeader>
+                <TripProposalForm
+                  senseiId={senseiProfile?.id}
+                  onSuccess={() => {
+                    setCreateTripOpen(false);
+                    if (user) fetchSenseiTrips(user.id);
+                  }}
+                  onCancel={() => setCreateTripOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Messages Tab */}
