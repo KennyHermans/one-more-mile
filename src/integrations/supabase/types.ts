@@ -491,6 +491,8 @@ export type Database = {
       trips: {
         Row: {
           created_at: string
+          created_by_sensei: boolean
+          created_by_user_id: string | null
           current_participants: number | null
           dates: string
           description: string
@@ -512,10 +514,13 @@ export type Database = {
           sensei_name: string
           theme: string
           title: string
+          trip_status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          created_by_sensei?: boolean
+          created_by_user_id?: string | null
           current_participants?: number | null
           dates: string
           description: string
@@ -537,10 +542,13 @@ export type Database = {
           sensei_name: string
           theme: string
           title: string
+          trip_status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          created_by_sensei?: boolean
+          created_by_user_id?: string | null
           current_participants?: number | null
           dates?: string
           description?: string
@@ -562,6 +570,7 @@ export type Database = {
           sensei_name?: string
           theme?: string
           title?: string
+          trip_status?: string
           updated_at?: string
         }
         Relationships: [
