@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +50,13 @@ interface Application {
   cv_file_url?: string;
 }
 
+interface PaymentSettings {
+  id: string;
+  setting_name: string;
+  setting_value: any;
+  description: string;
+}
+
 interface Trip {
   id: string;
   title: string;
@@ -85,6 +94,7 @@ const AdminDashboard = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [senseis, setSenseis] = useState<SenseiProfile[]>([]);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -118,7 +128,7 @@ const AdminDashboard = () => {
       }
       
       setUser(user);
-      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis()]);
+      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings()]);
     } catch (error) {
       toast({
         title: "Error",
@@ -180,6 +190,44 @@ const AdminDashboard = () => {
       setSenseis(data || []);
     } catch (error) {
       console.error('Error fetching senseis:', error);
+    }
+  };
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_settings')
+        .select('*')
+        .order('setting_name', { ascending: true });
+
+      if (error) throw error;
+      setPaymentSettings(data || []);
+    } catch (error) {
+      console.error('Error fetching payment settings:', error);
+    }
+  };
+
+  const updatePaymentSetting = async (settingName: string, value: any) => {
+    try {
+      const { error } = await supabase
+        .from('payment_settings')
+        .update({ setting_value: value })
+        .eq('setting_name', settingName);
+
+      if (error) throw error;
+
+      toast({
+        title: "Setting Updated",
+        description: "Payment setting has been updated successfully.",
+      });
+
+      fetchPaymentSettings();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update setting.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -372,11 +420,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="trips">Trips & Senseis</TabsTrigger>
+            <TabsTrigger value="settings">Payment Settings</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}
@@ -577,6 +626,97 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Payment Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Payment Settings</h2>
+              <p className="text-sm text-gray-600">Configure automated payment reminders and deadlines</p>
+            </div>
+
+            <div className="grid gap-6">
+              {paymentSettings.map((setting) => (
+                <Card key={setting.id}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{setting.description}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4">
+                      <Label htmlFor={setting.setting_name} className="min-w-32">
+                        Current Value:
+                      </Label>
+                      {setting.setting_name === 'reminder_intervals_days' ? (
+                        <Input
+                          id={setting.setting_name}
+                          defaultValue={JSON.stringify(setting.setting_value)}
+                          placeholder="[7, 3, 1]"
+                          onBlur={(e) => {
+                            try {
+                              const value = JSON.parse(e.target.value);
+                              updatePaymentSetting(setting.setting_name, value);
+                            } catch (error) {
+                              toast({
+                                title: "Invalid Format",
+                                description: "Please enter a valid JSON array like [7, 3, 1]",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                      ) : (
+                        <Input
+                          id={setting.setting_name}
+                          type="number"
+                          defaultValue={setting.setting_value}
+                          onBlur={(e) => updatePaymentSetting(setting.setting_name, e.target.value)}
+                          className="flex-1"
+                        />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {setting.setting_name === 'payment_deadline_months' && 'Months before trip start when payment is due'}
+                      {setting.setting_name === 'reminder_intervals_days' && 'Array of days before deadline to send reminders (e.g., [7, 3, 1])'}
+                      {setting.setting_name === 'reminder_frequency_hours' && 'Minimum hours between reminder emails to same customer'}
+                      {setting.setting_name === 'grace_period_hours' && 'Hours after deadline before automatically cancelling reservation'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Test Payment Reminders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => {
+                    // Trigger the payment reminders function manually for testing
+                    supabase.functions.invoke('payment-reminders')
+                      .then(() => {
+                        toast({
+                          title: "Test Run Completed",
+                          description: "Payment reminders function has been executed for testing.",
+                        });
+                      })
+                      .catch((error) => {
+                        toast({
+                          title: "Error",
+                          description: "Failed to run payment reminders test.",
+                          variant: "destructive",
+                        });
+                      });
+                  }}
+                >
+                  Run Payment Reminders Now
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">
+                  Manually trigger the payment reminder system for testing purposes.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

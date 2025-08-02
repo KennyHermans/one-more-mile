@@ -23,29 +23,56 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const oneWeekFromNow = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+    // Get payment settings from database
+    const { data: settings, error: settingsError } = await supabase
+      .from('payment_settings')
+      .select('setting_name, setting_value');
 
-    // Find unpaid bookings approaching deadline (within 1 week)
-    const { data: upcomingDeadlines, error: upcomingError } = await supabase
-      .from('trip_bookings')
-      .select(`
-        *,
-        trips!inner(title, destination, dates),
-        customer_profiles!inner(full_name, user_id)
-      `)
-      .eq('payment_status', 'pending')
-      .gte('payment_deadline', now.toISOString())
-      .lte('payment_deadline', oneWeekFromNow.toISOString())
-      .or('last_reminder_sent.is.null,last_reminder_sent.lt.' + threeDaysFromNow.toISOString());
-
-    if (upcomingError) {
-      console.error('Error fetching upcoming deadlines:', upcomingError);
-      throw upcomingError;
+    if (settingsError) {
+      console.error('Error fetching payment settings:', settingsError);
+      throw settingsError;
     }
 
-    console.log(`Found ${upcomingDeadlines?.length || 0} bookings with upcoming payment deadlines`);
+    // Parse settings
+    const paymentDeadlineMonths = parseInt(settings?.find(s => s.setting_name === 'payment_deadline_months')?.setting_value || '3');
+    const reminderIntervalsDays = settings?.find(s => s.setting_name === 'reminder_intervals_days')?.setting_value || [7, 3, 1];
+    const reminderFrequencyHours = parseInt(settings?.find(s => s.setting_name === 'reminder_frequency_hours')?.setting_value || '24');
+    const gracePeriodHours = parseInt(settings?.find(s => s.setting_name === 'grace_period_hours')?.setting_value || '24');
+
+    console.log('Payment settings:', { paymentDeadlineMonths, reminderIntervalsDays, reminderFrequencyHours, gracePeriodHours });
+
+    const now = new Date();
+    const reminderFrequencyMs = reminderFrequencyHours * 60 * 60 * 1000;
+    const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
+
+    // Find unpaid bookings that need reminders
+    let upcomingDeadlines = [];
+    
+    for (const intervalDays of reminderIntervalsDays) {
+      const targetDate = new Date(now.getTime() + (intervalDays * 24 * 60 * 60 * 1000));
+      const { data: bookings, error } = await supabase
+        .from('trip_bookings')
+        .select(`
+          *,
+          trips!inner(title, destination, dates),
+          customer_profiles!inner(full_name, user_id)
+        `)
+        .eq('payment_status', 'pending')
+        .gte('payment_deadline', now.toISOString())
+        .lte('payment_deadline', targetDate.toISOString())
+        .or(`last_reminder_sent.is.null,last_reminder_sent.lt.${new Date(now.getTime() - reminderFrequencyMs).toISOString()}`);
+
+      if (!error && bookings) {
+        upcomingDeadlines = upcomingDeadlines.concat(bookings);
+      }
+    }
+
+    // Remove duplicates
+    upcomingDeadlines = upcomingDeadlines.filter((booking, index, self) => 
+      index === self.findIndex(b => b.id === booking.id)
+    );
+
+    console.log(`Found ${upcomingDeadlines.length} bookings with upcoming payment deadlines`);
 
     // Send reminder emails
     for (const booking of upcomingDeadlines || []) {
@@ -113,7 +140,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Cancel overdue bookings
+    // Cancel overdue bookings (considering grace period)
+    const cancellationCutoff = new Date(now.getTime() - gracePeriodMs);
     const { data: overdueBookings, error: overdueError } = await supabase
       .from('trip_bookings')
       .select(`
@@ -122,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
         customer_profiles!inner(full_name, user_id)
       `)
       .eq('payment_status', 'pending')
-      .lt('payment_deadline', now.toISOString());
+      .lt('payment_deadline', cancellationCutoff.toISOString());
 
     if (overdueError) {
       console.error('Error fetching overdue bookings:', overdueError);

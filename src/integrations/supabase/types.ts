@@ -201,6 +201,33 @@ export type Database = {
           },
         ]
       }
+      payment_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_name: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_name: string
+          setting_value: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_name?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sensei_profiles: {
         Row: {
           bio: string
