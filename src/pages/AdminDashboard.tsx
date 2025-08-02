@@ -755,15 +755,19 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
             <TabsTrigger value="applications">
               <span className="flex items-center gap-2">
                 Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
               </span>
             </TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
+            <TabsTrigger value="trip-management">Management</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup Senseis</TabsTrigger>
+            <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
+            <TabsTrigger value="proposals">Proposals</TabsTrigger>
+            <TabsTrigger value="cancellations">Cancellations</TabsTrigger>
+            <TabsTrigger value="feedback">Feedback</TabsTrigger>
             <TabsTrigger value="senseis">Senseis</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
