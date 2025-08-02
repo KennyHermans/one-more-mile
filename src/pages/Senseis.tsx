@@ -136,10 +136,13 @@ const Senseis = () => {
                       ))}
                     </div>
                   </div>
-                  
-                  <Button className="w-full font-sans font-medium">
-                    View Sensei Profile
-                  </Button>
+                   
+                   <Button 
+                     onClick={() => window.location.href = `/senseis/${sensei.id}`}
+                     className="w-full font-sans font-medium"
+                   >
+                     View Sensei Profile
+                   </Button>
                 </CardContent>
               </Card>
             ))}

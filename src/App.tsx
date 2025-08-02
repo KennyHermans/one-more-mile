@@ -10,6 +10,7 @@ import Senseis from "./pages/Senseis";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import SenseiProfile from "./pages/SenseiProfile";
+import SenseiPublicProfile from "./pages/SenseiPublicProfile";
 import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
 import MyApplications from "./pages/MyApplications";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
+            <Route path="/senseis/:senseiId" element={<SenseiPublicProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
