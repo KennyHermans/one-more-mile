@@ -13,12 +13,10 @@ import SenseiProfile from "./pages/SenseiProfile";
 import SenseiPublicProfile from "./pages/SenseiPublicProfile";
 import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
-import MyApplications from "./pages/MyApplications";
 import AdminApplications from "./pages/AdminApplications";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTrips from "./pages/AdminTrips";
 import SenseiDashboard from "./pages/SenseiDashboard";
-import SenseiTrips from "./pages/SenseiTrips";
 import TripDetail from "./pages/TripDetail";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import NotFound from "./pages/NotFound";
@@ -39,12 +37,10 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/become-sensei" element={<BecomeSensei />} />
-            <Route path="/my-applications" element={<MyApplications />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/admin/trips" element={<AdminTrips />} />
             <Route path="/sensei/dashboard" element={<SenseiDashboard />} />
-            <Route path="/sensei/trips" element={<SenseiTrips />} />
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />

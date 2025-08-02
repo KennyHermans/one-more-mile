@@ -3,7 +3,7 @@ import { Navigation } from "@/components/ui/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +31,11 @@ import {
   Mail,
   Phone,
   Globe,
-  MessageCircle
+  MessageCircle,
+  Clock,
+  XCircle,
+  Eye,
+  Download
 } from "lucide-react";
 
 const localizer = momentLocalizer(moment);
@@ -40,7 +44,16 @@ interface Trip {
   id: string;
   title: string;
   destination: string;
+  description: string;
+  price: string;
   dates: string;
+  group_size: string;
+  program: any;
+  included_amenities: string[];
+  excluded_items: string[];
+  requirements: string[];
+  image_url: string;
+  theme: string;
   max_participants: number;
   current_participants: number;
   is_active: boolean;
@@ -100,6 +113,47 @@ interface CalendarEvent {
   resource: any;
 }
 
+// New interfaces for Applications functionality
+interface Application {
+  id: string;
+  full_name: string;
+  email: string;
+  location: string;
+  expertise_areas: string[];
+  languages: string[];
+  status: string;
+  created_at: string;
+  bio: string;
+  why_sensei: string;
+  years_experience: number;
+  portfolio_url?: string;
+  reference_text?: string;
+  availability: string;
+  cv_file_url?: string;
+}
+
+// New interfaces for Trips functionality  
+interface TripPermissions {
+  description?: boolean;
+  program?: boolean;
+  included_amenities?: boolean;
+  excluded_items?: boolean;
+  requirements?: boolean;
+  dates?: boolean;
+  price?: boolean;
+  group_size?: boolean;
+  title?: boolean;
+  destination?: boolean;
+  theme?: boolean;
+}
+
+interface ProgramDay {
+  day: number;
+  location: string;
+  activities: string[];
+  coordinates?: [number, number];
+}
+
 const SenseiDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
@@ -115,6 +169,16 @@ const SenseiDashboard = () => {
   const [cancelTripOpen, setCancelTripOpen] = useState(false);
   const [selectedTripForCancel, setSelectedTripForCancel] = useState<Trip | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  
+  // New state for Applications functionality
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [loadingApplications, setLoadingApplications] = useState(false);
+  
+  // New state for Trips functionality
+  const [permissions, setPermissions] = useState<{ [key: string]: TripPermissions }>({});
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  
   const { toast } = useToast();
 
   // Profile form data
@@ -169,7 +233,9 @@ const SenseiDashboard = () => {
       await Promise.all([
         fetchSenseiProfile(user.id),
         fetchSenseiTrips(user.id),
-        fetchTodos(user.id)
+        fetchTodos(user.id),
+        fetchApplications(user.id),
+        fetchTripPermissions(user.id)
       ]);
     } catch (error) {
       toast({
@@ -303,6 +369,159 @@ const SenseiDashboard = () => {
     if (storedTodos) {
       setTodos(JSON.parse(storedTodos));
     }
+  };
+
+  // Applications functionality (moved from MyApplications.tsx)
+  const fetchApplications = async (userId: string) => {
+    setLoadingApplications(true);
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setApplications(data || []);
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    } finally {
+      setLoadingApplications(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-4 h-4" />;
+      case 'approved':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'rejected':
+        return <XCircle className="w-4 h-4" />;
+      default:
+        return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Trip permissions functionality (moved from SenseiTrips.tsx)
+  const fetchTripPermissions = async (userId: string) => {
+    try {
+      // First get the sensei profile to get the sensei ID
+      const { data: senseiData } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!senseiData) return;
+      
+      const { data: permissionsData } = await supabase
+        .from('trip_permissions')
+        .select('trip_id, permissions')
+        .eq('sensei_id', senseiData.id);
+
+      const permissionsMap: { [key: string]: TripPermissions } = {};
+      permissionsData?.forEach(p => {
+        permissionsMap[p.trip_id] = p.permissions as TripPermissions;
+      });
+      
+      setPermissions(permissionsMap);
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+    }
+  };
+
+  const canEdit = (tripId: string, field: keyof TripPermissions): boolean => {
+    return permissions[tripId]?.[field] === true;
+  };
+
+  const handleSaveTrip = async () => {
+    if (!editingTrip) return;
+
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({
+          title: editingTrip.title,
+          destination: editingTrip.destination,
+          description: editingTrip.description,
+          price: editingTrip.price,
+          dates: editingTrip.dates,
+          group_size: editingTrip.group_size,
+          program: editingTrip.program,
+          included_amenities: editingTrip.included_amenities,
+          excluded_items: editingTrip.excluded_items,
+          requirements: editingTrip.requirements,
+          theme: editingTrip.theme,
+        })
+        .eq('id', editingTrip.id);
+
+      if (error) throw error;
+
+      setTrips(trips.map(trip => 
+        trip.id === editingTrip.id ? editingTrip : trip
+      ));
+      setEditingTrip(null);
+
+      toast({
+        title: "Success",
+        description: "Trip updated successfully!",
+      });
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update trip.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addProgramDay = () => {
+    if (!editingTrip) return;
+    const newDay: ProgramDay = {
+      day: editingTrip.program.length + 1,
+      location: "",
+      activities: [""]
+    };
+    setEditingTrip({
+      ...editingTrip,
+      program: [...editingTrip.program, newDay]
+    });
+  };
+
+  const updateProgramDay = (dayIndex: number, field: keyof ProgramDay, value: any) => {
+    if (!editingTrip) return;
+    const updatedProgram = [...editingTrip.program];
+    updatedProgram[dayIndex] = { ...updatedProgram[dayIndex], [field]: value };
+    setEditingTrip({ ...editingTrip, program: updatedProgram });
+  };
+
+  const addActivity = (dayIndex: number) => {
+    if (!editingTrip) return;
+    const updatedProgram = [...editingTrip.program];
+    updatedProgram[dayIndex].activities.push("");
+    setEditingTrip({ ...editingTrip, program: updatedProgram });
+  };
+
+  const updateActivity = (dayIndex: number, activityIndex: number, value: string) => {
+    if (!editingTrip) return;
+    const updatedProgram = [...editingTrip.program];
+    updatedProgram[dayIndex].activities[activityIndex] = value;
+    setEditingTrip({ ...editingTrip, program: updatedProgram });
   };
 
   const saveTodos = (newTodos: TodoItem[]) => {
@@ -610,8 +829,10 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
@@ -749,6 +970,413 @@ const SenseiDashboard = () => {
                           </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Applications Tab */}
+          <TabsContent value="applications" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">My Applications</h2>
+              <Badge variant="outline" className="text-sm">
+                {applications.length} application{applications.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+
+            {loadingApplications ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-lg">Loading your applications...</div>
+                </CardContent>
+              </Card>
+            ) : applications.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600 mb-4">You haven't submitted any applications yet.</p>
+                  <Button asChild>
+                    <a href="/become-sensei">Submit Your First Application</a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6">
+                {applications.map((application) => (
+                  <Card key={application.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-xl">{application.full_name}</CardTitle>
+                          <p className="text-gray-600">{application.location}</p>
+                          <p className="text-sm text-gray-500">
+                            Submitted on {new Date(application.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge className={`flex items-center gap-1 ${getStatusColor(application.status)}`}>
+                            {getStatusIcon(application.status)}
+                            {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                          </Badge>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setSelectedApplication(application)}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">Expertise Areas</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {application.expertise_areas.slice(0, 3).map((area) => (
+                              <Badge key={area} variant="secondary" className="text-xs">
+                                {area}
+                              </Badge>
+                            ))}
+                            {application.expertise_areas.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{application.expertise_areas.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-2">Languages</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {application.languages.slice(0, 3).map((language) => (
+                              <Badge key={language} variant="outline" className="text-xs">
+                                {language}
+                              </Badge>
+                            ))}
+                            {application.languages.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{application.languages.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {application.bio}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Application Details Modal */}
+            {selectedApplication && (
+              <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{selectedApplication.full_name} - Application Details</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h2 className="text-2xl font-bold">{selectedApplication.full_name}</h2>
+                        <p className="text-gray-600">{selectedApplication.email}</p>
+                      </div>
+                      <Badge className={`flex items-center gap-1 ${getStatusColor(selectedApplication.status)}`}>
+                        {getStatusIcon(selectedApplication.status)}
+                        {selectedApplication.status.charAt(0).toUpperCase() + selectedApplication.status.slice(1)}
+                      </Badge>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-semibold mb-2">Contact Information</h3>
+                          <p><strong>Email:</strong> {selectedApplication.email}</p>
+                          <p><strong>Location:</strong> {selectedApplication.location}</p>
+                          <p><strong>Experience:</strong> {selectedApplication.years_experience} years</p>
+                        </div>
+
+                        <div>
+                          <h3 className="font-semibold mb-2">Expertise Areas</h3>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedApplication.expertise_areas.map((area) => (
+                              <Badge key={area} variant="secondary">
+                                {area}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="font-semibold mb-2">Languages</h3>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedApplication.languages.map((language) => (
+                              <Badge key={language} variant="outline">
+                                {language}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        {selectedApplication.portfolio_url && (
+                          <div>
+                            <h3 className="font-semibold mb-2">Portfolio</h3>
+                            <a 
+                              href={selectedApplication.portfolio_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {selectedApplication.portfolio_url}
+                            </a>
+                          </div>
+                        )}
+
+                        {selectedApplication.cv_file_url && (
+                          <div>
+                            <h3 className="font-semibold mb-2">CV/Resume</h3>
+                            <a 
+                              href={selectedApplication.cv_file_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center space-x-2 text-blue-600 hover:underline"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Download CV</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-semibold mb-2">Professional Bio</h3>
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {selectedApplication.bio}
+                          </p>
+                        </div>
+
+                        <div>
+                          <h3 className="font-semibold mb-2">Why Sensei?</h3>
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {selectedApplication.why_sensei}
+                          </p>
+                        </div>
+
+                        <div>
+                          <h3 className="font-semibold mb-2">Availability</h3>
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {selectedApplication.availability}
+                          </p>
+                        </div>
+
+                        {selectedApplication.reference_text && (
+                          <div>
+                            <h3 className="font-semibold mb-2">References</h3>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {selectedApplication.reference_text}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t">
+                      <p className="text-sm text-gray-500">
+                        Application submitted on {new Date(selectedApplication.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </TabsContent>
+
+          {/* Trip Editor Tab */}
+          <TabsContent value="trip-editor" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Editor</h2>
+              <Badge variant="outline" className="text-sm">
+                {trips.length} trip{trips.length !== 1 ? 's' : ''} to manage
+              </Badge>
+            </div>
+
+            {trips.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-muted-foreground">
+                    No trips assigned to you yet. Contact the admin to get trips assigned.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trips.map((trip) => (
+                  <Card key={trip.id} className="overflow-hidden">
+                    <div className="aspect-video relative">
+                      <img
+                        src={trip.image_url}
+                        alt={trip.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="line-clamp-2">{trip.title}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{trip.destination}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>Dates:</strong> {trip.dates}</p>
+                        <p><strong>Price:</strong> {trip.price}</p>
+                        <p><strong>Group Size:</strong> {trip.group_size}</p>
+                      </div>
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            className="w-full mt-4" 
+                            onClick={() => setEditingTrip({ ...trip })}
+                          >
+                            <Edit2 className="w-4 h-4 mr-2" />
+                            Edit Trip
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+                          </DialogHeader>
+                          
+                          {editingTrip && (
+                            <div className="space-y-6">
+                              {/* Basic Info */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="title">Title</Label>
+                                  <Input
+                                    id="title"
+                                    value={editingTrip.title}
+                                    onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
+                                    disabled={!canEdit(editingTrip.id, 'title')}
+                                  />
+                                  {!canEdit(editingTrip.id, 'title') && (
+                                    <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="destination">Destination</Label>
+                                  <Input
+                                    id="destination"
+                                    value={editingTrip.destination}
+                                    onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
+                                    disabled={!canEdit(editingTrip.id, 'destination')}
+                                  />
+                                  {!canEdit(editingTrip.id, 'destination') && (
+                                    <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                  id="description"
+                                  value={editingTrip.description}
+                                  onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
+                                  disabled={!canEdit(editingTrip.id, 'description')}
+                                  rows={4}
+                                />
+                                {!canEdit(editingTrip.id, 'description') && (
+                                  <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                )}
+                              </div>
+
+                              {/* Program */}
+                              {canEdit(editingTrip.id, 'program') && (
+                                <div>
+                                  <div className="flex justify-between items-center mb-4">
+                                    <Label>Daily Program</Label>
+                                    <Button onClick={addProgramDay} variant="outline" size="sm">
+                                      Add Day
+                                    </Button>
+                                  </div>
+                                  <div className="space-y-4">
+                                    {editingTrip.program?.map((day: ProgramDay, dayIndex: number) => (
+                                      <Card key={dayIndex}>
+                                        <CardContent className="pt-4">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                              <Label>Day {day.day}</Label>
+                                            </div>
+                                            <div>
+                                              <Label>Location</Label>
+                                              <Input
+                                                value={day.location}
+                                                onChange={(e) => updateProgramDay(dayIndex, 'location', e.target.value)}
+                                              />
+                                            </div>
+                                          </div>
+                                          
+                                          <div>
+                                            <div className="flex justify-between items-center mb-2">
+                                              <Label>Activities</Label>
+                                              <Button onClick={() => addActivity(dayIndex)} variant="outline" size="sm">
+                                                Add Activity
+                                              </Button>
+                                            </div>
+                                            <div className="space-y-2">
+                                              {day.activities?.map((activity: string, activityIndex: number) => (
+                                                <Input
+                                                  key={activityIndex}
+                                                  value={activity}
+                                                  onChange={(e) => updateActivity(dayIndex, activityIndex, e.target.value)}
+                                                  placeholder={`Activity ${activityIndex + 1}`}
+                                                />
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Arrays */}
+                              {canEdit(editingTrip.id, 'included_amenities') && (
+                                <div>
+                                  <Label>Included Amenities (comma-separated)</Label>
+                                  <Textarea
+                                    value={editingTrip.included_amenities?.join(', ') || ''}
+                                    onChange={(e) => setEditingTrip({
+                                      ...editingTrip, 
+                                      included_amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                                    })}
+                                    rows={3}
+                                  />
+                                </div>
+                              )}
+
+                              <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => setEditingTrip(null)}>
+                                  <X className="w-4 h-4 mr-2" />
+                                  Cancel
+                                </Button>
+                                <Button onClick={handleSaveTrip}>
+                                  <Save className="w-4 h-4 mr-2" />
+                                  Save Changes
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
                     </CardContent>
                   </Card>
                 ))}

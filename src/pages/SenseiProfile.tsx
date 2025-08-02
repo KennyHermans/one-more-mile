@@ -376,8 +376,7 @@ const SenseiProfile = () => {
                   <Alert>
                     <Clock className="h-4 w-4" />
                     <AlertDescription>
-                      Your Sensei application is currently under review. 
-                      <a href="/my-applications" className="text-primary hover:underline ml-1">Check your application status</a>.
+                      Your Sensei application is currently under review.
                     </AlertDescription>
                   </Alert>
                 ) : applicationStatus === 'rejected' ? (
