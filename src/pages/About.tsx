@@ -79,30 +79,95 @@ const About = () => {
         </div>
       </section>
 
-      {/* Mission Section */}
+      {/* About Kenny Section */}
       <section className="py-16">
         <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Our Mission
-              </h2>
-              <p className="font-sans text-lg text-muted-foreground leading-relaxed mb-6">
-                We exist to create transformative travel experiences that foster personal growth, 
-                cultural understanding, and meaningful connections. Every journey with One More Mile 
-                is designed to push boundaries, challenge perspectives, and inspire positive change.
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-8 text-center">
+              About me
+            </h2>
+            
+            <div className="prose prose-lg max-w-none font-sans text-muted-foreground leading-relaxed space-y-6">
+              <p>
+                Hi, I'm glad you're interested in learning more about who's behind One More Mile. While some people might skip this page, I believe it's important for you to understand why and how One More Mile came into existence. There was a time when I was searching for organizations and people that build these kinds of trips. We all know that travelling can be expensive, but with the right people, organization and meaning, it becomes more of an investment than a cost. And, as Warren Buffet (often considered the world's best investor of modern times) says:
               </p>
-              <p className="font-sans text-lg text-muted-foreground leading-relaxed">
-                Through expert guidance from our Senseis and carefully curated adventures, we help 
-                travelers discover not just new places, but new dimensions of themselves.
+              
+              <blockquote className="border-l-4 border-primary pl-6 italic text-lg font-medium text-foreground">
+                "The best investment you can make is in yourself."
+              </blockquote>
+              
+              <h3 className="font-serif text-2xl font-bold text-foreground mt-8 mb-4">
+                Kenny Hermans – A Lifelong Love Affair with Travel
+              </h3>
+              
+              <p>
+                So, I'm Kenny Hermans, a 31-year-old Belgian, and I have a confession to make: I'm an addict. I'm addicted to travelling.
               </p>
-            </div>
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=600&h=400&fit=crop" 
-                alt="Travelers on adventure"
-                className="rounded-lg shadow-lg"
-              />
+              
+              <p>
+                It all began when my parents took me as a young child to holiday destinations like Kusadasi in Turkey, Costa Brava in southern Spain, Provence in the south of France, and Venice, Italy. I spent hours baking on the beach, posing for family pictures or strolling through streets full of souvenir shops.
+              </p>
+              
+              <p>
+                Eventually, when I turned 17, I could finally travel without my parents. I began my university studies in Denmark and the UK while squeezing in internships in New Zealand and Thailand. From there, I couldn't stop. Backpacking through Fiji, the USA, Cambodia, and Malaysia? Done. Exploring European hotspots like Barcelona, Paris, Rome, and Berlin? Absolutely.
+              </p>
+              
+              <p>
+                After getting my bachelor's degree, I grabbed a working-holiday visa for Australia and spent a year working (and, let's be honest, mostly traveling) in Melbourne, Sydney, Brisbane, and the Gold Coast. But I wasn't just in it for the adventure. I wanted to turn this passion into something more. So, I went back to Belgium for a degree in International Business Management, which led me to immersion trips in China, Hong Kong, and Japan. And because I can't sit still, I spent my vacation riding a motorcycle across the Himalayas and backpacking through India.
+              </p>
+              
+              <p>
+                Then came the so-called "grown-up" phase. I worked for Coca-Cola and Siemens before diving into entrepreneurship, opening a concept bar/restaurant. And because I like to go all-in, I visited Trappist abbeys worldwide from Spencer (USA) and Stift Engelszell (Austria) to Tre Fontane (Italy) and Koningshoeven (The Netherlands), for inspiration. But, of course, travel was still calling. City trips to Valencia, Lisbon, New York, Palermo, and Oslo? Check. Bigger adventures in Tanzania, the Philippines, the Grand Canyon, and Croatia? Double check. Oh, and somewhere in between, I ran the Marathon des Sables in the Moroccan Sahara.
+              </p>
+              
+              <p>
+                Fast forward to 2024, and my career officially caught up with my passion. I became the International Export Manager at Omexco, traveling the world for business, visiting over 50 countries, from Brazil to New-Zealand and Sweden to South Africa. But something changed. Travel wasn't just about checking places off a list anymore. It wasn't about partying in hostels or squeezing in every tourist attraction. It became about deeper connections, cultural understanding, and personal growth.
+              </p>
+              
+              <p className="font-semibold">
+                That's when One More Mile was born.
+              </p>
+              
+              <p>
+                In Man's Search for Meaning, Viktor Frankl wrote, "The meaning of life always changes, but that it never ceases to be." As humans, we are always searching for life's meaning. Perhaps a better question to ask is "what brings meaning to my life at this moment?" Let's be honest. I've done my fair share of "meaningless" miles. Visiting crowded tourist traps, taking the same photos as a thousand others, and returning home without any real takeaway. Don't get me wrong, everyone should travel. It teaches independence, forces you to handle the unexpected (yes, even getting scammed!), and pushes you out of your comfort zone.
+              </p>
+              
+              <p>
+                But at some point, I started craving something more. I believe travel should inspire and learn you something. Or, it should relaunch you after a breakup, illness, burnout, or depression. Sometimes, the best way to heal or rediscover yourself is to step outside of your routine, embrace new cultures, meet different people, and see life from a fresh perspective. Travel isn't just about where you go, it's about how it changes you.
+              </p>
+              
+              <h3 className="font-serif text-2xl font-bold text-foreground mt-8 mb-4">
+                Why travel with One More Mile?
+              </h3>
+              
+              <p>
+                With One More Mile, you travel with like-minded people who share your passion, interests and even problems, making every trip an opportunity to grow your network and form lasting connections. Whether it's fellow entrepreneurs, creatives, or adventure seekers, you'll come home with new friends, fresh ideas, and maybe even future business partners or your future wife, who knows. Our mission is that you should come back from a trip with fresh energy, a new hobby, perspective or business idea.
+              </p>
+              
+              <p>
+                Travel should leave a mark on you and that's what One More Mile is all about. We design travel experiences built around a specific theme or passion, whether it's (craft) beer, photography, health, or anything else that fuels curiosity and connection. It's travel with depth, purpose, and unforgettable moments. It is an investment in yourself.
+              </p>
+              
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Imagine working on your health under the sun at the beach.</li>
+                <li>Imagine meditating in the middle of nature.</li>
+                <li>Imagine working on your business idea at the swimming pool.</li>
+                <li>Imagine learning about wine at a vineyard.</li>
+                <li>Imagine learning about video and photography while capturing wildlife.</li>
+                <li>Or, imagine how to cook at an outdoor cooking spot surrounded by fresh vegetables and plants.</li>
+              </ul>
+              
+              <p>
+                If this does not excite you, these trips are not for you. :D Otherwise, join one of our trips and maybe you will be one of our next Travel Sensei (specialist in their field)
+              </p>
+              
+              <p className="font-semibold">
+                Let's make it meaningful.
+              </p>
+              
+              <p className="text-right font-medium">
+                Kenny
+              </p>
             </div>
           </div>
         </div>
