@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Users, Star, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StatsCardProps {
   number: string;
@@ -27,6 +29,45 @@ function StatsCard({ number, label, description, icon: Icon }: StatsCardProps) {
 }
 
 export function StatsSection() {
+  const [stats, setStats] = useState({
+    activeTrips: 0,
+    expertSenseis: 0,
+    totalBookings: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Get active trips count
+        const { count: activeTripsCount } = await supabase
+          .from('trips')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true);
+
+        // Get active senseis count
+        const { count: activeSerisCount } = await supabase
+          .from('sensei_profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true);
+
+        // Get total bookings count (representing lives changed)
+        const { count: totalBookingsCount } = await supabase
+          .from('trip_bookings')
+          .select('*', { count: 'exact', head: true });
+
+        setStats({
+          activeTrips: activeTripsCount || 0,
+          expertSenseis: activeSerisCount || 0,
+          totalBookings: totalBookingsCount || 0
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <section className="py-20 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 to-background"></div>
@@ -43,19 +84,19 @@ export function StatsSection() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <StatsCard
-            number="500+"
-            label="Adventures Led"
-            description="Unique experiences across 6 continents"
+            number={`${stats.activeTrips}+`}
+            label="Active Adventures"
+            description="Unique experiences waiting for you"
             icon={Star}
           />
           <StatsCard
-            number="50+"
+            number={`${stats.expertSenseis}+`}
             label="Expert Senseis"
             description="Passionate guides in their fields"
             icon={Users}
           />
           <StatsCard
-            number="2000+"
+            number={`${stats.totalBookings}+`}
             label="Lives Changed"
             description="Travelers who found their purpose"
             icon={Clock}
