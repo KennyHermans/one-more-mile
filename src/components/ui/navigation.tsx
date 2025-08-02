@@ -77,21 +77,15 @@ export function Navigation() {
           <Link to="/contact" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
             Contact
           </Link>
-           {user ? (
-            <div className="flex items-center space-x-4">
-              <Link to="/sensei/dashboard?tab=applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                My Applications
-              </Link>
-              {isSensei && (
-                <>
-                  <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                    My Dashboard
-                  </Link>
-                  <Link to="/sensei/dashboard?tab=trips" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                    My Trips
-                  </Link>
-                </>
-              )}
+            {user ? (
+             <div className="flex items-center space-x-4">
+               {isSensei && (
+                 <>
+                   <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                     My Dashboard
+                   </Link>
+                 </>
+               )}
                {isAdmin && (
                  <Link to="/admin/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                    Admin Dashboard
@@ -156,27 +150,17 @@ export function Navigation() {
               >
                 Contact
               </Link>
-               {user ? (
-                <div className="space-y-2">
-                   <Button asChild variant="outline" className="w-full">
-                      <Link to="/sensei/dashboard?tab=applications" onClick={() => setIsOpen(false)}>
-                        My Applications
-                      </Link>
-                   </Button>
-                   {isSensei && (
-                     <>
-                       <Button asChild variant="outline" className="w-full">
-                         <Link to="/sensei/dashboard" onClick={() => setIsOpen(false)}>
-                           My Dashboard
-                         </Link>
-                       </Button>
-                       <Button asChild variant="outline" className="w-full">
-                          <Link to="/sensei/dashboard?tab=trips" onClick={() => setIsOpen(false)}>
-                            My Trips
+                {user ? (
+                 <div className="space-y-2">
+                    {isSensei && (
+                      <>
+                        <Button asChild variant="outline" className="w-full">
+                          <Link to="/sensei/dashboard" onClick={() => setIsOpen(false)}>
+                            My Dashboard
                           </Link>
-                       </Button>
-                     </>
-                   )}
+                        </Button>
+                      </>
+                    )}
                     {isAdmin && (
                       <Button asChild variant="outline" className="w-full">
                         <Link to="/admin/dashboard" onClick={() => setIsOpen(false)}>
