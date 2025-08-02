@@ -76,12 +76,9 @@ const TripDetail = () => {
   const [user, setUser] = useState<any>(null);
   const [bookingForm, setBookingForm] = useState({
     full_name: "",
-    phone: "",
-    emergency_contact_name: "",
-    emergency_contact_phone: "",
-    dietary_restrictions: "",
-    medical_conditions: "",
-    notes: ""
+    address: "",
+    email: "",
+    phone: ""
   });
   const { toast } = useToast();
 
@@ -92,6 +89,9 @@ const TripDetail = () => {
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+    if (user?.email) {
+      setBookingForm(prev => ({ ...prev, email: user.email }));
+    }
   };
 
   const handleBookTrip = async () => {
@@ -122,23 +122,18 @@ const TripDetail = () => {
         .insert({
           trip_id: trip.id,
           user_id: user.id,
-          total_amount: totalAmount,
-          notes: bookingForm.notes || null
+          total_amount: totalAmount
         });
 
       if (bookingError) throw bookingError;
 
-      // Create or update customer profile
+      // Create or update customer profile with basic info
       const { error: profileError } = await supabase
         .from('customer_profiles')
         .upsert({
           user_id: user.id,
           full_name: bookingForm.full_name,
-          phone: bookingForm.phone,
-          emergency_contact_name: bookingForm.emergency_contact_name,
-          emergency_contact_phone: bookingForm.emergency_contact_phone,
-          dietary_restrictions: bookingForm.dietary_restrictions,
-          medical_conditions: bookingForm.medical_conditions
+          phone: bookingForm.phone
         });
 
       if (profileError) throw profileError;
@@ -147,7 +142,9 @@ const TripDetail = () => {
       const defaultTodos = [
         { title: "Complete passport verification", description: "Upload a clear photo of your passport", due_date: null, created_by_admin: true },
         { title: "Submit travel insurance details", description: "Provide proof of travel insurance coverage", due_date: null, created_by_admin: true },
-        { title: "Confirm emergency contact", description: "Verify emergency contact information is up to date", due_date: null, created_by_admin: true }
+        { title: "Add emergency contact details", description: "Complete your emergency contact information", due_date: null, created_by_admin: true },
+        { title: "Update dietary restrictions", description: "Let us know about any dietary restrictions or allergies", due_date: null, created_by_admin: true },
+        { title: "Medical conditions", description: "Share any medical conditions we should be aware of", due_date: null, created_by_admin: true }
       ];
 
       const todoInserts = defaultTodos.map(todo => ({
@@ -164,7 +161,7 @@ const TripDetail = () => {
 
       toast({
         title: "Booking successful!",
-        description: "Your trip has been booked. You can manage it in your dashboard.",
+        description: "Your trip has been booked. Complete your profile in your dashboard.",
       });
 
       setShowBookingDialog(false);
@@ -580,59 +577,28 @@ const TripDetail = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="emergency_contact_name">Emergency Contact Name *</Label>
-                <Input
-                  id="emergency_contact_name"
-                  value={bookingForm.emergency_contact_name}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
-                  placeholder="Emergency contact name"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergency_contact_phone">Emergency Contact Phone *</Label>
-                <Input
-                  id="emergency_contact_phone"
-                  value={bookingForm.emergency_contact_phone}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
-                  placeholder="Emergency contact phone"
-                  required
-                />
-              </div>
-            </div>
-            
             <div>
-              <Label htmlFor="dietary_restrictions">Dietary Restrictions</Label>
-              <Textarea
-                id="dietary_restrictions"
-                value={bookingForm.dietary_restrictions}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, dietary_restrictions: e.target.value }))}
-                placeholder="Any dietary restrictions or allergies we should know about?"
-                rows={2}
+              <Label htmlFor="email">Email Address *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={bookingForm.email}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter your email address"
+                required
+                disabled
               />
             </div>
             
             <div>
-              <Label htmlFor="medical_conditions">Medical Conditions</Label>
+              <Label htmlFor="address">Address *</Label>
               <Textarea
-                id="medical_conditions"
-                value={bookingForm.medical_conditions}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, medical_conditions: e.target.value }))}
-                placeholder="Any medical conditions we should be aware of?"
-                rows={2}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea
-                id="notes"
-                value={bookingForm.notes}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Any special requests or questions?"
-                rows={2}
+                id="address"
+                value={bookingForm.address}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter your full address"
+                rows={3}
+                required
               />
             </div>
           </div>
@@ -647,7 +613,7 @@ const TripDetail = () => {
             </Button>
             <Button 
               onClick={handleBookingSubmit}
-              disabled={bookingLoading || !bookingForm.full_name || !bookingForm.phone || !bookingForm.emergency_contact_name || !bookingForm.emergency_contact_phone}
+              disabled={bookingLoading || !bookingForm.full_name || !bookingForm.phone || !bookingForm.email || !bookingForm.address}
             >
               {bookingLoading ? "Processing..." : `Book for ${trip?.price}`}
             </Button>
