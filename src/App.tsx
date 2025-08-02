@@ -13,6 +13,7 @@ import Contact from "./pages/Contact";
 import BecomeSensei from "./pages/BecomeSensei";
 import MyApplications from "./pages/MyApplications";
 import AdminApplications from "./pages/AdminApplications";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminTrips from "./pages/AdminTrips";
 import SenseiTrips from "./pages/SenseiTrips";
 import TripDetail from "./pages/TripDetail";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/become-sensei" element={<BecomeSensei />} />
             <Route path="/my-applications" element={<MyApplications />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/admin/trips" element={<AdminTrips />} />
             <Route path="/sensei/trips" element={<SenseiTrips />} />
