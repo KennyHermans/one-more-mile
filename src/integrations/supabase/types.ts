@@ -335,6 +335,45 @@ export type Database = {
           },
         ]
       }
+      trip_messages: {
+        Row: {
+          created_at: string
+          file_url: string | null
+          id: string
+          is_deleted: boolean | null
+          message_text: string
+          message_type: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          message_text: string
+          message_type?: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          message_text?: string
+          message_type?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          trip_id?: string
+        }
+        Relationships: []
+      }
       trip_permissions: {
         Row: {
           created_at: string

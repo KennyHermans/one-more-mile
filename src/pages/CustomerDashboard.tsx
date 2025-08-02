@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
+import { TripMessaging } from "@/components/ui/trip-messaging";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText } from "lucide-react";
+import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 
 interface CustomerProfile {
@@ -311,10 +312,14 @@ const CustomerDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="trips" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               My Trips
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Messages
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -396,6 +401,49 @@ const CustomerDashboard = () => {
                         </div>
                       </Card>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="messages" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Trip Messages</CardTitle>
+                <CardDescription>Communicate with your trip sensei for paid trips</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bookings.filter(booking => booking.payment_status === 'paid').length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    You need to have a paid trip booking to message with your sensei.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {bookings
+                      .filter(booking => booking.payment_status === 'paid')
+                      .map((booking) => (
+                        <Card key={booking.id}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold">{booking.trips.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {booking.trips.destination} • Sensei: {booking.trips.sensei_name}
+                                </p>
+                              </div>
+                              <Badge variant="default">Paid</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <TripMessaging
+                              tripId={booking.trip_id}
+                              tripTitle={booking.trips.title}
+                              userType="customer"
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
                   </div>
                 )}
               </CardContent>

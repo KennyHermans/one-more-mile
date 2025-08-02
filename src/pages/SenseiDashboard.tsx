@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TripMessaging } from "@/components/ui/trip-messaging";
 import { Label } from "@/components/ui/label";
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -27,7 +28,8 @@ import {
   User,
   Mail,
   Phone,
-  Globe
+  Globe,
+  MessageCircle
 } from "lucide-react";
 
 const localizer = momentLocalizer(moment);
@@ -462,8 +464,12 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Messages
+            </TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="todos">To-Do List</TabsTrigger>
           </TabsList>
@@ -588,6 +594,53 @@ const SenseiDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Trip Messages</CardTitle>
+                <CardDescription>Communicate with participants who have paid for your trips</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {trips.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No trips assigned yet.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {trips
+                      .filter(trip => trip.is_active)
+                      .map((trip) => (
+                        <Card key={trip.id}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold">{trip.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {trip.destination} • {trip.dates}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Confirmed participants: {tripParticipants[trip.id]?.length || 'Load to see count'}
+                                </p>
+                              </div>
+                              <Badge variant="default">Active Trip</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <TripMessaging
+                              tripId={trip.id}
+                              tripTitle={trip.title}
+                              userType="sensei"
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Calendar Tab */}
