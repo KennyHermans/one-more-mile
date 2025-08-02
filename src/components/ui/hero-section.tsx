@@ -1,7 +1,7 @@
 import { Button } from "./button";
 import { Input } from "./input";
 import { Link } from "react-router-dom";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -19,9 +19,13 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 container text-center text-white animate-fade-in px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-6">
-            <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-white/20 mb-6">
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-white/20">
               ✨ Transformative Travel Experiences
+            </span>
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-green-300/30 text-green-100">
+              <ShieldCheck className="w-4 h-4" />
+              All Senseis Verified
             </span>
           </div>
           
