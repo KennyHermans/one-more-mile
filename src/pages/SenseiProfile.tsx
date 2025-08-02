@@ -363,6 +363,7 @@ const SenseiProfile = () => {
                           <span className="font-semibold text-green-700">Status: Active</span>
                           <div className="text-sm text-muted-foreground mt-1">
                             Your Sensei application has been approved! You're now an active Sensei.
+                            <a href="/sensei/dashboard" className="text-primary hover:underline ml-1">Go to your dashboard</a>.
                           </div>
                         </div>
                         <Badge variant="default" className="bg-green-100 text-green-800">
