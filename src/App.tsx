@@ -16,6 +16,7 @@ import MyApplications from "./pages/MyApplications";
 import AdminApplications from "./pages/AdminApplications";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTrips from "./pages/AdminTrips";
+import SenseiDashboard from "./pages/SenseiDashboard";
 import SenseiTrips from "./pages/SenseiTrips";
 import TripDetail from "./pages/TripDetail";
 import NotFound from "./pages/NotFound";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/applications" element={<AdminApplications />} />
             <Route path="/admin/trips" element={<AdminTrips />} />
+            <Route path="/sensei/dashboard" element={<SenseiDashboard />} />
             <Route path="/sensei/trips" element={<SenseiTrips />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
