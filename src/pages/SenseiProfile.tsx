@@ -18,7 +18,10 @@ import {
   Loader2,
   Save,
   Upload,
-  Camera
+  Camera,
+  CheckCircle,
+  Clock,
+  XCircle
 } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 import { useNavigate } from "react-router-dom";
@@ -59,6 +62,7 @@ const SenseiProfile = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -98,38 +102,55 @@ const SenseiProfile = () => {
   const fetchProfile = async (userId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Check for sensei profile first
+      const { data: profileData, error: profileError } = await supabase
         .from('sensei_profiles')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (profileError && profileError.code !== 'PGRST116') {
         toast({
           title: "Error",
-          description: "Failed to fetch profile: " + error.message,
+          description: "Failed to fetch profile: " + profileError.message,
           variant: "destructive",
         });
         return;
       }
 
-      if (data) {
+      if (profileData) {
         setHasProfile(true);
+        setApplicationStatus('approved'); // If they have a profile, they're approved
         setProfile({
-          id: data.id,
-          name: data.name,
-          specialty: data.specialty,
-          bio: data.bio,
-          image_url: data.image_url || "",
-          experience: data.experience,
-          location: data.location,
-          specialties: data.specialties || [],
-          rating: data.rating,
-          trips_led: data.trips_led,
-          is_active: data.is_active
+          id: profileData.id,
+          name: profileData.name,
+          specialty: profileData.specialty,
+          bio: profileData.bio,
+          image_url: profileData.image_url || "",
+          experience: profileData.experience,
+          location: profileData.location,
+          specialties: profileData.specialties || [],
+          rating: profileData.rating,
+          trips_led: profileData.trips_led,
+          is_active: profileData.is_active
         });
       } else {
         setHasProfile(false);
+        
+        // Check application status if no profile exists
+        const { data: applicationData, error: applicationError } = await supabase
+          .from('applications')
+          .select('status')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (applicationError && applicationError.code !== 'PGRST116') {
+          console.error('Error fetching application:', applicationError);
+        }
+
+        setApplicationStatus(applicationData?.status || null);
       }
     } catch (error: any) {
       toast({
@@ -330,20 +351,54 @@ const SenseiProfile = () => {
             </Button>
           </div>
 
-          {!hasProfile ? (
+          {!hasProfile && (
             <Card className="mb-6">
               <CardContent className="pt-6">
-                <Alert>
-                  <AlertDescription>
-                    You don't have a Sensei profile yet. This means your application might still be pending approval, 
-                    or you haven't applied to become a Sensei yet. 
-                    <a href="/become-sensei" className="text-primary hover:underline ml-1">Apply here</a> or 
-                    <a href="/my-applications" className="text-primary hover:underline ml-1">check your applications</a>.
-                  </AlertDescription>
-                </Alert>
+                {applicationStatus === 'approved' ? (
+                  <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-semibold text-green-700">Status: Active</span>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Your Sensei application has been approved! You're now an active Sensei.
+                          </div>
+                        </div>
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          Active Sensei
+                        </Badge>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : applicationStatus === 'pending' ? (
+                  <Alert>
+                    <Clock className="h-4 w-4" />
+                    <AlertDescription>
+                      Your Sensei application is currently under review. 
+                      <a href="/my-applications" className="text-primary hover:underline ml-1">Check your application status</a>.
+                    </AlertDescription>
+                  </Alert>
+                ) : applicationStatus === 'rejected' ? (
+                  <Alert>
+                    <XCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Your previous application was not approved. 
+                      <a href="/become-sensei" className="text-primary hover:underline ml-1">You can apply again here</a> or 
+                      <a href="/my-applications" className="text-primary hover:underline ml-1">view your applications</a>.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert>
+                    <AlertDescription>
+                      You haven't applied to become a Sensei yet. 
+                      <a href="/become-sensei" className="text-primary hover:underline ml-1">Apply here</a> to get started.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
-          ) : null}
+          )}
 
           <Card>
             <CardHeader>
