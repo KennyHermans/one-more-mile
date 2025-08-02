@@ -264,6 +264,7 @@ export type Database = {
       sensei_profiles: {
         Row: {
           bio: string
+          can_create_trips: boolean
           created_at: string
           experience: string
           id: string
@@ -274,12 +275,15 @@ export type Database = {
           rating: number | null
           specialties: string[]
           specialty: string
+          trip_creation_request_date: string | null
+          trip_creation_requested: boolean
           trips_led: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           bio: string
+          can_create_trips?: boolean
           created_at?: string
           experience: string
           id?: string
@@ -290,12 +294,15 @@ export type Database = {
           rating?: number | null
           specialties?: string[]
           specialty: string
+          trip_creation_request_date?: string | null
+          trip_creation_requested?: boolean
           trips_led?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           bio?: string
+          can_create_trips?: boolean
           created_at?: string
           experience?: string
           id?: string
@@ -306,6 +313,8 @@ export type Database = {
           rating?: number | null
           specialties?: string[]
           specialty?: string
+          trip_creation_request_date?: string | null
+          trip_creation_requested?: boolean
           trips_led?: number | null
           updated_at?: string
           user_id?: string
