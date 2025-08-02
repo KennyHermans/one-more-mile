@@ -890,18 +890,18 @@ const SenseiDashboard = () => {
                                >
                                  <Edit2 className="w-4 h-4" />
                                </Button>
-                               {trip.is_active && !trip.cancelled_by_sensei && (
-                                 <Button 
-                                   variant="destructive" 
-                                   size="sm"
-                                   onClick={() => {
-                                     setSelectedTripForCancel(trip);
-                                     setCancelTripOpen(true);
-                                   }}
-                                 >
-                                   <X className="w-4 h-4" />
-                                 </Button>
-                               )}
+                                {trip.is_active && !trip.cancelled_by_sensei && (
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedTripForCancel(trip);
+                                      setCancelTripOpen(true);
+                                    }}
+                                  >
+                                    Cancel my trip
+                                  </Button>
+                                )}
                              </div>
                           </div>
                           
