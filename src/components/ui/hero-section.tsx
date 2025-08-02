@@ -29,15 +29,15 @@ export function HeroSection() {
             </span>
           </div>
           
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
+          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
             One More Mile
             <br />
-            <span className="font-sans font-light text-4xl md:text-5xl lg:text-6xl text-white/95 block mt-4">
+            <span className="font-sans font-light text-lg md:text-xl lg:text-2xl text-white/90 block mt-3">
               Where every journey becomes a story
             </span>
           </h1>
           
-          <p className="font-sans text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-white/90 leading-relaxed">
+          <p className="font-sans text-base md:text-lg mb-10 max-w-3xl mx-auto text-white/80 leading-relaxed">
             Join expert Senseis on life-changing adventures that blend purpose with discovery. 
             From mountain summits to cultural depths, create memories that inspire for a lifetime.
           </p>
