@@ -164,6 +164,8 @@ export function SenseiPermissionsDialog({ tripId, isOpen, onClose, onSave }: Sen
           trip_id: tripId,
           sensei_id: selectedSensei,
           permissions: permissions as any,
+        }, {
+          onConflict: 'trip_id,sensei_id'
         });
 
       if (error) throw error;
@@ -172,6 +174,9 @@ export function SenseiPermissionsDialog({ tripId, isOpen, onClose, onSave }: Sen
         title: "Success",
         description: "Sensei permissions updated successfully!",
       });
+      
+      // Refresh the existing permissions after save
+      await fetchExistingPermissions();
       
       onSave();
       onClose();
