@@ -19,6 +19,7 @@ import AdminTrips from "./pages/AdminTrips";
 import SenseiDashboard from "./pages/SenseiDashboard";
 import SenseiTrips from "./pages/SenseiTrips";
 import TripDetail from "./pages/TripDetail";
+import CustomerDashboard from "./pages/CustomerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/admin/trips" element={<AdminTrips />} />
             <Route path="/sensei/dashboard" element={<SenseiDashboard />} />
             <Route path="/sensei/trips" element={<SenseiTrips />} />
+            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

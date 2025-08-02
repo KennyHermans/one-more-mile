@@ -77,6 +77,130 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_documents: {
+        Row: {
+          document_name: string
+          document_type: string
+          file_url: string
+          id: string
+          trip_id: string | null
+          uploaded_at: string
+          user_id: string | null
+        }
+        Insert: {
+          document_name: string
+          document_type: string
+          file_url: string
+          id?: string
+          trip_id?: string | null
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          document_name?: string
+          document_type?: string
+          file_url?: string
+          id?: string
+          trip_id?: string | null
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_documents_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_profiles: {
+        Row: {
+          created_at: string
+          dietary_restrictions: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          full_name: string | null
+          id: string
+          medical_conditions: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dietary_restrictions?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          full_name?: string | null
+          id?: string
+          medical_conditions?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dietary_restrictions?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          full_name?: string | null
+          id?: string
+          medical_conditions?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      customer_todos: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          created_by_admin: boolean | null
+          description: string | null
+          due_date: string | null
+          id: string
+          title: string
+          trip_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          created_by_admin?: boolean | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          title: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          created_by_admin?: boolean | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          title?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_todos_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sensei_profiles: {
         Row: {
           bio: string
@@ -127,6 +251,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trip_bookings: {
+        Row: {
+          booking_date: string
+          booking_status: string
+          created_at: string
+          id: string
+          notes: string | null
+          payment_status: string
+          total_amount: number | null
+          trip_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          booking_date?: string
+          booking_status?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          total_amount?: number | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          booking_date?: string
+          booking_status?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          total_amount?: number | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trip_permissions: {
         Row: {
