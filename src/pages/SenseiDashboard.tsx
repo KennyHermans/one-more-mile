@@ -65,6 +65,18 @@ interface TodoItem {
   trip_id?: string;
 }
 
+interface TripParticipant {
+  id: string;
+  user_id: string;
+  booking_status: string;
+  payment_status: string;
+  total_amount: number;
+  customer_profiles: {
+    full_name: string;
+    phone?: string;
+  };
+}
+
 interface CalendarEvent {
   id: string;
   title: string;
@@ -77,6 +89,8 @@ const SenseiDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [tripParticipants, setTripParticipants] = useState<{[tripId: string]: TripParticipant[]}>({});
+  const [loadingParticipants, setLoadingParticipants] = useState<{[tripId: string]: boolean}>({});
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -252,6 +266,64 @@ const SenseiDashboard = () => {
   const deleteTodo = (todoId: string) => {
     const updatedTodos = todos.filter(todo => todo.id !== todoId);
     saveTodos(updatedTodos);
+  };
+
+  const fetchPaidParticipants = async (tripId: string) => {
+    if (loadingParticipants[tripId] || tripParticipants[tripId]) return;
+    
+    setLoadingParticipants(prev => ({ ...prev, [tripId]: true }));
+    
+    try {
+      // Get only PAID bookings for this trip
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('trip_bookings')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('payment_status', 'paid') // Only paid participants
+        .order('booking_date', { ascending: false });
+
+      if (bookingsError) throw bookingsError;
+
+      // Get customer profiles for the paid bookings
+      if (bookings && bookings.length > 0) {
+        const userIds = bookings.map(booking => booking.user_id);
+        const { data: profiles, error: profilesError } = await supabase
+          .from('customer_profiles')
+          .select('user_id, full_name, phone')
+          .in('user_id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        // Combine the data
+        const enrichedBookings: TripParticipant[] = bookings.map(booking => {
+          const profile = profiles?.find(p => p.user_id === booking.user_id);
+          return {
+            id: booking.id,
+            user_id: booking.user_id,
+            booking_status: booking.booking_status,
+            payment_status: booking.payment_status,
+            total_amount: booking.total_amount,
+            customer_profiles: {
+              full_name: profile?.full_name || 'Unknown',
+              phone: profile?.phone || undefined
+            }
+          };
+        });
+
+        setTripParticipants(prev => ({ ...prev, [tripId]: enrichedBookings }));
+      } else {
+        setTripParticipants(prev => ({ ...prev, [tripId]: [] }));
+      }
+    } catch (error) {
+      console.error('Error fetching paid participants:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load participants.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingParticipants(prev => ({ ...prev, [tripId]: false }));
+    }
   };
 
   const handleProfileUpdate = async () => {
@@ -444,7 +516,7 @@ const SenseiDashboard = () => {
                             </div>
                           </div>
                           
-                          <div className="grid md:grid-cols-2 gap-4">
+                          <div className="grid md:grid-cols-2 gap-4 mb-4">
                             <div>
                               <p className="text-sm font-medium text-gray-600">Participants</p>
                               <p className="text-sm">{trip.current_participants}/{trip.max_participants}</p>
@@ -452,6 +524,61 @@ const SenseiDashboard = () => {
                             <div>
                               <p className="text-sm font-medium text-gray-600">Status</p>
                               <p className="text-sm">{trip.is_active ? "Active" : "Inactive"}</p>
+                            </div>
+                          </div>
+
+                          {/* Paid Participants Section */}
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Confirmed Participants ({tripParticipants[trip.id]?.length || 0})
+                              </h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchPaidParticipants(trip.id)}
+                                disabled={loadingParticipants[trip.id]}
+                              >
+                                {loadingParticipants[trip.id] ? 'Loading...' : 'View Participants'}
+                              </Button>
+                            </div>
+                            
+                            {tripParticipants[trip.id] && (
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {tripParticipants[trip.id].length === 0 ? (
+                                  <p className="text-sm text-gray-500 italic">No confirmed participants yet</p>
+                                ) : (
+                                  tripParticipants[trip.id].map((participant) => (
+                                    <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded text-sm border border-green-200">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                          <User className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-green-800">{participant.customer_profiles.full_name}</span>
+                                          {participant.customer_profiles.phone && (
+                                            <div className="flex items-center gap-1 text-gray-600">
+                                              <Phone className="w-3 h-3" />
+                                              <span className="text-xs">{participant.customer_profiles.phone}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="default" className="bg-green-600 text-xs">
+                                          Paid
+                                        </Badge>
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className="mt-2 text-xs text-gray-500">
+                              * Only participants who have completed payment are shown
                             </div>
                           </div>
                         </div>
