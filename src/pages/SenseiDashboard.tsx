@@ -37,7 +37,8 @@ import {
   Clock,
   XCircle,
   Eye,
-  Download
+  Download,
+  Megaphone
 } from "lucide-react";
 
 const localizer = momentLocalizer(moment);
@@ -1612,6 +1613,43 @@ const SenseiDashboard = () => {
               </Button>
             </div>
 
+            {/* Admin Updates Section */}
+            {adminAnnouncements.length > 0 && (
+              <Card className="border-l-4 border-l-blue-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="h-5 w-5 text-blue-600" />
+                    Admin Updates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {adminAnnouncements.map((announcement) => (
+                    <div key={announcement.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-semibold">{announcement.title}</h4>
+                        <Badge 
+                          variant={
+                            announcement.priority === 'urgent' ? 'destructive' :
+                            announcement.priority === 'high' ? 'default' : 'secondary'
+                          }
+                        >
+                          {announcement.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-700 whitespace-pre-wrap mb-2">{announcement.content}</p>
+                      <p className="text-sm text-gray-500">
+                        {new Date(announcement.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Sensei's Own Announcements */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">My Announcements</h3>
+
             {announcements.length === 0 ? (
               <Card>
                 <CardContent className="pt-6 text-center">
@@ -1665,6 +1703,7 @@ const SenseiDashboard = () => {
                 ))}
               </div>
             )}
+            </div>
 
             {/* Create Announcement Dialog */}
             <Dialog open={createAnnouncementOpen} onOpenChange={setCreateAnnouncementOpen}>
