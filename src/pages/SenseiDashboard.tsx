@@ -197,6 +197,7 @@ const SenseiDashboard = () => {
   
   // New state for Announcements functionality
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [adminAnnouncements, setAdminAnnouncements] = useState<any[]>([]);
   const [createAnnouncementOpen, setCreateAnnouncementOpen] = useState(false);
   const [announcementForm, setAnnouncementForm] = useState({
     title: '',
@@ -262,7 +263,8 @@ const SenseiDashboard = () => {
         fetchTodos(user.id),
         fetchApplications(user.id),
         fetchTripPermissions(user.id),
-        fetchAnnouncements(user.id)
+        fetchAnnouncements(user.id),
+        fetchAdminAnnouncements()
       ]);
     } catch (error) {
       toast({
@@ -559,6 +561,21 @@ const SenseiDashboard = () => {
         description: "Failed to create announcement.",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchAdminAnnouncements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_announcements')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdminAnnouncements(data || []);
+    } catch (error) {
+      console.error('Error fetching admin announcements:', error);
     }
   };
 

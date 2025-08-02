@@ -28,7 +28,10 @@ import {
   Settings,
   TrendingUp,
   UserCheck,
-  Plane
+  Plane,
+  Megaphone,
+  AlertTriangle,
+  Info
 } from "lucide-react";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
@@ -106,6 +109,17 @@ interface Trip {
   replacement_needed?: boolean;
 }
 
+interface AdminAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  priority: 'normal' | 'high' | 'urgent';
+  target_audience: 'all_senseis' | 'active_senseis' | 'specific_senseis';
+  specific_sensei_ids?: string[];
+  is_active: boolean;
+  created_at: string;
+}
+
 interface TripCancellation {
   id: string;
   trip_id: string;
@@ -162,6 +176,15 @@ const AdminDashboard = () => {
   const [replacementDialogOpen, setReplacementDialogOpen] = useState(false);
   const [selectedCancellation, setSelectedCancellation] = useState<TripCancellation | null>(null);
   const [suggestedSenseis, setSuggestedSenseis] = useState<SenseiProfile[]>([]);
+  const [adminAnnouncements, setAdminAnnouncements] = useState<AdminAnnouncement[]>([]);
+  const [createAnnouncementOpen, setCreateAnnouncementOpen] = useState(false);
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: '',
+    content: '',
+    priority: 'normal' as 'normal' | 'high' | 'urgent',
+    target_audience: 'all_senseis' as 'all_senseis' | 'active_senseis' | 'specific_senseis',
+    specific_sensei_ids: [] as string[]
+  });
   const { toast } = useToast();
 
   // Stats
@@ -189,7 +212,7 @@ const AdminDashboard = () => {
       }
       
       setUser(user);
-      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings(), fetchSenseiFeedback(), fetchTripCancellations()]);
+      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings(), fetchSenseiFeedback(), fetchTripCancellations(), fetchAdminAnnouncements()]);
     } catch (error) {
       toast({
         title: "Error",
@@ -639,6 +662,98 @@ const AdminDashboard = () => {
     }
   };
 
+  // Admin Announcements Functions
+  const fetchAdminAnnouncements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_announcements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdminAnnouncements((data || []) as AdminAnnouncement[]);
+    } catch (error) {
+      console.error('Error fetching admin announcements:', error);
+    }
+  };
+
+  const createAdminAnnouncement = async () => {
+    if (!announcementForm.title.trim() || !announcementForm.content.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const insertData: any = {
+        title: announcementForm.title.trim(),
+        content: announcementForm.content.trim(),
+        priority: announcementForm.priority,
+        target_audience: announcementForm.target_audience,
+      };
+
+      if (announcementForm.target_audience === 'specific_senseis' && announcementForm.specific_sensei_ids.length > 0) {
+        insertData.specific_sensei_ids = announcementForm.specific_sensei_ids;
+      }
+
+      const { error } = await supabase
+        .from('admin_announcements')
+        .insert(insertData);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Announcement created successfully!",
+      });
+
+      setCreateAnnouncementOpen(false);
+      setAnnouncementForm({
+        title: '',
+        content: '',
+        priority: 'normal',
+        target_audience: 'all_senseis',
+        specific_sensei_ids: []
+      });
+      fetchAdminAnnouncements();
+    } catch (error) {
+      console.error('Error creating admin announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create announcement.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleAdminAnnouncementStatus = async (announcementId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('admin_announcements')
+        .update({ is_active: !currentStatus })
+        .eq('id', announcementId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Announcement ${!currentStatus ? 'activated' : 'deactivated'} successfully!`,
+      });
+
+      fetchAdminAnnouncements();
+    } catch (error) {
+      console.error('Error updating admin announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update announcement.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
@@ -755,7 +870,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-10">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
             <TabsTrigger value="applications">
               <span className="flex items-center gap-2">
                 Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
@@ -768,6 +883,12 @@ const AdminDashboard = () => {
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
             <TabsTrigger value="cancellations">Cancellations</TabsTrigger>
             <TabsTrigger value="feedback">Feedback</TabsTrigger>
+            <TabsTrigger value="announcements">
+              <span className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4" />
+                <span className="hidden sm:inline">News</span>
+              </span>
+            </TabsTrigger>
             <TabsTrigger value="senseis">Senseis</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -1485,6 +1606,173 @@ const AdminDashboard = () => {
                 </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Admin Announcements Tab */}
+          <TabsContent value="announcements" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Admin Announcements</h2>
+              <Button onClick={() => setCreateAnnouncementOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Announcement
+              </Button>
+            </div>
+
+            {adminAnnouncements.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No announcements yet. Create your first announcement to communicate with senseis.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {adminAnnouncements.map((announcement) => (
+                  <Card key={announcement.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CardTitle className="text-lg">{announcement.title}</CardTitle>
+                            <Badge 
+                              variant={
+                                announcement.priority === 'urgent' ? 'destructive' :
+                                announcement.priority === 'high' ? 'default' : 'secondary'
+                              }
+                            >
+                              {announcement.priority}
+                            </Badge>
+                            <Badge variant={announcement.is_active ? 'default' : 'secondary'}>
+                              {announcement.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs">
+                              {announcement.target_audience === 'all_senseis' ? 'All Senseis' :
+                               announcement.target_audience === 'active_senseis' ? 'Active Senseis Only' :
+                               'Specific Senseis'}
+                            </Badge>
+                            <p className="text-sm text-gray-500">
+                              Created: {new Date(announcement.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant={announcement.is_active ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => toggleAdminAnnouncementStatus(announcement.id, announcement.is_active)}
+                        >
+                          {announcement.is_active ? 'Deactivate' : 'Activate'}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 whitespace-pre-wrap">{announcement.content}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Create Admin Announcement Dialog */}
+            <Dialog open={createAnnouncementOpen} onOpenChange={setCreateAnnouncementOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create Admin Announcement</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="admin-announcement-title">Title *</Label>
+                    <Input
+                      id="admin-announcement-title"
+                      placeholder="e.g., New Safety Training Required"
+                      value={announcementForm.title}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="admin-announcement-content">Content *</Label>
+                    <textarea
+                      id="admin-announcement-content"
+                      placeholder="Detailed information for senseis..."
+                      rows={4}
+                      className="w-full p-3 border rounded-md resize-none"
+                      value={announcementForm.content}
+                      onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="admin-announcement-priority">Priority</Label>
+                      <select
+                        id="admin-announcement-priority"
+                        className="w-full p-2 border rounded-md"
+                        value={announcementForm.priority}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, priority: e.target.value as 'normal' | 'high' | 'urgent'})}
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="admin-announcement-audience">Target Audience</Label>
+                      <select
+                        id="admin-announcement-audience"
+                        className="w-full p-2 border rounded-md"
+                        value={announcementForm.target_audience}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, target_audience: e.target.value as 'all_senseis' | 'active_senseis' | 'specific_senseis'})}
+                      >
+                        <option value="all_senseis">All Senseis</option>
+                        <option value="active_senseis">Active Senseis Only</option>
+                        <option value="specific_senseis">Specific Senseis</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {announcementForm.target_audience === 'specific_senseis' && (
+                    <div>
+                      <Label>Select Specific Senseis</Label>
+                      <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2">
+                        {senseis.map((sensei) => (
+                          <label key={sensei.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={announcementForm.specific_sensei_ids.includes(sensei.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAnnouncementForm({
+                                    ...announcementForm,
+                                    specific_sensei_ids: [...announcementForm.specific_sensei_ids, sensei.id]
+                                  });
+                                } else {
+                                  setAnnouncementForm({
+                                    ...announcementForm,
+                                    specific_sensei_ids: announcementForm.specific_sensei_ids.filter(id => id !== sensei.id)
+                                  });
+                                }
+                              }}
+                            />
+                            <span className="text-sm">{sensei.name} ({sensei.specialty})</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setCreateAnnouncementOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={createAdminAnnouncement}>
+                      Create Announcement
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Sensei Overview Tab */}

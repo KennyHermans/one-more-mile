@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by_admin: boolean
+          id: string
+          is_active: boolean
+          priority: string
+          specific_sensei_ids: string[] | null
+          target_audience: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by_admin?: boolean
+          id?: string
+          is_active?: boolean
+          priority?: string
+          specific_sensei_ids?: string[] | null
+          target_audience?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by_admin?: boolean
+          id?: string
+          is_active?: boolean
+          priority?: string
+          specific_sensei_ids?: string[] | null
+          target_audience?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
