@@ -96,12 +96,38 @@ interface Trip {
   trip_status?: string;
   created_by_sensei?: boolean;
   created_by_user_id?: string;
+  cancelled_by_sensei?: boolean;
+  cancellation_reason?: string;
+  cancelled_at?: string;
+  replacement_needed?: boolean;
+}
+
+interface TripCancellation {
+  id: string;
+  trip_id: string;
+  cancelled_by_sensei_id: string;
+  cancellation_reason: string;
+  cancelled_at: string;
+  replacement_sensei_id?: string;
+  replacement_assigned_at?: string;
+  admin_notified: boolean;
+  created_at: string;
+  updated_at: string;
+  trips?: {
+    title: string;
+    destination: string;
+    dates: string;
+  } | null;
+  sensei_profiles?: {
+    name: string;
+  } | null;
 }
 
 interface SenseiProfile {
   id: string;
   name: string;
   specialty: string;
+  specialties: string[];
   experience: string;
   location: string;
   user_id: string;
@@ -121,6 +147,7 @@ const AdminDashboard = () => {
   const [tripBookings, setTripBookings] = useState<{[tripId: string]: TripBooking[]}>({});
   const [loadingBookings, setLoadingBookings] = useState<{[tripId: string]: boolean}>({});
   const [senseiFeedback, setSenseiFeedback] = useState<any[]>([]);
+  const [tripCancellations, setTripCancellations] = useState<TripCancellation[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -128,6 +155,9 @@ const AdminDashboard = () => {
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedTripForPermissions, setSelectedTripForPermissions] = useState<string>("");
   const [tripProposals, setTripProposals] = useState<Trip[]>([]);
+  const [replacementDialogOpen, setReplacementDialogOpen] = useState(false);
+  const [selectedCancellation, setSelectedCancellation] = useState<TripCancellation | null>(null);
+  const [suggestedSenseis, setSuggestedSenseis] = useState<SenseiProfile[]>([]);
   const { toast } = useToast();
 
   // Stats
@@ -155,7 +185,7 @@ const AdminDashboard = () => {
       }
       
       setUser(user);
-      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings(), fetchSenseiFeedback()]);
+      await Promise.all([fetchApplications(), fetchTrips(), fetchSenseis(), fetchPaymentSettings(), fetchSenseiFeedback(), fetchTripCancellations()]);
     } catch (error) {
       toast({
         title: "Error",
@@ -255,6 +285,30 @@ const AdminDashboard = () => {
       setSenseiFeedback(data || []);
     } catch (error) {
       console.error('Error fetching sensei feedback:', error);
+    }
+  };
+
+  const fetchTripCancellations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trip_cancellations')
+        .select(`
+          *,
+          trips (
+            title,
+            destination,
+            dates
+          ),
+          sensei_profiles!cancelled_by_sensei_id (
+            name
+          )
+        `)
+        .order('cancelled_at', { ascending: false });
+
+      if (error) throw error;
+      setTripCancellations((data as any) || []);
+    } catch (error) {
+      console.error('Error fetching trip cancellations:', error);
     }
   };
 
@@ -483,6 +537,104 @@ const AdminDashboard = () => {
     }
   };
 
+  const suggestReplacementSenseis = async (cancellation: TripCancellation) => {
+    try {
+      // Get all active Senseis excluding the cancelled one
+      const { data: allSenseis, error } = await supabase
+        .from('sensei_profiles')
+        .select('*')
+        .eq('is_active', true)
+        .neq('id', cancellation.cancelled_by_sensei_id);
+
+      if (error) throw error;
+
+      // Simple scoring system based on experience, rating, and specialties
+      const scoredSenseis = (allSenseis || []).map(sensei => {
+        let score = 0;
+        
+        // Rating weight (0-5 stars)
+        score += (sensei.rating || 0) * 20;
+        
+        // Experience weight (trips led)
+        score += (sensei.trips_led || 0) * 2;
+        
+        // Location preference (if same location as original trip)
+        if (sensei.location && cancellation.trips?.destination.includes(sensei.location)) {
+          score += 10;
+        }
+        
+        return { ...sensei, score };
+      });
+
+      // Sort by score descending and take top 5
+      const sortedSenseis = scoredSenseis
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      setSuggestedSenseis(sortedSenseis);
+      setSelectedCancellation(cancellation);
+      setReplacementDialogOpen(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch replacement suggestions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const assignReplacementSensei = async (senseiId: string) => {
+    if (!selectedCancellation) return;
+
+    try {
+      // Update the cancellation record
+      const { error: cancellationError } = await supabase
+        .from('trip_cancellations')
+        .update({
+          replacement_sensei_id: senseiId,
+          replacement_assigned_at: new Date().toISOString()
+        })
+        .eq('id', selectedCancellation.id);
+
+      if (cancellationError) throw cancellationError;
+
+      // Update the trip with new sensei
+      const { data: senseiData } = await supabase
+        .from('sensei_profiles')
+        .select('name')
+        .eq('id', senseiId)
+        .single();
+
+      const { error: tripError } = await supabase
+        .from('trips')
+        .update({
+          sensei_id: senseiId,
+          sensei_name: senseiData?.name || 'Unknown',
+          cancelled_by_sensei: false,
+          replacement_needed: false
+        })
+        .eq('id', selectedCancellation.trip_id);
+
+      if (tripError) throw tripError;
+
+      toast({
+        title: "Replacement Assigned",
+        description: "The new Sensei has been assigned to the trip successfully.",
+      });
+
+      setReplacementDialogOpen(false);
+      setSelectedCancellation(null);
+      setSuggestedSenseis([]);
+      await Promise.all([fetchTripCancellations(), fetchTrips()]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to assign replacement Sensei.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
@@ -599,13 +751,17 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="senseis">Sensei Management</TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
+            <TabsTrigger value="cancellations">
+              Cancellations {tripCancellations.filter(c => !c.replacement_sensei_id).length > 0 && 
+                <Badge className="ml-2">{tripCancellations.filter(c => !c.replacement_sensei_id).length}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
             <TabsTrigger value="settings">Payment Settings</TabsTrigger>
           </TabsList>
@@ -1092,6 +1248,79 @@ const AdminDashboard = () => {
             )}
           </TabsContent>
 
+          {/* Trip Cancellations Tab */}
+          <TabsContent value="cancellations" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Cancellations</h2>
+              <Badge variant="outline" className="text-sm">
+                {tripCancellations.filter(c => !c.replacement_sensei_id).length} pending replacement
+              </Badge>
+            </div>
+
+            {tripCancellations.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No trip cancellations found.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {tripCancellations.map((cancellation) => (
+                  <Card key={cancellation.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{cancellation.trips?.title || 'Unknown Trip'}</h3>
+                              <p className="text-gray-600">{cancellation.trips?.destination}</p>
+                              <p className="text-gray-600">{cancellation.trips?.dates}</p>
+                              <p className="text-sm text-gray-500">
+                                Cancelled by: {cancellation.sensei_profiles?.name || 'Unknown Sensei'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Cancelled on: {new Date(cancellation.cancelled_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge className={cancellation.replacement_sensei_id ? 
+                                'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                {cancellation.replacement_sensei_id ? 'Replaced' : 'Needs Replacement'}
+                              </Badge>
+                              {!cancellation.replacement_sensei_id && (
+                                <Button 
+                                  variant="default" 
+                                  size="sm"
+                                  onClick={() => suggestReplacementSenseis(cancellation)}
+                                >
+                                  <UserCheck className="w-4 h-4 mr-1" />
+                                  Find Replacement
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="font-semibold mb-2">Cancellation Reason</h4>
+                            <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded">
+                              {cancellation.cancellation_reason}
+                            </p>
+                          </div>
+
+                          {cancellation.replacement_assigned_at && (
+                            <div className="text-sm text-green-600 bg-green-50 p-3 rounded">
+                              ✓ Replacement assigned on {new Date(cancellation.replacement_assigned_at).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* Sensei Feedback Tab */}
           <TabsContent value="feedback" className="space-y-6">
             <div className="flex justify-between items-center">
@@ -1376,6 +1605,69 @@ const AdminDashboard = () => {
             // Optionally refresh data
           }}
         />
+
+        {/* Replacement Sensei Dialog */}
+        <Dialog open={replacementDialogOpen} onOpenChange={setReplacementDialogOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Find Replacement Sensei</DialogTitle>
+            </DialogHeader>
+            
+            {selectedCancellation && (
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-4 rounded">
+                  <h3 className="font-semibold mb-2">Trip Details</h3>
+                  <p><strong>Trip:</strong> {selectedCancellation.trips?.title}</p>
+                  <p><strong>Destination:</strong> {selectedCancellation.trips?.destination}</p>
+                  <p><strong>Dates:</strong> {selectedCancellation.trips?.dates}</p>
+                  <p><strong>Cancelled by:</strong> {selectedCancellation.sensei_profiles?.name}</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-4">Suggested Replacement Senseis</h3>
+                  <div className="grid gap-4">
+                    {suggestedSenseis.map((sensei) => (
+                      <Card key={sensei.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="pt-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h4 className="font-semibold">{sensei.name}</h4>
+                              <p className="text-sm text-gray-600">{sensei.location}</p>
+                              <p className="text-sm text-gray-600">{sensei.experience}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center">
+                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                  <span className="text-sm ml-1">{sensei.rating?.toFixed(1) || '0.0'}</span>
+                                </div>
+                                <span className="text-sm text-gray-500">•</span>
+                                <span className="text-sm text-gray-500">{sensei.trips_led || 0} trips led</span>
+                                <span className="text-sm text-gray-500">•</span>
+                                <span className="text-sm text-blue-600">Score: {Math.round((sensei as any).score)}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {sensei.specialties.slice(0, 3).map((specialty) => (
+                                  <Badge key={specialty} variant="secondary" className="text-xs">
+                                    {specialty}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={() => assignReplacementSensei(sensei.id)}
+                              className="ml-4"
+                            >
+                              Assign
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

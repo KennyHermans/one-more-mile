@@ -377,6 +377,45 @@ export type Database = {
           },
         ]
       }
+      trip_cancellations: {
+        Row: {
+          admin_notified: boolean | null
+          cancellation_reason: string
+          cancelled_at: string
+          cancelled_by_sensei_id: string
+          created_at: string
+          id: string
+          replacement_assigned_at: string | null
+          replacement_sensei_id: string | null
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notified?: boolean | null
+          cancellation_reason: string
+          cancelled_at?: string
+          cancelled_by_sensei_id: string
+          created_at?: string
+          id?: string
+          replacement_assigned_at?: string | null
+          replacement_sensei_id?: string | null
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notified?: boolean | null
+          cancellation_reason?: string
+          cancelled_at?: string
+          cancelled_by_sensei_id?: string
+          created_at?: string
+          id?: string
+          replacement_assigned_at?: string | null
+          replacement_sensei_id?: string | null
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trip_messages: {
         Row: {
           created_at: string
@@ -499,6 +538,9 @@ export type Database = {
       }
       trips: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by_sensei: boolean | null
           created_at: string
           created_by_sensei: boolean
           created_by_user_id: string | null
@@ -518,6 +560,7 @@ export type Database = {
           price: string
           program: Json | null
           rating: number | null
+          replacement_needed: boolean | null
           requirements: string[] | null
           sensei_id: string | null
           sensei_name: string
@@ -527,6 +570,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by_sensei?: boolean | null
           created_at?: string
           created_by_sensei?: boolean
           created_by_user_id?: string | null
@@ -546,6 +592,7 @@ export type Database = {
           price: string
           program?: Json | null
           rating?: number | null
+          replacement_needed?: boolean | null
           requirements?: string[] | null
           sensei_id?: string | null
           sensei_name: string
@@ -555,6 +602,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by_sensei?: boolean | null
           created_at?: string
           created_by_sensei?: boolean
           created_by_user_id?: string | null
@@ -574,6 +624,7 @@ export type Database = {
           price?: string
           program?: Json | null
           rating?: number | null
+          replacement_needed?: boolean | null
           requirements?: string[] | null
           sensei_id?: string | null
           sensei_name?: string

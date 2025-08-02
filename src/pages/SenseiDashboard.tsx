@@ -48,6 +48,10 @@ interface Trip {
   created_by_sensei?: boolean;
   created_by_user_id?: string;
   duration_days?: number;
+  cancelled_by_sensei?: boolean;
+  cancellation_reason?: string;
+  cancelled_at?: string;
+  replacement_needed?: boolean;
 }
 
 interface SenseiProfile {
@@ -107,6 +111,9 @@ const SenseiDashboard = () => {
   const [newTodo, setNewTodo] = useState("");
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [createTripOpen, setCreateTripOpen] = useState(false);
+  const [cancelTripOpen, setCancelTripOpen] = useState(false);
+  const [selectedTripForCancel, setSelectedTripForCancel] = useState<Trip | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
   const { toast } = useToast();
 
   // Profile form data
@@ -401,6 +408,53 @@ const SenseiDashboard = () => {
     }
   };
 
+  const handleCancelTrip = async () => {
+    if (!selectedTripForCancel || !senseiProfile || !cancellationReason.trim()) return;
+
+    try {
+      // Create cancellation record
+      const { error: cancellationError } = await supabase
+        .from('trip_cancellations')
+        .insert({
+          trip_id: selectedTripForCancel.id,
+          cancelled_by_sensei_id: senseiProfile.id,
+          cancellation_reason: cancellationReason.trim(),
+          admin_notified: false
+        });
+
+      if (cancellationError) throw cancellationError;
+
+      // Update trip status
+      const { error: tripError } = await supabase
+        .from('trips')
+        .update({
+          cancelled_by_sensei: true,
+          cancellation_reason: cancellationReason.trim(),
+          cancelled_at: new Date().toISOString(),
+          replacement_needed: true
+        })
+        .eq('id', selectedTripForCancel.id);
+
+      if (tripError) throw tripError;
+
+      toast({
+        title: "Trip Cancelled",
+        description: "The trip has been cancelled and admin has been notified for replacement.",
+      });
+
+      setCancelTripOpen(false);
+      setSelectedTripForCancel(null);
+      setCancellationReason("");
+      fetchSenseiTrips(user.id);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to cancel trip.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -547,18 +601,30 @@ const SenseiDashboard = () => {
                                 {trip.dates}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={trip.is_active ? "default" : "secondary"}>
-                                {trip.is_active ? "Active" : "Inactive"}
-                              </Badge>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => window.location.href = `/sensei/trips`}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                             <div className="flex items-center gap-2">
+                               <Badge variant={trip.is_active ? "default" : "secondary"}>
+                                 {trip.is_active ? "Active" : "Inactive"}
+                               </Badge>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => window.location.href = `/sensei/trips`}
+                               >
+                                 <Edit2 className="w-4 h-4" />
+                               </Button>
+                               {trip.is_active && !trip.cancelled_by_sensei && (
+                                 <Button 
+                                   variant="destructive" 
+                                   size="sm"
+                                   onClick={() => {
+                                     setSelectedTripForCancel(trip);
+                                     setCancelTripOpen(true);
+                                   }}
+                                 >
+                                   <X className="w-4 h-4" />
+                                 </Button>
+                               )}
+                             </div>
                           </div>
                           
                           <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -929,6 +995,47 @@ const SenseiDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Cancel Trip Dialog */}
+        <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel Trip</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to cancel "{selectedTripForCancel?.title}"? 
+                This will notify the admin so they can find a replacement Sensei.
+              </p>
+              <div>
+                <Label htmlFor="cancellation-reason">Reason for cancellation *</Label>
+                <Textarea
+                  id="cancellation-reason"
+                  placeholder="Please explain why you need to cancel this trip..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => {
+                  setCancelTripOpen(false);
+                  setSelectedTripForCancel(null);
+                  setCancellationReason("");
+                }}>
+                  Keep Trip
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleCancelTrip}
+                  disabled={!cancellationReason.trim()}
+                >
+                  Cancel Trip
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Profile Dialog */}
         <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
