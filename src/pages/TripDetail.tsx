@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -14,7 +18,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -62,10 +67,118 @@ interface SenseiProfile {
 
 const TripDetail = () => {
   const { tripId } = useParams();
+  const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [showBookingDialog, setShowBookingDialog] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [bookingForm, setBookingForm] = useState({
+    full_name: "",
+    phone: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
+    dietary_restrictions: "",
+    medical_conditions: "",
+    notes: ""
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
+
+  const handleBookTrip = async () => {
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to create an account to book a trip.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    setShowBookingDialog(true);
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!user || !trip) return;
+
+    setBookingLoading(true);
+    try {
+      // Extract price as number
+      const priceString = trip.price.replace(/[^0-9.]/g, '');
+      const totalAmount = parseFloat(priceString);
+
+      // Create booking
+      const { error: bookingError } = await supabase
+        .from('trip_bookings')
+        .insert({
+          trip_id: trip.id,
+          user_id: user.id,
+          total_amount: totalAmount,
+          notes: bookingForm.notes || null
+        });
+
+      if (bookingError) throw bookingError;
+
+      // Create or update customer profile
+      const { error: profileError } = await supabase
+        .from('customer_profiles')
+        .upsert({
+          user_id: user.id,
+          full_name: bookingForm.full_name,
+          phone: bookingForm.phone,
+          emergency_contact_name: bookingForm.emergency_contact_name,
+          emergency_contact_phone: bookingForm.emergency_contact_phone,
+          dietary_restrictions: bookingForm.dietary_restrictions,
+          medical_conditions: bookingForm.medical_conditions
+        });
+
+      if (profileError) throw profileError;
+
+      // Create initial todos for the customer
+      const defaultTodos = [
+        { title: "Complete passport verification", description: "Upload a clear photo of your passport", due_date: null, created_by_admin: true },
+        { title: "Submit travel insurance details", description: "Provide proof of travel insurance coverage", due_date: null, created_by_admin: true },
+        { title: "Confirm emergency contact", description: "Verify emergency contact information is up to date", due_date: null, created_by_admin: true }
+      ];
+
+      const todoInserts = defaultTodos.map(todo => ({
+        user_id: user.id,
+        trip_id: trip.id,
+        ...todo
+      }));
+
+      const { error: todoError } = await supabase
+        .from('customer_todos')
+        .insert(todoInserts);
+
+      if (todoError) throw todoError;
+
+      toast({
+        title: "Booking successful!",
+        description: "Your trip has been booked. You can manage it in your dashboard.",
+      });
+
+      setShowBookingDialog(false);
+      navigate('/customer/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Booking failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBookingLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!tripId) return;
@@ -378,8 +491,14 @@ const TripDetail = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full font-sans font-medium" size="lg">
-                    Book This Adventure
+                  <Button 
+                    className="w-full font-sans font-medium" 
+                    size="lg"
+                    onClick={handleBookTrip}
+                    disabled={trip.current_participants >= trip.max_participants}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    {trip.current_participants >= trip.max_participants ? 'Fully Booked' : 'Book This Adventure'}
                   </Button>
 
                   <div className="mt-4 text-center">
@@ -426,6 +545,115 @@ const TripDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Booking Dialog */}
+      <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book Your Adventure</DialogTitle>
+            <DialogDescription>
+              Complete your booking for {trip?.title}. We'll create your customer account and dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="full_name">Full Name *</Label>
+                <Input
+                  id="full_name"
+                  value={bookingForm.full_name}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, full_name: e.target.value }))}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  value={bookingForm.phone}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="emergency_contact_name">Emergency Contact Name *</Label>
+                <Input
+                  id="emergency_contact_name"
+                  value={bookingForm.emergency_contact_name}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                  placeholder="Emergency contact name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="emergency_contact_phone">Emergency Contact Phone *</Label>
+                <Input
+                  id="emergency_contact_phone"
+                  value={bookingForm.emergency_contact_phone}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                  placeholder="Emergency contact phone"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="dietary_restrictions">Dietary Restrictions</Label>
+              <Textarea
+                id="dietary_restrictions"
+                value={bookingForm.dietary_restrictions}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, dietary_restrictions: e.target.value }))}
+                placeholder="Any dietary restrictions or allergies we should know about?"
+                rows={2}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="medical_conditions">Medical Conditions</Label>
+              <Textarea
+                id="medical_conditions"
+                value={bookingForm.medical_conditions}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, medical_conditions: e.target.value }))}
+                placeholder="Any medical conditions we should be aware of?"
+                rows={2}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="notes">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                value={bookingForm.notes}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Any special requests or questions?"
+                rows={2}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBookingDialog(false)}
+              disabled={bookingLoading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleBookingSubmit}
+              disabled={bookingLoading || !bookingForm.full_name || !bookingForm.phone || !bookingForm.emergency_contact_name || !bookingForm.emergency_contact_phone}
+            >
+              {bookingLoading ? "Processing..." : `Book for ${trip?.price}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
