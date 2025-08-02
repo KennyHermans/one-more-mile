@@ -272,6 +272,30 @@ const CustomerDashboard = () => {
     }
   };
 
+  const cancelBooking = async (bookingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trip_bookings')
+        .delete()
+        .eq('id', bookingId)
+        .eq('payment_status', 'pending'); // Only allow canceling unpaid reservations
+
+      if (error) throw error;
+
+      await fetchBookings(user.id);
+      toast({
+        title: "Success",
+        description: "Reservation cancelled successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -330,17 +354,36 @@ const CustomerDashboard = () => {
                           />
                           <CardContent className="flex-1 p-4">
                             <div className="flex justify-between items-start">
-                              <div>
+                              <div className="flex-1">
                                 <h3 className="font-semibold text-lg">{booking.trips.title}</h3>
                                 <p className="text-muted-foreground">{booking.trips.destination}</p>
                                 <p className="text-sm">{booking.trips.dates}</p>
                                 <p className="text-sm">Sensei: {booking.trips.sensei_name}</p>
                               </div>
-                              <div className="text-right">
-                                <Badge variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}>
-                                  {booking.payment_status}
-                                </Badge>
-                                <p className="text-lg font-semibold mt-1">${booking.total_amount}</p>
+                              <div className="text-right space-y-2">
+                                <div className="flex flex-col items-end gap-2">
+                                  <Badge variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}>
+                                    {booking.payment_status === 'paid' ? 'Paid' : 'Reserved'}
+                                  </Badge>
+                                  <p className="text-lg font-semibold">${booking.total_amount}</p>
+                                </div>
+                                
+                                {booking.payment_status === 'pending' ? (
+                                  <div className="flex gap-2 mt-2">
+                                    <Button size="sm" variant="outline" onClick={() => cancelBooking(booking.id)}>
+                                      Cancel
+                                    </Button>
+                                    <Button size="sm">
+                                      Pay Now
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="mt-2">
+                                    <Badge variant="outline" className="text-green-600">
+                                      Confirmed
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </CardContent>

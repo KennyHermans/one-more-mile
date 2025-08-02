@@ -78,7 +78,8 @@ const TripDetail = () => {
     full_name: "",
     address: "",
     email: "",
-    phone: ""
+    phone: "",
+    payNow: false
   });
   const { toast } = useToast();
 
@@ -94,7 +95,7 @@ const TripDetail = () => {
     }
   };
 
-  const handleBookTrip = async () => {
+  const handleBookTrip = (payNow: boolean) => {
     if (!user) {
       toast({
         title: "Please sign in",
@@ -104,6 +105,7 @@ const TripDetail = () => {
       navigate('/auth');
       return;
     }
+    setBookingForm(prev => ({ ...prev, payNow }));
     setShowBookingDialog(true);
   };
 
@@ -116,13 +118,19 @@ const TripDetail = () => {
       const priceString = trip.price.replace(/[^0-9.]/g, '');
       const totalAmount = parseFloat(priceString);
 
+      // Set payment status based on user choice
+      const paymentStatus = bookingForm.payNow ? 'paid' : 'pending';
+      const bookingStatus = bookingForm.payNow ? 'confirmed' : 'reserved';
+
       // Create booking
       const { error: bookingError } = await supabase
         .from('trip_bookings')
         .insert({
           trip_id: trip.id,
           user_id: user.id,
-          total_amount: totalAmount
+          total_amount: totalAmount,
+          payment_status: paymentStatus,
+          booking_status: bookingStatus
         });
 
       if (bookingError) throw bookingError;
@@ -159,9 +167,13 @@ const TripDetail = () => {
 
       if (todoError) throw todoError;
 
+      const successMessage = bookingForm.payNow 
+        ? "Payment successful! Your trip is confirmed."
+        : "Reservation successful! You can pay later in your dashboard.";
+
       toast({
-        title: "Booking successful!",
-        description: "Your trip has been booked. Complete your profile in your dashboard.",
+        title: bookingForm.payNow ? "Booking confirmed!" : "Reservation successful!",
+        description: successMessage,
       });
 
       setShowBookingDialog(false);
@@ -488,15 +500,27 @@ const TripDetail = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    className="w-full font-sans font-medium" 
-                    size="lg"
-                    onClick={handleBookTrip}
-                    disabled={trip.current_participants >= trip.max_participants}
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    {trip.current_participants >= trip.max_participants ? 'Fully Booked' : 'Book This Adventure'}
-                  </Button>
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full font-sans font-medium" 
+                      size="lg"
+                      onClick={() => handleBookTrip(true)}
+                      disabled={trip.current_participants >= trip.max_participants}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      {trip.current_participants >= trip.max_participants ? 'Fully Booked' : `Book & Pay Now ${trip.price}`}
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="w-full font-sans font-medium" 
+                      size="lg"
+                      onClick={() => handleBookTrip(false)}
+                      disabled={trip.current_participants >= trip.max_participants}
+                    >
+                      Reserve Now, Pay Later
+                    </Button>
+                  </div>
 
                   <div className="mt-4 text-center">
                     <Button variant="outline" className="w-full font-sans">
@@ -615,7 +639,12 @@ const TripDetail = () => {
               onClick={handleBookingSubmit}
               disabled={bookingLoading || !bookingForm.full_name || !bookingForm.phone || !bookingForm.email || !bookingForm.address}
             >
-              {bookingLoading ? "Processing..." : `Book for ${trip?.price}`}
+              {bookingLoading 
+                ? "Processing..." 
+                : bookingForm.payNow 
+                  ? `Pay Now ${trip?.price}` 
+                  : "Reserve My Spot"
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
