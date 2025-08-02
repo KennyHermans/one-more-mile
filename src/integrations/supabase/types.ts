@@ -259,7 +259,22 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_sensei_feedback_sensei_id"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_sensei_feedback_trip_id"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sensei_profiles: {
         Row: {
@@ -414,7 +429,29 @@ export type Database = {
           trip_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_trip_cancellations_cancelled_by_sensei_id"
+            columns: ["cancelled_by_sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_trip_cancellations_replacement_sensei_id"
+            columns: ["replacement_sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_trip_cancellations_trip_id"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trip_messages: {
         Row: {
