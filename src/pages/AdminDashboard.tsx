@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
+import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 
 interface Application {
   id: string;
@@ -753,11 +754,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
             <TabsTrigger value="trip-management">Trip Management</TabsTrigger>
+            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
             <TabsTrigger value="senseis">Sensei Management</TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
@@ -873,6 +875,11 @@ const AdminDashboard = () => {
           {/* Trip Management Tab */}
           <TabsContent value="trip-management" className="space-y-6">
             <AdminTripManagementOverview />
+          </TabsContent>
+
+          {/* Backup Sensei Tab */}
+          <TabsContent value="backup-sensei" className="space-y-6">
+            <BackupSenseiManagement isAdmin={true} />
           </TabsContent>
 
           {/* Sensei Management Tab */}

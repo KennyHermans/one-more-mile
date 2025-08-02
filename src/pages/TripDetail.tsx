@@ -483,11 +483,22 @@ const TripDetail = () => {
                     <div className="flex items-center justify-between font-sans">
                       <span className="text-sm">Sensei</span>
                       <div className="text-right">
-                        <span className="text-sm font-medium block">{trip.sensei_name}</span>
-                        {senseiProfile && (
-                          <span className="text-xs text-muted-foreground">
-                            {senseiProfile.specialty} • {senseiProfile.trips_led} trips led
-                          </span>
+                        {trip.sensei_id ? (
+                          <>
+                            <span className="text-sm font-medium block">{trip.sensei_name}</span>
+                            {senseiProfile && (
+                              <span className="text-xs text-muted-foreground">
+                                {senseiProfile.specialty} • {senseiProfile.trips_led} trips led
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-end">
+                            <span className="text-sm font-medium text-yellow-600">No sensei assigned</span>
+                            <span className="text-xs text-muted-foreground">
+                              Senseis can apply to lead this trip
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>

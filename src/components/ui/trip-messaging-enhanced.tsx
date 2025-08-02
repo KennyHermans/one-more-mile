@@ -149,7 +149,8 @@ export const TripMessagingEnhanced: React.FC<TripMessagingEnhancedProps> = ({
       const { data, error } = await supabase
         .from('trips')
         .select(`
-          sensei_profiles!inner(user_id, name)
+          sensei_id,
+          sensei_profiles!trips_sensei_id_fkey(user_id, name)
         `)
         .eq('id', tripId)
         .single();

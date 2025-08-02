@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
+import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 import { 
   Calendar as CalendarIcon,
   MapPin,
@@ -829,9 +830,10 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
             <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
@@ -975,6 +977,11 @@ const SenseiDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Backup Sensei Tab */}
+          <TabsContent value="backup-sensei" className="space-y-6">
+            <BackupSenseiManagement isAdmin={false} />
           </TabsContent>
 
           {/* Applications Tab */}

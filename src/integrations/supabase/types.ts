@@ -77,6 +77,54 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_sensei_applications: {
+        Row: {
+          applied_at: string
+          created_at: string
+          id: string
+          sensei_id: string
+          status: string
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          created_at?: string
+          id?: string
+          sensei_id: string
+          status?: string
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          created_at?: string
+          id?: string
+          sensei_id?: string
+          status?: string
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_sensei_applications_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backup_sensei_applications_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_documents: {
         Row: {
           document_name: string
@@ -587,6 +635,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          backup_sensei_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by_sensei: boolean | null
@@ -619,6 +668,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
@@ -651,6 +701,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
@@ -683,6 +734,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trips_backup_sensei_id_fkey"
+            columns: ["backup_sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trips_sensei_id_fkey"
             columns: ["sensei_id"]
