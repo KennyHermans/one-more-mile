@@ -105,6 +105,12 @@ interface SenseiProfile {
   experience: string;
   location: string;
   user_id: string;
+  can_create_trips: boolean;
+  trip_creation_requested: boolean;
+  trip_creation_request_date: string | null;
+  bio: string;
+  rating: number;
+  trips_led: number;
 }
 
 const AdminDashboard = () => {
@@ -206,7 +212,7 @@ const AdminDashboard = () => {
       const { data, error } = await supabase
         .from('sensei_profiles')
         .select('*')
-        .eq('is_active', true);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setSenseis(data || []);
@@ -495,6 +501,30 @@ const AdminDashboard = () => {
     }
   };
 
+  const updateSenseiPermission = async (senseiId: string, canCreateTrips: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('sensei_profiles')
+        .update({ can_create_trips: canCreateTrips })
+        .eq('id', senseiId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Permission Updated",
+        description: `Sensei trip creation permission has been ${canCreateTrips ? 'granted' : 'revoked'}.`,
+      });
+
+      fetchSenseis();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update permission.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -569,11 +599,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="trips">Trips & Senseis</TabsTrigger>
+            <TabsTrigger value="senseis">Sensei Management</TabsTrigger>
+            <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
             <TabsTrigger value="settings">Payment Settings</TabsTrigger>
@@ -670,6 +701,116 @@ const AdminDashboard = () => {
                               </Button>
                             </div>
                           )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Sensei Management Tab */}
+          <TabsContent value="senseis" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Sensei Management</h2>
+              <Badge variant="outline" className="text-sm">
+                {senseis.length} total senseis
+              </Badge>
+            </div>
+
+            {senseis.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No senseis found.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {senseis.map((sensei) => (
+                  <Card key={sensei.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{sensei.name}</h3>
+                              <p className="text-gray-600">{sensei.specialty}</p>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {sensei.location}
+                              </p>
+                              <p className="text-sm text-gray-500">{sensei.experience}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span className="text-sm font-medium">{sensei.rating}</span>
+                              </div>
+                              <Badge variant={sensei.can_create_trips ? "default" : "secondary"}>
+                                {sensei.can_create_trips ? "Can Create Trips" : "No Trip Creation"}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Trips Led</p>
+                              <p className="text-sm">{sensei.trips_led}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Rating</p>
+                              <p className="text-sm">{sensei.rating}/5.0</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Trip Creation Request</p>
+                              <p className="text-sm">
+                                {sensei.trip_creation_requested 
+                                  ? `Requested ${sensei.trip_creation_request_date ? new Date(sensei.trip_creation_request_date).toLocaleDateString() : ''}`
+                                  : 'No request'
+                                }
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-700 line-clamp-2">{sensei.bio}</p>
+                          </div>
+
+                          <div className="flex gap-2 pt-4 border-t">
+                            {sensei.can_create_trips ? (
+                              <Button
+                                variant="destructive"
+                                onClick={() => updateSenseiPermission(sensei.id, false)}
+                                size="sm"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Revoke Trip Creation
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => updateSenseiPermission(sensei.id, true)}
+                                className="bg-green-600 hover:bg-green-700"
+                                size="sm"
+                              >
+                                <Check className="w-4 h-4 mr-1" />
+                                Grant Trip Creation
+                              </Button>
+                            )}
+                            {sensei.trip_creation_requested && !sensei.can_create_trips && (
+                              <Badge variant="outline" className="text-xs px-2 py-1">
+                                ⏳ Permission Requested
+                              </Badge>
+                            )}
+                            <Button
+                              variant="outline"
+                              onClick={() => window.location.href = `/senseis/${sensei.id}`}
+                              size="sm"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View Profile
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
