@@ -30,6 +30,7 @@ interface TripBooking {
   payment_status: string;
   booking_date: string;
   total_amount: number;
+  payment_deadline?: string;
   trips: {
     title: string;
     destination: string;
@@ -360,13 +361,18 @@ const CustomerDashboard = () => {
                                 <p className="text-sm">{booking.trips.dates}</p>
                                 <p className="text-sm">Sensei: {booking.trips.sensei_name}</p>
                               </div>
-                              <div className="text-right space-y-2">
-                                <div className="flex flex-col items-end gap-2">
-                                  <Badge variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}>
-                                    {booking.payment_status === 'paid' ? 'Paid' : 'Reserved'}
-                                  </Badge>
-                                  <p className="text-lg font-semibold">${booking.total_amount}</p>
-                                </div>
+                               <div className="text-right space-y-2">
+                                 <div className="flex flex-col items-end gap-2">
+                                   <Badge variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}>
+                                     {booking.payment_status === 'paid' ? 'Paid' : 'Reserved'}
+                                   </Badge>
+                                   <p className="text-lg font-semibold">${booking.total_amount}</p>
+                                   {booking.payment_deadline && booking.payment_status === 'pending' && (
+                                     <p className="text-sm text-orange-600 font-medium">
+                                       Payment due: {new Date(booking.payment_deadline).toLocaleDateString()}
+                                     </p>
+                                   )}
+                                 </div>
                                 
                                 {booking.payment_status === 'pending' ? (
                                   <div className="flex gap-2 mt-2">
