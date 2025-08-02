@@ -162,6 +162,14 @@ const handler = async (req: Request): Promise<Response> => {
       originalSenseiName
     );
 
+    // Notify participants about sensei change
+    await notifyParticipantsAboutSenseiChange(
+      trip,
+      selectedBackup.sensei_profiles.name,
+      originalSenseiName,
+      cancellationReason
+    );
+
     // Notify admin about successful assignment
     await notifyAdminSuccess(trip, selectedBackup.sensei_profiles.name, originalSenseiName);
 
@@ -340,6 +348,132 @@ async function notifyAdminNoAvailableBackup(
   });
 
   console.log("Admin unavailable-backup notification sent:", emailResponse);
+}
+
+async function notifyParticipantsAboutSenseiChange(
+  trip: any,
+  newSenseiName: string,
+  originalSenseiName?: string,
+  cancellationReason?: string
+) {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  // Get all paid participants for this trip
+  const { data: bookings, error: bookingsError } = await supabase
+    .from('trip_bookings')
+    .select('user_id, customer_profiles:user_id (full_name)')
+    .eq('trip_id', trip.id)
+    .eq('payment_status', 'paid');
+
+  if (bookingsError || !bookings) {
+    console.error("Error fetching participants for notification:", bookingsError);
+    return;
+  }
+
+  for (const booking of bookings) {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(booking.user_id);
+      
+      if (userError || !userData.user?.email) {
+        console.error(`Error getting participant email:`, userError);
+        continue;
+      }
+
+      await notifyParticipantSenseiChange(
+        userData.user.email,
+        booking.customer_profiles?.full_name || 'Valued Traveler',
+        trip,
+        newSenseiName,
+        originalSenseiName,
+        cancellationReason
+      );
+
+    } catch (error) {
+      console.error(`Error notifying participant:`, error);
+    }
+  }
+}
+
+async function notifyParticipantSenseiChange(
+  email: string,
+  customerName: string,
+  trip: any,
+  newSenseiName: string,
+  originalSenseiName?: string,
+  cancellationReason?: string
+) {
+  const emailResponse = await resend.emails.send({
+    from: "One More Mile <onboarding@resend.dev>",
+    to: [email],
+    subject: `Important update: New sensei assigned to your trip "${trip.title}"`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2563eb;">Important Trip Update</h1>
+        
+        <p>Dear ${customerName},</p>
+        
+        <p><strong>Your trip is still happening!</strong> We're writing to inform you of an important change regarding your upcoming adventure.</p>
+        
+        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+          <h2 style="color: #065f46; margin-top: 0;">✅ Your Trip Continues</h2>
+          <ul style="color: #374151;">
+            <li><strong>Trip:</strong> ${trip.title}</li>
+            <li><strong>Destination:</strong> ${trip.destination}</li>
+            <li><strong>Dates:</strong> ${trip.dates} (unchanged)</li>
+            <li><strong>Your booking:</strong> Confirmed and active</li>
+          </ul>
+        </div>
+        
+        <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #92400e; margin-top: 0;">🔄 Sensei Change</h3>
+          ${originalSenseiName ? `<p><strong>Previous Sensei:</strong> ${originalSenseiName}</p>` : ''}
+          <p><strong>New Sensei:</strong> ${newSenseiName}</p>
+          
+          ${cancellationReason ? `
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #fbbf24;">
+            <p><strong>Reason for change:</strong> ${cancellationReason}</p>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #1f2937; margin-top: 0;">What this means for you:</h3>
+          <ul style="color: #374151;">
+            <li><strong>✅ Trip proceeds as planned</strong> - All dates, activities, and accommodations remain the same</li>
+            <li><strong>✅ No payment changes</strong> - Your booking and payment remain valid</li>
+            <li><strong>✅ Same quality experience</strong> - All our senseis are carefully vetted and qualified</li>
+            <li><strong>✅ Seamless transition</strong> - ${newSenseiName} has been fully briefed on your trip</li>
+          </ul>
+        </div>
+        
+        <p><strong>Meet your new sensei:</strong> ${newSenseiName} will be contacting you soon to introduce themselves and answer any questions you may have.</p>
+        
+        <p style="margin-top: 30px;">
+          <a href="${Deno.env.get("SUPABASE_URL")?.replace(/supabase\.co.*/, "lovable.app")}/customer/dashboard" 
+             style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            🎯 View Your Trip Details
+          </a>
+        </p>
+        
+        <p>We sincerely apologize for any concern this change may cause. Rest assured, your adventure will be just as amazing with ${newSenseiName} leading the way!</p>
+        
+        <p><strong>Questions?</strong> Feel free to reach out:</p>
+        <ul>
+          <li>📧 Email: kenny_hermans93@hotmail.com</li>
+          <li>💬 Contact your new sensei ${newSenseiName} directly</li>
+        </ul>
+        
+        <p>We can't wait for you to experience this incredible journey!</p>
+        
+        <p>Best regards,<br>The One More Mile Team</p>
+      </div>
+    `,
+  });
+
+  console.log(`Sensei change notification sent to ${email}:`, emailResponse);
 }
 
 async function notifyAdminSuccess(trip: any, backupSenseiName: string, originalSenseiName?: string) {
