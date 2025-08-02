@@ -57,6 +57,20 @@ interface PaymentSettings {
   description: string;
 }
 
+interface TripBooking {
+  id: string;
+  user_id: string;
+  booking_status: string;
+  payment_status: string;
+  booking_date: string;
+  total_amount: number;
+  payment_deadline?: string;
+  customer_profiles: {
+    full_name: string;
+    phone?: string;
+  };
+}
+
 interface Trip {
   id: string;
   title: string;
@@ -95,6 +109,8 @@ const AdminDashboard = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [senseis, setSenseis] = useState<SenseiProfile[]>([]);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings[]>([]);
+  const [tripBookings, setTripBookings] = useState<{[tripId: string]: TripBooking[]}>({});
+  const [loadingBookings, setLoadingBookings] = useState<{[tripId: string]: boolean}>({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -228,6 +244,59 @@ const AdminDashboard = () => {
         description: "Failed to update setting.",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchTripParticipants = async (tripId: string) => {
+    if (loadingBookings[tripId] || tripBookings[tripId]) return;
+    
+    setLoadingBookings(prev => ({ ...prev, [tripId]: true }));
+    
+    try {
+      // First get the bookings
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('trip_bookings')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('booking_date', { ascending: false });
+
+      if (bookingsError) throw bookingsError;
+
+      // Then get the customer profiles for those bookings
+      if (bookings && bookings.length > 0) {
+        const userIds = bookings.map(booking => booking.user_id);
+        const { data: profiles, error: profilesError } = await supabase
+          .from('customer_profiles')
+          .select('user_id, full_name, phone')
+          .in('user_id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        // Combine the data
+        const enrichedBookings: TripBooking[] = bookings.map(booking => {
+          const profile = profiles?.find(p => p.user_id === booking.user_id);
+          return {
+            ...booking,
+            customer_profiles: {
+              full_name: profile?.full_name || 'Unknown',
+              phone: profile?.phone || undefined
+            }
+          };
+        });
+
+        setTripBookings(prev => ({ ...prev, [tripId]: enrichedBookings }));
+      } else {
+        setTripBookings(prev => ({ ...prev, [tripId]: [] }));
+      }
+    } catch (error) {
+      console.error('Error fetching trip participants:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load participants.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingBookings(prev => ({ ...prev, [tripId]: false }));
     }
   };
 
@@ -605,20 +674,73 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           
-                          <div className="grid md:grid-cols-3 gap-4">
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">Price</p>
-                              <p className="text-sm">{trip.price}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">Group Size</p>
-                              <p className="text-sm">{trip.group_size}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">Duration</p>
-                              <p className="text-sm">{trip.duration_days} days</p>
-                            </div>
-                          </div>
+                           <div className="grid md:grid-cols-3 gap-4 mb-4">
+                             <div>
+                               <p className="text-sm font-medium text-gray-600">Price</p>
+                               <p className="text-sm">{trip.price}</p>
+                             </div>
+                             <div>
+                               <p className="text-sm font-medium text-gray-600">Group Size</p>
+                               <p className="text-sm">{trip.group_size}</p>
+                             </div>
+                             <div>
+                               <p className="text-sm font-medium text-gray-600">Duration</p>
+                               <p className="text-sm">{trip.duration_days} days</p>
+                             </div>
+                           </div>
+
+                           {/* Participants Section */}
+                           <div className="border-t pt-4">
+                             <div className="flex items-center justify-between mb-3">
+                               <h4 className="font-semibold flex items-center gap-2">
+                                 <Users className="w-4 h-4" />
+                                 Participants ({tripBookings[trip.id]?.length || 0})
+                               </h4>
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => fetchTripParticipants(trip.id)}
+                                 disabled={loadingBookings[trip.id]}
+                               >
+                                 {loadingBookings[trip.id] ? 'Loading...' : 'Load Participants'}
+                               </Button>
+                             </div>
+                             
+                             {tripBookings[trip.id] && (
+                               <div className="space-y-2 max-h-40 overflow-y-auto">
+                                 {tripBookings[trip.id].length === 0 ? (
+                                   <p className="text-sm text-gray-500 italic">No participants yet</p>
+                                 ) : (
+                                   tripBookings[trip.id].map((booking) => (
+                                     <div key={booking.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                                       <div>
+                                         <span className="font-medium">{booking.customer_profiles.full_name}</span>
+                                         {booking.customer_profiles.phone && (
+                                           <span className="text-gray-500 ml-2">({booking.customer_profiles.phone})</span>
+                                         )}
+                                       </div>
+                                       <div className="flex items-center gap-2">
+                                         <Badge 
+                                           variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}
+                                           className="text-xs"
+                                         >
+                                           {booking.payment_status === 'paid' ? 'Paid' : 'Pending'}
+                                         </Badge>
+                                         <span className="text-xs text-gray-500">
+                                           ${booking.total_amount}
+                                         </span>
+                                         {booking.payment_deadline && booking.payment_status === 'pending' && (
+                                           <span className="text-xs text-orange-600">
+                                             Due: {new Date(booking.payment_deadline).toLocaleDateString()}
+                                           </span>
+                                         )}
+                                       </div>
+                                     </div>
+                                   ))
+                                 )}
+                               </div>
+                             )}
+                           </div>
                         </div>
                       </div>
                     </CardContent>
