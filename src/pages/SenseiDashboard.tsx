@@ -144,6 +144,16 @@ const SenseiDashboard = () => {
 
   useEffect(() => {
     checkAuth();
+    
+    // Listen for availability updates to refresh calendar
+    const handleAvailabilityUpdate = () => {
+      if (user) {
+        fetchSenseiTrips(user.id);
+      }
+    };
+    
+    window.addEventListener('availabilityUpdated', handleAvailabilityUpdate);
+    return () => window.removeEventListener('availabilityUpdated', handleAvailabilityUpdate);
   }, []);
 
   const checkAuth = async () => {
@@ -204,10 +214,10 @@ const SenseiDashboard = () => {
 
   const fetchSenseiTrips = async (userId: string) => {
     try {
-      // First get the sensei profile to get the sensei ID
+      // First get the sensei profile to get the sensei ID and availability data
       const { data: profileData } = await supabase
         .from('sensei_profiles')
-        .select('id')
+        .select('id, unavailable_months, is_offline')
         .eq('user_id', userId)
         .single();
 
@@ -223,21 +233,64 @@ const SenseiDashboard = () => {
       setTrips(data || []);
       
       // Convert trips to calendar events
-      const events: CalendarEvent[] = (data || []).map(trip => {
+      const tripEvents: CalendarEvent[] = (data || []).map(trip => {
         const dates = trip.dates.split(' - ');
         const startDate = new Date(dates[0]);
         const endDate = dates[1] ? new Date(dates[1]) : startDate;
         
         return {
-          id: trip.id,
-          title: trip.title,
+          id: `trip-${trip.id}`,
+          title: `🧳 ${trip.title}`,
           start: startDate,
           end: endDate,
-          resource: trip
+          resource: { 
+            ...trip, 
+            type: 'trip',
+            color: '#10b981' // Green for trips
+          }
         };
       });
+
+      // Create availability events for unavailable months
+      const availabilityEvents: CalendarEvent[] = [];
+      const currentYear = new Date().getFullYear();
       
-      setCalendarEvents(events);
+      if (profileData.unavailable_months && profileData.unavailable_months.length > 0) {
+        profileData.unavailable_months.forEach(monthName => {
+          const monthIndex = moment().month(monthName).month();
+          const startDate = new Date(currentYear, monthIndex, 1);
+          const endDate = new Date(currentYear, monthIndex + 1, 0);
+          
+          availabilityEvents.push({
+            id: `unavailable-${monthName}-${currentYear}`,
+            title: `🚫 Unavailable - ${monthName}`,
+            start: startDate,
+            end: endDate,
+            resource: { 
+              type: 'unavailable',
+              month: monthName,
+              color: '#ef4444' // Red for unavailable
+            }
+          });
+        });
+      }
+
+      // Add offline status as full year unavailability if applicable
+      if (profileData.is_offline) {
+        availabilityEvents.push({
+          id: `offline-${currentYear}`,
+          title: '💤 Profile Offline',
+          start: new Date(currentYear, 0, 1),
+          end: new Date(currentYear, 11, 31),
+          resource: { 
+            type: 'offline',
+            color: '#6b7280' // Gray for offline
+          }
+        });
+      }
+      
+      // Combine all events
+      setCalendarEvents([...tripEvents, ...availabilityEvents]);
     } catch (error) {
       console.error('Error fetching sensei trips:', error);
     }
@@ -917,7 +970,21 @@ const SenseiDashboard = () => {
           {/* Calendar Tab */}
           <TabsContent value="calendar" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Trip Calendar</h2>
+              <h2 className="text-2xl font-bold">Trip & Availability Calendar</h2>
+              <div className="flex gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span>🧳 Trips</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  <span>🚫 Unavailable</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-500 rounded"></div>
+                  <span>💤 Offline</span>
+                </div>
+              </div>
             </div>
 
             <Card>
@@ -929,13 +996,48 @@ const SenseiDashboard = () => {
                     startAccessor="start"
                     endAccessor="end"
                     style={{ height: '100%' }}
+                    eventPropGetter={(event) => ({
+                      style: {
+                        backgroundColor: event.resource.color,
+                        borderColor: event.resource.color,
+                        color: 'white',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '12px',
+                        padding: '2px 6px'
+                      }
+                    })}
                     onSelectEvent={(event) => {
+                      let description = '';
+                      if (event.resource.type === 'trip') {
+                        description = `Trip to ${event.resource.destination} | ${event.resource.dates}`;
+                      } else if (event.resource.type === 'unavailable') {
+                        description = `You marked ${event.resource.month} as unavailable`;
+                      } else if (event.resource.type === 'offline') {
+                        description = 'Your profile is set to offline mode';
+                      }
+                      
                       toast({
                         title: event.title,
-                        description: `Trip to ${event.resource.destination}`,
+                        description: description,
                       });
                     }}
+                    tooltipAccessor={(event) => {
+                      if (event.resource.type === 'trip') {
+                        return `${event.title} - ${event.resource.destination}`;
+                      } else if (event.resource.type === 'unavailable') {
+                        return `Unavailable: ${event.resource.month}`;
+                      } else {
+                        return event.title;
+                      }
+                    }}
                   />
+                </div>
+                <div className="mt-4 text-sm text-gray-600 space-y-1">
+                  <p>• <strong>Green events (🧳)</strong>: Your assigned trips</p>
+                  <p>• <strong>Red events (🚫)</strong>: Months you've marked as unavailable</p>
+                  <p>• <strong>Gray events (💤)</strong>: When your profile is offline</p>
+                  <p>• Click any event for more details</p>
                 </div>
               </CardContent>
             </Card>

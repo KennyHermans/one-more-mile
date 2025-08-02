@@ -82,6 +82,9 @@ export function SenseiAvailabilitySettings() {
       if (error) throw error;
       
       toast.success('Availability settings updated successfully');
+      
+      // Refresh the parent component to update calendar
+      window.dispatchEvent(new CustomEvent('availabilityUpdated'));
     } catch (error) {
       console.error('Error updating availability:', error);
       toast.error('Failed to update availability settings');
