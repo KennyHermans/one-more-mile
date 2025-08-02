@@ -278,13 +278,16 @@ export type Database = {
       }
       sensei_profiles: {
         Row: {
+          availability_periods: Json | null
           bio: string
           can_create_trips: boolean
+          certifications: string[] | null
           created_at: string
           experience: string
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_offline: boolean | null
           location: string
           name: string
           rating: number | null
@@ -293,17 +296,21 @@ export type Database = {
           trip_creation_request_date: string | null
           trip_creation_requested: boolean
           trips_led: number | null
+          unavailable_months: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          availability_periods?: Json | null
           bio: string
           can_create_trips?: boolean
+          certifications?: string[] | null
           created_at?: string
           experience: string
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_offline?: boolean | null
           location: string
           name: string
           rating?: number | null
@@ -312,17 +319,21 @@ export type Database = {
           trip_creation_request_date?: string | null
           trip_creation_requested?: boolean
           trips_led?: number | null
+          unavailable_months?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          availability_periods?: Json | null
           bio?: string
           can_create_trips?: boolean
+          certifications?: string[] | null
           created_at?: string
           experience?: string
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_offline?: boolean | null
           location?: string
           name?: string
           rating?: number | null
@@ -331,6 +342,7 @@ export type Database = {
           trip_creation_request_date?: string | null
           trip_creation_requested?: boolean
           trips_led?: number | null
+          unavailable_months?: string[] | null
           updated_at?: string
           user_id?: string
         }
@@ -688,6 +700,33 @@ export type Database = {
       calculate_payment_deadline: {
         Args: { trip_start_date: string }
         Returns: string
+      }
+      get_sensei_trip_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          sensei_id: string
+          sensei_name: string
+          is_linked_to_trip: boolean
+          current_trip_count: number
+          is_available: boolean
+          specialties: string[]
+          certifications: string[]
+          location: string
+          rating: number
+        }[]
+      }
+      suggest_senseis_for_trip: {
+        Args: { trip_theme: string; trip_months?: string[] }
+        Returns: {
+          sensei_id: string
+          sensei_name: string
+          match_score: number
+          matching_specialties: string[]
+          matching_certifications: string[]
+          location: string
+          rating: number
+          is_available: boolean
+        }[]
       }
     }
     Enums: {

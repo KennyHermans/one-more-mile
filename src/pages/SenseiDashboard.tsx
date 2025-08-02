@@ -15,6 +15,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
+import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { 
   Calendar as CalendarIcon,
   MapPin,
@@ -556,7 +557,7 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
@@ -565,6 +566,7 @@ const SenseiDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="todos">To-Do List</TabsTrigger>
+            <TabsTrigger value="availability">Availability</TabsTrigger>
           </TabsList>
 
           {/* My Trips Tab */}
@@ -993,6 +995,11 @@ const SenseiDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Availability Tab */}
+          <TabsContent value="availability" className="space-y-6">
+            <SenseiAvailabilitySettings />
           </TabsContent>
         </Tabs>
 

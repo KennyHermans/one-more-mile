@@ -30,6 +30,7 @@ import {
   UserCheck,
   Plane
 } from "lucide-react";
+import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 
 interface Application {
   id: string;
@@ -764,6 +765,7 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="feedback">Sensei Feedback</TabsTrigger>
             <TabsTrigger value="settings">Payment Settings</TabsTrigger>
+            <TabsTrigger value="sensei-overview">Sensei Overview</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}
@@ -1464,6 +1466,11 @@ const AdminDashboard = () => {
                 </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Sensei Overview Tab */}
+          <TabsContent value="sensei-overview" className="space-y-6">
+            <AdminSenseiOverview />
           </TabsContent>
         </Tabs>
 
