@@ -9,7 +9,7 @@ export function HeroSection() {
       {/* Background image with overlay */}
       <div className="absolute inset-0">
         <img 
-          src="https://images.unsplash.com/photo-1458668383970-8ddd3927deed?w=1920&h=1080&fit=crop" 
+          src="/lovable-uploads/2474f079-a946-4975-88a2-b4704e35976f.png"
           alt="Majestic mountain landscape"
           className="w-full h-full object-cover"
         />
