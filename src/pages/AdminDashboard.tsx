@@ -31,6 +31,7 @@ import {
   Plane
 } from "lucide-react";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
+import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 
 interface Application {
   id: string;
@@ -752,10 +753,11 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="applications">
               Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
             </TabsTrigger>
+            <TabsTrigger value="trip-management">Trip Management</TabsTrigger>
             <TabsTrigger value="senseis">Sensei Management</TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="proposals">Trip Proposals</TabsTrigger>
@@ -866,6 +868,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Trip Management Tab */}
+          <TabsContent value="trip-management" className="space-y-6">
+            <AdminTripManagementOverview />
           </TabsContent>
 
           {/* Sensei Management Tab */}
