@@ -53,9 +53,12 @@ export function AdminSenseiOverview() {
 
   const fetchSenseiStatus = async () => {
     try {
+      console.log('Fetching sensei status...');
       const { data, error } = await supabase.rpc('get_sensei_trip_status');
+      console.log('Sensei status response:', { data, error });
       if (error) throw error;
       setSenseis(data || []);
+      console.log('Senseis set to:', data);
     } catch (error) {
       console.error('Error fetching sensei status:', error);
       toast.error('Failed to load sensei overview');
@@ -120,7 +123,13 @@ export function AdminSenseiOverview() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          {senseis.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No senseis found</p>
+              <p className="text-sm text-gray-500">Debug: senseis array length = {senseis.length}</p>
+            </div>
+          ) : (
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -202,6 +211,7 @@ export function AdminSenseiOverview() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 
