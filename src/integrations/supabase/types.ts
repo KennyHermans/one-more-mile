@@ -1010,6 +1010,14 @@ export type Database = {
           rating: number
         }[]
       }
+      send_welcome_message_to_sensei: {
+        Args: { sensei_id: string }
+        Returns: undefined
+      }
+      send_welcome_to_all_existing_senseis: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       suggest_senseis_for_trip: {
         Args: { trip_theme: string; trip_months?: string[] }
         Returns: {
