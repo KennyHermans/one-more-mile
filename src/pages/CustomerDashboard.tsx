@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
-import { TripMessaging } from "@/components/ui/trip-messaging";
+import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
@@ -436,7 +436,7 @@ const CustomerDashboard = () => {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <TripMessaging
+                            <TripMessagingEnhanced
                               tripId={booking.trip_id}
                               tripTitle={booking.trips.title}
                               userType="customer"

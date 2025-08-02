@@ -341,9 +341,11 @@ export type Database = {
           file_url: string | null
           id: string
           is_deleted: boolean | null
+          message_context: string
           message_text: string
           message_type: string
           read_at: string | null
+          recipient_id: string | null
           sender_id: string
           sender_type: string
           trip_id: string
@@ -353,9 +355,11 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_deleted?: boolean | null
+          message_context?: string
           message_text: string
           message_type?: string
           read_at?: string | null
+          recipient_id?: string | null
           sender_id: string
           sender_type: string
           trip_id: string
@@ -365,9 +369,11 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_deleted?: boolean | null
+          message_context?: string
           message_text?: string
           message_type?: string
           read_at?: string | null
+          recipient_id?: string | null
           sender_id?: string
           sender_type?: string
           trip_id?: string

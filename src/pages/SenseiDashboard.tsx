@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { TripMessaging } from "@/components/ui/trip-messaging";
+import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { Label } from "@/components/ui/label";
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -629,7 +629,7 @@ const SenseiDashboard = () => {
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <TripMessaging
+                            <TripMessagingEnhanced
                               tripId={trip.id}
                               tripTitle={trip.title}
                               userType="sensei"
