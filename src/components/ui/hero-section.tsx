@@ -47,41 +47,6 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-
-      {/* Content below the image */}
-      <div className="bg-background py-12">
-        <div className="container px-4 text-center">
-          {/* Badges */}
-          <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <span className="inline-block px-4 py-2 bg-primary/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-primary/20 text-primary">
-              ✨ Transformative Travel Experiences
-            </span>
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-green-300/30 text-green-700">
-              <ShieldCheck className="w-4 h-4" />
-              All Senseis Verified
-            </span>
-          </div>
-          
-          {/* Newsletter signup */}
-          <div className="max-w-md mx-auto">
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50">
-              <p className="font-sans text-lg font-medium mb-4 text-foreground">Stay updated</p>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Enter email"
-                    className="pl-10 bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-sans h-10 rounded-lg backdrop-blur-sm text-sm"
-                  />
-                </div>
-                <Button variant="secondary" className="font-sans font-medium bg-accent hover:bg-accent/90 text-white px-4 h-10 rounded-lg transition-all duration-300 text-sm">
-                  Join
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }

@@ -111,6 +111,41 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-12">
         <div className="container">
+          {/* Newsletter signup and badges */}
+          <div className="text-center mb-12">
+            <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <span className="inline-block px-4 py-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-primary-foreground/20 text-primary-foreground">
+                ✨ Transformative Travel Experiences
+              </span>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-green-300/30 text-green-200">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                All Senseis Verified
+              </span>
+            </div>
+            
+            <div className="max-w-md mx-auto">
+              <div className="bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-6 border border-primary-foreground/20">
+                <p className="font-sans text-lg font-medium mb-4 text-primary-foreground">Get travel inspiration delivered to your inbox</p>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <input 
+                      placeholder="Enter your email"
+                      className="pl-12 w-full bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/70 font-sans h-12 rounded-xl backdrop-blur-sm px-4"
+                    />
+                  </div>
+                  <button className="font-sans font-semibold bg-accent hover:bg-accent/90 text-white px-6 h-12 rounded-xl transition-all duration-300 hover:scale-105">
+                    Join Us
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
