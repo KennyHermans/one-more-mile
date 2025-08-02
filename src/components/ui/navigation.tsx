@@ -79,7 +79,7 @@ export function Navigation() {
           </Link>
            {user ? (
             <div className="flex items-center space-x-4">
-              <Link to="/my-applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+              <Link to="/sensei/dashboard?tab=applications" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                 My Applications
               </Link>
               {isSensei && (
@@ -159,9 +159,9 @@ export function Navigation() {
                {user ? (
                 <div className="space-y-2">
                    <Button asChild variant="outline" className="w-full">
-                     <Link to="/my-applications" onClick={() => setIsOpen(false)}>
-                       My Applications
-                     </Link>
+                      <Link to="/sensei/dashboard?tab=applications" onClick={() => setIsOpen(false)}>
+                        My Applications
+                      </Link>
                    </Button>
                    {isSensei && (
                      <>

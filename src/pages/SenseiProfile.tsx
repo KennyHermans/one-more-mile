@@ -385,7 +385,7 @@ const SenseiProfile = () => {
                     <AlertDescription>
                       Your previous application was not approved. 
                       <a href="/become-sensei" className="text-primary hover:underline ml-1">You can apply again here</a> or 
-                      <a href="/my-applications" className="text-primary hover:underline ml-1">view your applications</a>.
+                      <a href="/sensei/dashboard?tab=applications" className="text-primary hover:underline ml-1">view your applications</a>.
                     </AlertDescription>
                   </Alert>
                 ) : (
