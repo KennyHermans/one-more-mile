@@ -886,7 +886,7 @@ const SenseiDashboard = () => {
                                <Button 
                                  variant="outline" 
                                  size="sm"
-                                 onClick={() => window.location.href = `/sensei/trips`}
+                                  onClick={() => window.location.href = `/sensei/dashboard?tab=trip-editor`}
                                >
                                  <Edit2 className="w-4 h-4" />
                                </Button>
@@ -1487,7 +1487,7 @@ const SenseiDashboard = () => {
                                     <Button 
                                       variant="outline" 
                                       size="sm"
-                                      onClick={() => window.location.href = `/sensei/trips`}
+                                      onClick={() => window.location.href = `/sensei/dashboard?tab=trip-editor`}
                                     >
                                       <Edit2 className="w-4 h-4" />
                                     </Button>

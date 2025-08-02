@@ -87,7 +87,7 @@ export function Navigation() {
                   <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                     My Dashboard
                   </Link>
-                  <Link to="/sensei/trips" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                  <Link to="/sensei/dashboard?tab=trips" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                     My Trips
                   </Link>
                 </>
@@ -171,9 +171,9 @@ export function Navigation() {
                          </Link>
                        </Button>
                        <Button asChild variant="outline" className="w-full">
-                         <Link to="/sensei/trips" onClick={() => setIsOpen(false)}>
-                           My Trips
-                         </Link>
+                          <Link to="/sensei/dashboard?tab=trips" onClick={() => setIsOpen(false)}>
+                            My Trips
+                          </Link>
                        </Button>
                      </>
                    )}
