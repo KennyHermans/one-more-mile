@@ -40,7 +40,7 @@ export function HeroSection() {
                   Start Your Adventure <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="font-sans font-medium text-sm px-6 py-3 border border-white/40 text-white hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+              <Button asChild variant="outline" className="font-sans font-medium text-sm px-6 py-3 border border-white/40 text-white bg-black/30 hover:bg-black/50 transition-all duration-300 backdrop-blur-sm">
                 <Link to="/become-sensei">Become a Sensei</Link>
               </Button>
             </div>
