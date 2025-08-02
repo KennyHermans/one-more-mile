@@ -232,6 +232,21 @@ const Explore = () => {
               ))}
             </div>
           )}
+          
+          {/* Call to Action for Becoming a Sensei */}
+          <div className="mt-16 text-center">
+            <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 border border-primary/20">
+              <h3 className="font-serif text-2xl font-bold text-foreground mb-4">
+                Want to create your own unique trip?
+              </h3>
+              <p className="font-sans text-muted-foreground mb-6 max-w-md mx-auto">
+                Share your expertise and passion by becoming a Sensei and leading your own transformative adventures.
+              </p>
+              <Button asChild size="lg" className="font-medium">
+                <Link to="/become-sensei">Become a Sensei</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
     </div>
