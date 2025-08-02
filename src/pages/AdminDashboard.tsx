@@ -35,8 +35,7 @@ import {
 } from "lucide-react";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
-import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
-import { SenseiSuggestionsOverview } from "@/components/ui/sensei-suggestions-overview";
+import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
 import { TripCalendar } from "@/components/ui/trip-calendar";
 
 interface Application {
@@ -871,7 +870,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-12">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
             <TabsTrigger value="applications">
               <span className="flex items-center gap-2">
                 Applications {pendingApplications > 0 && <Badge className="ml-2">{pendingApplications}</Badge>}
@@ -879,14 +878,13 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="trip-management">Management</TabsTrigger>
-            <TabsTrigger value="sensei-suggestions">
+            <TabsTrigger value="sensei-assignment">
               <span className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4" />
-                <span className="hidden sm:inline">Suggestions</span>
+                <span className="hidden sm:inline">Sensei Assignment</span>
               </span>
             </TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
             <TabsTrigger value="cancellations">Cancellations</TabsTrigger>
             <TabsTrigger value="feedback">Feedback</TabsTrigger>
@@ -1005,14 +1003,9 @@ const AdminDashboard = () => {
             <AdminTripManagementOverview />
           </TabsContent>
 
-          {/* Sensei Suggestions Tab */}
-          <TabsContent value="sensei-suggestions" className="space-y-6">
-            <SenseiSuggestionsOverview />
-          </TabsContent>
-
-          {/* Backup Sensei Tab */}
-          <TabsContent value="backup-sensei" className="space-y-6">
-            <BackupSenseiManagement isAdmin={true} />
+          {/* Sensei Assignment Tab - Combined Suggestions & Backup */}
+          <TabsContent value="sensei-assignment" className="space-y-6">
+            <SenseiAssignmentManagement />
           </TabsContent>
 
           {/* Sensei Management Tab */}
