@@ -257,116 +257,126 @@ const BecomeSensei = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      {/* Hero Section - Minimalist Design */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1920&h=1080&fit=crop" 
-            alt="Inspiring landscape"
+            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop" 
+            alt="Mountain path at sunset"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/60"></div>
         </div>
-        <div className="relative z-10 container text-white">
-          <div className="max-w-3xl">
-            <Badge variant="secondary" className="mb-4 bg-white/10 text-white border-white/20">
-              Join Our Team
-            </Badge>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Become a Sensei
-            </h1>
-            <p className="font-sans text-xl leading-relaxed mb-8">
-              Share your passion and expertise by leading transformative journeys around the world. 
-              Help others discover new cultures, skills, and perspectives while growing personally and professionally.
-            </p>
-            <Button asChild size="lg" className="font-sans font-medium bg-accent hover:bg-accent/90">
-              <a href="#application">Apply Now</a>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Become a Sensei */}
-      <section className="py-16">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Why Become a Sensei?
+        
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-light tracking-wider mb-8 leading-tight">
+            ONE MORE MILE
+          </h1>
+          
+          <div className="space-y-6 mb-12">
+            <h2 className="font-heading text-2xl md:text-4xl font-light tracking-wide">
+              SHARE, TRANSFORM, INSPIRE.
             </h2>
-            <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join a community of experts who are passionate about sharing knowledge and creating meaningful travel experiences
+            <p className="font-body text-lg md:text-xl leading-relaxed max-w-2xl mx-auto font-light">
+              Become a guide who creates inspiring travel experiences designed to elevate and empower others.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="text-center border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="pt-8">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-4 bg-primary/10 rounded-full">
-                      <benefit.icon className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  <h3 className="font-serif text-xl font-bold text-foreground mb-3">
-                    {benefit.title}
-                  </h3>
-                  <p className="font-sans text-muted-foreground leading-relaxed">
-                    {benefit.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+          <Button 
+            asChild 
+            size="lg" 
+            className="font-body font-medium text-white bg-primary hover:bg-primary/90 px-8 py-4 text-lg tracking-wide border-0"
+          >
+            <a href="#application">GET STARTED</a>
+          </Button>
+        </div>
+      </section>
+
+      {/* Three Pillars Section - Minimalist */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="font-heading text-4xl md:text-5xl font-light text-foreground mb-6 tracking-wide">
+              THREE WAYS TO INSPIRE
+            </h2>
+            <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Guide transformative experiences across our core adventure themes
+            </p>
+          </div>
+          
+          {/* Three Categories */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+            <div className="text-center">
+              <div className="mb-6">
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-2xl font-light tracking-wide text-foreground">
+                  CULTURAL
+                </h3>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="mb-6">
+                <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-2xl font-light tracking-wide text-foreground">
+                  ADVENTURE
+                </h3>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="mb-6">
+                <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
+                <h3 className="font-heading text-2xl font-light tracking-wide text-foreground">
+                  WELLNESS
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Three Landscape Images */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="aspect-[4/3] rounded-lg overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop" 
+                alt="Mountain landscape"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="aspect-[4/3] rounded-lg overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop" 
+                alt="Forest landscape"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="aspect-[4/3] rounded-lg overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=600&h=400&fit=crop" 
+                alt="Desert landscape"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* What We're Looking For */}
-      <section className="py-16 bg-secondary/20">
+      {/* Requirements Section - Clean Layout */}
+      <section className="py-20 bg-secondary/10">
         <div className="container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-6">
-                What We're Looking For
-              </h2>
-              <p className="font-sans text-lg text-muted-foreground leading-relaxed mb-8">
-                We seek passionate experts who can create transformative experiences across our four main themes:
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="font-sans font-medium text-foreground">Sports & Nutrition</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-accent rounded-full"></div>
-                  <span className="font-sans font-medium text-foreground">Culinary Adventures</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="font-sans font-medium text-foreground">Wellness & Mindfulness</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-accent rounded-full"></div>
-                  <span className="font-sans font-medium text-foreground">Cultural Immersion</span>
-                </div>
-              </div>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-heading text-4xl md:text-5xl font-light text-foreground mb-8 tracking-wide">
+              JOIN OUR COMMUNITY
+            </h2>
+            <p className="font-body text-lg text-muted-foreground leading-relaxed mb-12 max-w-2xl mx-auto">
+              We seek passionate experts who inspire transformation through authentic travel experiences
+            </p>
 
-              <div className="space-y-3">
-                <h3 className="font-serif text-xl font-bold text-foreground">Requirements:</h3>
-                {requirements.map((requirement, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="font-sans text-muted-foreground">{requirement}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=600&h=400&fit=crop" 
-                alt="Sensei teaching"
-                className="rounded-lg shadow-lg"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              {requirements.map((requirement, index) => (
+                <div key={index} className="flex items-start space-x-4 text-left">
+                  <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                  <span className="font-body text-foreground leading-relaxed">{requirement}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -377,11 +387,11 @@ const BecomeSensei = () => {
         <div className="container">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Application Form
+              <h2 className="font-heading text-4xl md:text-5xl font-light text-foreground mb-6 tracking-wide">
+                BEGIN YOUR JOURNEY
               </h2>
-              <p className="font-sans text-lg text-muted-foreground">
-                Ready to join our community of expert guides? Fill out the application below and we'll be in touch within 48 hours.
+              <p className="font-body text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                Ready to inspire others through transformative travel? Submit your application and join our community of guides.
               </p>
             </div>
 

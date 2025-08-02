@@ -8,65 +8,62 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Enhanced Earth tone palette with better contrast */
-    --background: 45 20% 98%;
-    --foreground: 20 20% 10%;
+    /* Minimalist earth tone palette inspired by natural landscapes */
+    --background: 40 15% 96%;
+    --foreground: 25 15% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 20% 10%;
+    --card-foreground: 25 15% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 10%;
+    --popover-foreground: 25 15% 20%;
 
-    /* Vibrant forest green primary */
-    --primary: 150 45% 30%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 150 55% 40%;
+    /* Warm earth brown primary */
+    --primary: 25 20% 35%;
+    --primary-foreground: 40 15% 96%;
+    --primary-glow: 25 25% 45%;
 
-    /* Warm sand secondary with better contrast */
-    --secondary: 45 30% 88%;
-    --secondary-foreground: 20 20% 10%;
+    /* Soft cream secondary */
+    --secondary: 40 20% 90%;
+    --secondary-foreground: 25 15% 20%;
 
-    --muted: 45 20% 94%;
-    --muted-foreground: 20 15% 40%;
+    --muted: 40 10% 92%;
+    --muted-foreground: 25 10% 50%;
 
-    /* Enhanced terracotta accent */
-    --accent: 25 80% 58%;
+    /* Warm sunset accent */
+    --accent: 30 60% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 20% 85%;
-    --input: 45 20% 85%;
-    --ring: 150 45% 30%;
+    --border: 40 15% 85%;
+    --input: 40 15% 85%;
+    --ring: 25 20% 35%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Enhanced earth tone design tokens */
-    --forest-green: 150 45% 30%;
-    --terracotta: 15 70% 55%;
-    --warm-sand: 45 30% 88%;
-    --earth-brown: 20 20% 10%;
-    --gold-accent: 25 80% 58%;
+    /* Natural earth tone design tokens */
+    --earth-brown: 25 20% 35%;
+    --warm-cream: 40 20% 90%;
+    --sunset-orange: 30 60% 50%;
+    --mountain-grey: 25 8% 65%;
+    --natural-beige: 40 15% 96%;
 
-    /* Modern gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    /* Minimalist gradients with earth tones */
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    --gradient-sunset: linear-gradient(180deg, hsl(30 60% 50%) 0%, hsl(25 40% 40%) 100%);
+    --gradient-earth: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
+    --gradient-overlay: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
 
-    /* Enhanced shadows with color tints */
-    --shadow-sm: 0 1px 2px 0 hsl(var(--primary) / 0.05);
-    --shadow: 0 4px 6px -1px hsl(var(--primary) / 0.1), 0 2px 4px -1px hsl(var(--primary) / 0.06);
-    --shadow-md: 0 10px 15px -3px hsl(var(--primary) / 0.1), 0 4px 6px -2px hsl(var(--primary) / 0.05);
-    --shadow-lg: 0 20px 25px -5px hsl(var(--primary) / 0.1), 0 10px 10px -5px hsl(var(--primary) / 0.04);
-    --shadow-xl: 0 25px 50px -12px hsl(var(--primary) / 0.25);
-    --shadow-glow: 0 0 40px hsl(var(--accent) / 0.2);
+    /* Clean, minimal shadows */
+    --shadow-minimal: 0 2px 4px 0 hsl(var(--primary) / 0.05);
+    --shadow-soft: 0 4px 12px -2px hsl(var(--primary) / 0.08);
+    --shadow-card: 0 6px 20px -4px hsl(var(--primary) / 0.1);
+    --shadow-hero: 0 20px 40px -8px hsl(var(--primary) / 0.15);
 
-    /* Smooth transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Natural transitions */
+    --transition-natural: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -79,40 +76,40 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 20 15% 8%;
-    --foreground: 45 15% 95%;
+    --background: 25 15% 8%;
+    --foreground: 40 10% 90%;
 
-    --card: 20 15% 12%;
-    --card-foreground: 45 15% 95%;
+    --card: 25 15% 12%;
+    --card-foreground: 40 10% 90%;
 
-    --popover: 20 15% 12%;
-    --popover-foreground: 45 15% 95%;
+    --popover: 25 15% 12%;
+    --popover-foreground: 40 10% 90%;
 
-    --primary: 150 40% 35%;
+    --primary: 25 25% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 10% 18%;
-    --secondary-foreground: 45 15% 95%;
+    --secondary: 25 10% 18%;
+    --secondary-foreground: 40 10% 90%;
 
-    --muted: 20 10% 18%;
-    --muted-foreground: 45 10% 65%;
+    --muted: 25 10% 18%;
+    --muted-foreground: 40 8% 65%;
 
-    --accent: 25 75% 60%;
+    --accent: 30 65% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 10% 18%;
-    --input: 20 10% 18%;
-    --ring: 150 40% 35%;
+    --border: 25 10% 18%;
+    --input: 25 10% 18%;
+    --ring: 25 25% 45%;
 
     /* Dark mode earth tokens */
-    --forest-green: 150 40% 35%;
-    --terracotta: 15 65% 55%;
-    --warm-sand: 45 15% 25%;
-    --earth-brown: 45 15% 95%;
-    --gold-accent: 25 75% 60%;
+    --earth-brown: 25 25% 45%;
+    --warm-cream: 25 10% 25%;
+    --sunset-orange: 30 65% 55%;
+    --mountain-grey: 25 8% 40%;
+    --natural-beige: 25 15% 15%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
