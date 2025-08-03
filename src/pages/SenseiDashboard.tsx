@@ -18,6 +18,8 @@ import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
+import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
+import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 
 // Enhanced Loading Components
 import { 
@@ -1041,8 +1043,11 @@ const SenseiDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-11">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-13">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
             <TabsTrigger value="trips">My Trips</TabsTrigger>
             <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
@@ -1058,6 +1063,89 @@ const SenseiDashboard = () => {
             <TabsTrigger value="todos">Todos</TabsTrigger>
             <TabsTrigger value="availability">Settings</TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Active Trips</p>
+                      <p className="text-2xl font-bold">{activeTrips}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Trips Completed</p>
+                      <p className="text-2xl font-bold">{completedTrips}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Upcoming Trips</p>
+                      <p className="text-2xl font-bold">{upcomingTrips}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Total Participants</p>
+                      <p className="text-2xl font-bold">{totalParticipants}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <Plus className="h-6 w-6" />
+                    <span>Create Trip Proposal</span>
+                  </Button>
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <MessageCircle className="h-6 w-6" />
+                    <span>Message Participants</span>
+                  </Button>
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <CalendarIcon className="h-6 w-6" />
+                    <span>Update Availability</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <SenseiAnalyticsDashboard />
+          </TabsContent>
+
+          {/* Goals Tab */}
+          <TabsContent value="goals" className="space-y-6">
+            <SenseiGoalsTracker />
+          </TabsContent>
 
           {/* My Trips Tab */}
           <TabsContent value="trips" className="space-y-6">
