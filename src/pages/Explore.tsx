@@ -31,8 +31,8 @@ const Explore = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTheme, setSelectedTheme] = useState("");
-  const [selectedDestination, setSelectedDestination] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("all");
+  const [selectedDestination, setSelectedDestination] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [minRating, setMinRating] = useState(0);
   const [maxGroupSize, setMaxGroupSize] = useState(50);
@@ -87,9 +87,9 @@ const Explore = () => {
         trip.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         trip.sensei_name.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesTheme = selectedTheme === "" || trip.theme.toLowerCase() === selectedTheme.toLowerCase();
+      const matchesTheme = selectedTheme === "" || selectedTheme === "all" || trip.theme.toLowerCase() === selectedTheme.toLowerCase();
       
-      const matchesDestination = selectedDestination === "" || 
+      const matchesDestination = selectedDestination === "" || selectedDestination === "all" ||
         (selectedDestination === "asia" && (trip.destination.toLowerCase().includes("nepal") || trip.destination.toLowerCase().includes("asia"))) ||
         (selectedDestination === "europe" && (trip.destination.toLowerCase().includes("italy") || trip.destination.toLowerCase().includes("swiss") || trip.destination.toLowerCase().includes("europe"))) ||
         (selectedDestination === "africa" && trip.destination.toLowerCase().includes("africa")) ||
@@ -123,8 +123,8 @@ const Explore = () => {
 
   const clearAllFilters = () => {
     setSearchQuery("");
-    setSelectedTheme("");
-    setSelectedDestination("");
+    setSelectedTheme("all");
+    setSelectedDestination("all");
     setPriceRange([0, 10000]);
     setMinRating(0);
     setMaxGroupSize(50);
@@ -227,7 +227,7 @@ const Explore = () => {
                   <SelectValue placeholder="All Themes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Themes</SelectItem>
+                  <SelectItem value="all">All Themes</SelectItem>
                   <SelectItem value="sports">Sports</SelectItem>
                   <SelectItem value="culinary">Culinary</SelectItem>
                   <SelectItem value="wellness">Wellness</SelectItem>
@@ -241,7 +241,7 @@ const Explore = () => {
                   <SelectValue placeholder="All Destinations" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Destinations</SelectItem>
+                  <SelectItem value="all">All Destinations</SelectItem>
                   <SelectItem value="asia">Asia</SelectItem>
                   <SelectItem value="europe">Europe</SelectItem>
                   <SelectItem value="africa">Africa</SelectItem>
