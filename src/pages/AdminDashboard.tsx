@@ -3,6 +3,11 @@ import { Navigation } from "@/components/ui/navigation";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview";
 import { AdminAnalyticsDashboard } from "@/components/ui/admin-analytics-dashboard";
+import { AdvancedAnalyticsDashboard } from "@/components/ui/advanced-analytics-dashboard";
+import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
+import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
+import { AdminFilters } from "@/components/ui/admin-filters";
+import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
-import { TripCalendar } from "@/components/ui/trip-calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -38,7 +43,10 @@ import {
   Plane,
   Megaphone,
   AlertTriangle,
-  Info
+  Info,
+  FileText,
+  Mail,
+  Search
 } from "lucide-react";
 
 interface Application {
@@ -547,9 +555,14 @@ const AdminDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-muted w-full">
         {/* Global Header */}
         <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-          <div className="flex items-center h-full px-4">
-            <SidebarTrigger className="mr-4" />
-            <Navigation />
+          <div className="flex items-center justify-between h-full px-4">
+            <div className="flex items-center">
+              <SidebarTrigger className="mr-4" />
+              <Navigation />
+            </div>
+            <div className="flex items-center gap-4">
+              <NotificationCenter />
+            </div>
           </div>
         </header>
 
@@ -569,11 +582,51 @@ const AdminDashboard = () => {
             )}
             
             {activeTab === "analytics" && (
+              <AdvancedAnalyticsDashboard />
+            )}
+            
+            {activeTab === "basic-analytics" && (
               <AdminAnalyticsDashboard stats={stats} />
             )}
             
             {activeTab === "applications" && (
               <div className="space-y-6">
+                <AdminFilters
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  dateRange={dateRange}
+                  onDateRangeChange={setDateRange}
+                  locationFilter={locationFilter}
+                  onLocationFilterChange={setLocationFilter}
+                  isLoading={isRefreshing}
+                  onRefresh={async () => {
+                    setIsRefreshing(true);
+                    await fetchApplications();
+                    setIsRefreshing(false);
+                  }}
+                  totalCount={applications.length}
+                  filteredCount={filteredApplications.length}
+                  statusOptions={statusOptions}
+                  locationOptions={locationOptions}
+                />
+
+                {selectedItems.length > 0 && (
+                  <BulkActions
+                    selectedItems={selectedItems}
+                    onBulkAction={(action, items) => {
+                      if (action === 'clear') {
+                        setSelectedItems([]);
+                      } else {
+                        // Handle bulk actions
+                        console.log(`Bulk action: ${action}`, items);
+                      }
+                    }}
+                    availableActions={['approve', 'reject', 'archive']}
+                  />
+                )}
+
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">Sensei Applications</h2>
                   <Badge variant="outline" className="text-sm">
@@ -581,88 +634,88 @@ const AdminDashboard = () => {
                   </Badge>
                 </div>
 
-                {applications.length === 0 ? (
+                {filteredApplications.length === 0 ? (
                   <Card>
                     <CardContent className="pt-6 text-center">
-                      <p className="text-muted-foreground">No applications found.</p>
+                      <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No applications found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {searchQuery || statusFilter !== "all" || locationFilter !== "all"
+                          ? "Try adjusting your filters to see more results."
+                          : "No sensei applications have been submitted yet."}
+                      </p>
+                      {(searchQuery || statusFilter !== "all" || locationFilter !== "all") && (
+                        <Button variant="outline" onClick={() => {
+                          setSearchQuery("");
+                          setStatusFilter("all");
+                          setLocationFilter("all");
+                          setDateRange({ from: undefined, to: undefined });
+                        }}>
+                          Clear Filters
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {applications.slice(0, 10).map((application) => (
+                    {filteredApplications.slice(0, 10).map((application) => (
                       <Card key={application.id} className="hover:shadow-lg transition-shadow">
                         <CardContent className="pt-6">
                           <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-4">
-                                <div>
-                                  <h3 className="text-lg font-semibold">{application.full_name}</h3>
-                                  <p className="text-muted-foreground">{application.email}</p>
-                                  <p className="text-muted-foreground">{application.location}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {new Date(application.created_at).toLocaleDateString()}
-                                  </p>
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={selectedItems.includes(application.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedItems(prev => [...prev, application.id]);
+                                  } else {
+                                    setSelectedItems(prev => prev.filter(id => id !== application.id));
+                                  }
+                                }}
+                                className="mt-1"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div>
+                                    <h3 className="text-lg font-semibold">{application.full_name}</h3>
+                                    <p className="text-muted-foreground">{application.email}</p>
+                                    <p className="text-muted-foreground">{application.location}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {new Date(application.created_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <ActionButtons
+                                    item={application}
+                                    type="application"
+                                    onView={() => setSelectedApplication(application)}
+                                    onApprove={() => approveApplication(application)}
+                                    onReject={() => rejectApplication(application)}
+                                    disabled={processing === application.id}
+                                  />
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <Badge className={`flex items-center gap-1 ${getStatusColor(application.status)}`}>
-                                    {getStatusIcon(application.status)}
-                                    {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                                  </Badge>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => setSelectedApplication(application)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    View
-                                  </Button>
-                                </div>
-                              </div>
                               
-                              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                  <h4 className="font-semibold mb-2">Expertise Areas</h4>
-                                  <div className="flex flex-wrap gap-1">
-                                    {application.expertise_areas.slice(0, 3).map((area) => (
-                                      <Badge key={area} variant="secondary" className="text-xs">
-                                        {area}
-                                      </Badge>
-                                    ))}
-                                    {application.expertise_areas.length > 3 && (
-                                      <Badge variant="secondary" className="text-xs">
-                                        +{application.expertise_areas.length - 3} more
-                                      </Badge>
-                                    )}
+                                <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                  <div>
+                                    <h4 className="font-semibold mb-2">Expertise Areas</h4>
+                                    <div className="flex flex-wrap gap-1">
+                                      {application.expertise_areas.slice(0, 3).map((area) => (
+                                        <Badge key={area} variant="secondary" className="text-xs">
+                                          {area}
+                                        </Badge>
+                                      ))}
+                                      {application.expertise_areas.length > 3 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          +{application.expertise_areas.length - 3} more
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold mb-2">Experience</h4>
+                                    <p className="text-sm text-muted-foreground">{application.years_experience} years</p>
                                   </div>
                                 </div>
-                                <div>
-                                  <h4 className="font-semibold mb-2">Experience</h4>
-                                  <p className="text-sm text-muted-foreground">{application.years_experience} years</p>
-                                </div>
                               </div>
-                              
-                              {application.status === 'pending' && (
-                                <div className="flex gap-2 pt-4 border-t">
-                                  <Button
-                                    onClick={() => approveApplication(application)}
-                                    disabled={processing === application.id}
-                                    className="bg-green-600 hover:bg-green-700"
-                                    size="sm"
-                                  >
-                                    <Check className="w-4 h-4 mr-1" />
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    onClick={() => rejectApplication(application)}
-                                    disabled={processing === application.id}
-                                    size="sm"
-                                  >
-                                    <X className="w-4 h-4 mr-1" />
-                                    Reject
-                                  </Button>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </CardContent>
