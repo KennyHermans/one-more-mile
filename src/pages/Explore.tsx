@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchFilters } from "@/components/ui/search-filters";
 import { TripMapView } from "@/components/ui/trip-map-view";
+import { EnhancedTripCardSkeleton } from "@/components/ui/enhanced-trip-skeletons";
+import { SearchFiltersSkeleton } from "@/components/ui/enhanced-ui-skeletons";
+import { AdventureLoadingState } from "@/components/ui/enhanced-loading-states";
 import { Link } from "react-router-dom";
 import { Search, Filter, MapPin, Calendar, Users, Star, Loader2, ArrowUpDown, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,53 +225,15 @@ const Explore = () => {
     filters.duration !== "any",
   ].filter(Boolean).length;
 
-  const TripSkeleton = () => (
-    <Card className="overflow-hidden animate-pulse">
-      <Skeleton className="h-64 w-full" />
-      <div className="p-6 space-y-4">
-        <Skeleton className="h-6 w-3/4" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-        <div className="flex justify-between items-center">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <Skeleton className="h-9 w-24" />
-        </div>
-      </div>
-    </Card>
-  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <section className="bg-gradient-to-br from-primary to-accent text-white py-20">
-          <div className="container">
-            <div className="text-center mb-12">
-              <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-                Explore Adventures
-              </h1>
-              <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in">
-                Discover transformative journeys led by expert Senseis around the world
-              </p>
-            </div>
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin mr-3" />
-              <span>Finding amazing adventures for you...</span>
-            </div>
-          </div>
-        </section>
-        <section className="py-16">
-          <div className="container">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <TripSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-        </section>
+        <AdventureLoadingState 
+          message="Discovering amazing adventures for you..."
+          stage="Exploring"
+        />
       </div>
     );
   }

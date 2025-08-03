@@ -18,6 +18,22 @@ import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
+
+// Enhanced Loading Components
+import { 
+  DashboardHeaderSkeleton, 
+  StatsGridSkeleton, 
+  DataTableSkeleton,
+  FormSkeleton 
+} from "@/components/ui/enhanced-ui-skeletons";
+import { 
+  EnhancedTripCardSkeleton 
+} from "@/components/ui/enhanced-trip-skeletons";
+import { 
+  PageLoadingState, 
+  LoadingSpinner 
+} from "@/components/ui/enhanced-loading-states";
+
 import { 
   Calendar as CalendarIcon,
   MapPin,
