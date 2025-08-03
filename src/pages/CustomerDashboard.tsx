@@ -98,6 +98,7 @@ const CustomerDashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -442,6 +443,35 @@ const CustomerDashboard = () => {
     }
   };
 
+  const handlePayNow = async (booking: TripBooking) => {
+    if (!user) return;
+    
+    setPaymentLoading(booking.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment-plan', {
+        body: {
+          tripId: booking.trip_id,
+          paymentType: 'fullPayment'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to start payment process",
+        variant: "destructive",
+      });
+    } finally {
+      setPaymentLoading(null);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -548,9 +578,13 @@ const CustomerDashboard = () => {
                                     <Button size="sm" variant="outline" onClick={() => cancelBooking(booking.id)}>
                                       Cancel
                                     </Button>
-                                    <Button size="sm">
-                                      Pay Now
-                                    </Button>
+                                     <Button 
+                                       size="sm"
+                                       onClick={() => handlePayNow(booking)}
+                                       disabled={paymentLoading === booking.id}
+                                     >
+                                       {paymentLoading === booking.id ? 'Processing...' : 'Pay Now'}
+                                     </Button>
                                   </div>
                                 ) : (
                                   <div className="mt-2">
