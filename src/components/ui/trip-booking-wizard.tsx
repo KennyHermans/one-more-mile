@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,10 @@ import {
   FileText,
   Phone,
   Mail,
-  Globe
+  Globe,
+  Save,
+  Zap,
+  RotateCcw
 } from 'lucide-react';
 
 interface BookingStep {
@@ -91,6 +95,12 @@ interface TripBookingWizardProps {
 export function TripBookingWizard({ tripId, onComplete, onCancel, className }: TripBookingWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [tripDetails, setTripDetails] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isReturningCustomer, setIsReturningCustomer] = useState(false);
+  const [quickBookingMode, setQuickBookingMode] = useState(false);
+  const [progressSaved, setProgressSaved] = useState(false);
+  const [availabilityInfo, setAvailabilityInfo] = useState<{ spotsLeft: number; isAvailable: boolean }>({ spotsLeft: 0, isAvailable: false });
+  
   const [bookingData, setBookingData] = useState<BookingData>({
     tripId,
     tripTitle: '',
@@ -127,6 +137,7 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const steps: BookingStep[] = [
     {
@@ -173,9 +184,131 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
     }
   ];
 
+  // Progress persistence using localStorage
+  const saveProgress = useCallback(() => {
+    const progressData = {
+      currentStep,
+      bookingData,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(`booking-progress-${tripId}`, JSON.stringify(progressData));
+    setProgressSaved(true);
+    setTimeout(() => setProgressSaved(false), 2000);
+  }, [currentStep, bookingData, tripId]);
+
+  const loadProgress = useCallback(() => {
+    const saved = localStorage.getItem(`booking-progress-${tripId}`);
+    if (saved) {
+      try {
+        const progressData = JSON.parse(saved);
+        // Only restore if less than 24 hours old
+        if (Date.now() - progressData.timestamp < 24 * 60 * 60 * 1000) {
+          setCurrentStep(progressData.currentStep);
+          setBookingData(progressData.bookingData);
+          toast({
+            title: "Progress Restored",
+            description: "Your previous booking progress has been restored.",
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load booking progress:', error);
+      }
+    }
+  }, [tripId, toast]);
+
+  const clearProgress = useCallback(() => {
+    localStorage.removeItem(`booking-progress-${tripId}`);
+  }, [tripId]);
+
+  // Load user profile for smart defaults
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if user is returning customer
+        const { data: bookings } = await supabase
+          .from('trip_bookings')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        
+        setIsReturningCustomer(bookings && bookings.length > 0);
+
+        // Load customer profile for smart defaults
+        const { data: profile } = await supabase
+          .from('customer_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          setUserProfile(profile);
+          // Apply smart defaults to main booker
+          setBookingData(prev => ({
+            ...prev,
+            participants: prev.participants.map(p => 
+              p.isMainBooker ? {
+                ...p,
+                firstName: profile.full_name?.split(' ')[0] || '',
+                lastName: profile.full_name?.split(' ').slice(1).join(' ') || '',
+                phone: profile.phone || '',
+                dietaryRequirements: profile.dietary_restrictions || '',
+                medicalConditions: profile.medical_conditions || '',
+                emergencyContactName: profile.emergency_contact_name || '',
+                emergencyContactPhone: profile.emergency_contact_phone || '',
+                email: user.email || ''
+              } : p
+            )
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    }
+  }, []);
+
+  // Real-time availability checking
+  const checkAvailability = useCallback(async () => {
+    try {
+      const { data: trip } = await supabase
+        .from('trips')
+        .select('current_participants, max_participants')
+        .eq('id', tripId)
+        .single();
+
+      if (trip) {
+        const spotsLeft = trip.max_participants - (trip.current_participants || 0);
+        setAvailabilityInfo({
+          spotsLeft,
+          isAvailable: spotsLeft > 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check availability:', error);
+    }
+  }, [tripId]);
+
   useEffect(() => {
     fetchTripDetails();
-  }, [tripId]);
+    loadUserProfile();
+    loadProgress();
+    checkAvailability();
+    
+    // Set up real-time availability checking
+    const interval = setInterval(checkAvailability, 30000); // Check every 30 seconds
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [tripId, loadUserProfile, loadProgress, checkAvailability]);
+
+  // Auto-save progress when booking data changes
+  useEffect(() => {
+    if (tripDetails) { // Only save after initial load
+      const debounceTimer = setTimeout(saveProgress, 1000);
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [bookingData, currentStep, saveProgress, tripDetails]);
 
   const fetchTripDetails = async () => {
     try {
@@ -218,8 +351,15 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
 
   const validateCurrentStep = (): string[] => {
     const errors: string[] = [];
+    const quickBookingSteps = [
+      { id: 'trip-details', title: 'Trip Overview', required: true },
+      { id: 'participants', title: 'Quick Info', required: true },
+      { id: 'payment', title: 'Payment', required: true }
+    ];
+    const currentSteps = quickBookingMode ? quickBookingSteps : steps;
+    const currentStepId = currentSteps[currentStep].id;
     
-    switch (steps[currentStep].id) {
+    switch (currentStepId) {
       case 'participants':
         bookingData.participants.forEach((participant, index) => {
           if (!participant.firstName.trim()) errors.push(`Participant ${index + 1}: First name required`);
@@ -227,7 +367,7 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
           if (!participant.email.trim()) errors.push(`Participant ${index + 1}: Email required`);
           if (!participant.phone.trim()) errors.push(`Participant ${index + 1}: Phone required`);
           if (!participant.dateOfBirth) errors.push(`Participant ${index + 1}: Date of birth required`);
-          if (participant.isMainBooker) {
+          if (participant.isMainBooker && !quickBookingMode) {
             if (!participant.emergencyContactName.trim()) errors.push('Emergency contact name required');
             if (!participant.emergencyContactPhone.trim()) errors.push('Emergency contact phone required');
           }
@@ -300,7 +440,13 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
       return;
     }
     
-    if (currentStep < steps.length - 1) {
+    const quickBookingSteps = [
+      { id: 'trip-details', title: 'Trip Overview', required: true },
+      { id: 'participants', title: 'Quick Info', required: true },
+      { id: 'payment', title: 'Payment', required: true }
+    ];
+    const currentSteps = quickBookingMode ? quickBookingSteps : steps;
+    if (currentStep < currentSteps.length - 1) {
       setCurrentStep(currentStep + 1);
       setValidationErrors([]);
     }
@@ -359,7 +505,15 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
   };
 
   const renderStepContent = () => {
-    switch (steps[currentStep].id) {
+    const quickBookingSteps = [
+      { id: 'trip-details', title: 'Trip Overview', required: true },
+      { id: 'participants', title: 'Quick Info', required: true },
+      { id: 'payment', title: 'Payment', required: true }
+    ];
+    const currentSteps = quickBookingMode ? quickBookingSteps : steps;
+    const currentStepId = currentSteps[currentStep].id;
+    
+    switch (currentStepId) {
       case 'trip-details':
         return (
           <div className="space-y-6">
@@ -885,42 +1039,140 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
     );
   }
 
+  // Quick booking flow for returning customers (combines steps)
+  const quickBookingSteps = [
+    { id: 'trip-details', title: 'Trip Overview', required: true },
+    { id: 'participants', title: 'Quick Info', required: true },
+    { id: 'payment', title: 'Payment', required: true }
+  ];
+
+  const currentSteps = quickBookingMode ? quickBookingSteps : steps;
+
   return (
     <Card className={className}>
       <CardHeader>
+        {/* Quick Booking Mode Toggle for Returning Customers */}
+        {isReturningCustomer && !quickBookingMode && currentStep === 0 && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                <div>
+                  <div className="font-semibold text-blue-900">Welcome back!</div>
+                  <div className="text-sm text-blue-700">Use Quick Booking with your saved details</div>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setQuickBookingMode(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Quick Book
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Real-time Availability Alert */}
+        {availabilityInfo.spotsLeft <= 3 && availabilityInfo.isAvailable && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg">
+            <div className="flex items-center gap-2 text-orange-800">
+              <Clock className="h-5 w-5" />
+              <div>
+                <div className="font-semibold">Limited Availability!</div>
+                <div className="text-sm">Only {availabilityInfo.spotsLeft} spots remaining</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Book Your Adventure</CardTitle>
-            <CardDescription>
-              Step {currentStep + 1} of {steps.length}: {steps[currentStep].title}
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <CardTitle className={isMobile ? "text-lg" : "text-xl"}>
+                {quickBookingMode ? "Quick Book" : "Book Your Adventure"}
+              </CardTitle>
+              {progressSaved && (
+                <div className="flex items-center gap-1 text-green-600 text-sm">
+                  <Save className="h-4 w-4" />
+                  <span>Saved</span>
+                </div>
+              )}
+            </div>
+            <CardDescription className="flex items-center gap-2 mt-1">
+              <span>Step {currentStep + 1} of {currentSteps.length}: {currentSteps[currentStep].title}</span>
+              {quickBookingMode && (
+                <Badge variant="secondary" className="text-xs">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Quick Mode
+                </Badge>
+              )}
             </CardDescription>
           </div>
-          {onCancel && (
-            <Button variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
+          
+          <div className="flex items-center gap-2">
+            {/* Progress Reset Button */}
+            {currentStep > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setCurrentStep(0);
+                  clearProgress();
+                  toast({ title: "Progress Reset", description: "Booking progress has been reset." });
+                }}
+                className="text-muted-foreground"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {!isMobile && <span className="ml-2">Reset</span>}
+              </Button>
+            )}
+            
+            {/* Quick Mode Toggle */}
+            {isReturningCustomer && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setQuickBookingMode(!quickBookingMode);
+                  setCurrentStep(0);
+                }}
+                className="text-muted-foreground"
+              >
+                <Zap className="h-4 w-4" />
+                {!isMobile && <span className="ml-2">{quickBookingMode ? 'Full Mode' : 'Quick Mode'}</span>}
+              </Button>
+            )}
+            
+            {onCancel && (
+              <Button variant="ghost" size={isMobile ? "sm" : "default"} onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+          </div>
         </div>
         
-        <div className="flex items-center space-x-2 mt-4">
-          {steps.map((step, index) => (
+        {/* Progress Indicator - Mobile Optimized */}
+        <div className={`flex items-center mt-4 ${isMobile ? 'justify-center space-x-1' : 'space-x-2'}`}>
+          {currentSteps.map((step, index) => (
             <div key={step.id} className="flex items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                   index <= currentStep
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {index < currentStep ? (
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 ) : (
                   index + 1
                 )}
               </div>
-              {index < steps.length - 1 && (
+              {index < currentSteps.length - 1 && (
                 <div
-                  className={`w-8 h-0.5 ${
+                  className={`${isMobile ? 'w-4 h-0.5' : 'w-8 h-0.5'} transition-colors ${
                     index < currentStep ? 'bg-primary' : 'bg-muted'
                   }`}
                 />
@@ -959,10 +1211,10 @@ export function TripBookingWizard({ tripId, onComplete, onCancel, className }: T
             Previous
           </Button>
           
-          {currentStep === steps.length - 1 ? (
+          {currentStep === currentSteps.length - 1 ? (
             <Button
               onClick={submitBooking}
-              disabled={submitting || !bookingData.agreedToTerms}
+              disabled={submitting || (!quickBookingMode && !bookingData.agreedToTerms)}
             >
               {submitting ? 'Submitting...' : 'Confirm Booking'}
               <CheckCircle className="h-4 w-4 ml-2" />
