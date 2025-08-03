@@ -398,9 +398,9 @@ const TripDetail = () => {
                                       <h3 className="font-serif text-lg font-bold">
                                         Day {day.day}: {day.location}
                                       </h3>
-                                      <p className="text-sm text-muted-foreground">
-                                        {day.activities.substring(0, 100)}...
-                                      </p>
+                                       <p className="text-sm text-muted-foreground">
+                                         {String(day.activities || '').substring(0, 100)}...
+                                       </p>
                                     </div>
                                   </div>
                                   {expandedDay === day.day ? 
