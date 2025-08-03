@@ -1,187 +1,197 @@
-import { useState, useEffect } from "react";
-import { Badge } from "./badge";
-import { Progress } from "./progress";
-import { AlertCircle, Users, Clock, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Badge } from './badge';
+import { Button } from './button';
+import { Avatar, AvatarFallback, AvatarImage } from './avatar';
+import { Calendar, Clock, MapPin, Users, Wifi, WifiOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface SenseiAvailability {
+  id: string;
+  name: string;
+  image_url?: string;
+  location: string;
+  specialty: string;
+  is_offline: boolean;
+  availability_periods: any;
+  rating: number;
+  trips_led: number;
+}
 
 interface RealTimeAvailabilityProps {
-  tripId: string;
-  currentParticipants: number;
-  maxParticipants: number;
-  className?: string;
-  showProgress?: boolean;
-  showUrgency?: boolean;
+  destination?: string;
+  selectedDates?: string;
+  maxParticipants?: number;
 }
 
 export function RealTimeAvailability({ 
-  tripId, 
-  currentParticipants, 
-  maxParticipants, 
-  className,
-  showProgress = true,
-  showUrgency = true
+  destination, 
+  selectedDates, 
+  maxParticipants 
 }: RealTimeAvailabilityProps) {
-  const [participants, setParticipants] = useState(currentParticipants);
-  const [recentBookings, setRecentBookings] = useState<number>(0);
+  const [senseis, setSenseis] = useState<SenseiAvailability[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
-    // Subscribe to real-time updates for this trip's bookings
-    const channel = supabase
-      .channel(`trip_${tripId}_bookings`)
+    fetchAvailableSenseis();
+    
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('sensei_availability')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'trip_bookings',
-          filter: `trip_id=eq.${tripId}`
+          table: 'sensei_profiles'
         },
-        (payload) => {
-          // Refetch current participants count
-          fetchCurrentParticipants();
-          
-          // Track recent bookings for urgency indicators
-          if (payload.eventType === 'INSERT') {
-            setRecentBookings(prev => prev + 1);
-          }
+        () => {
+          fetchAvailableSenseis();
+          setLastUpdated(new Date());
         }
       )
       .subscribe();
 
+    // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchAvailableSenseis();
+      setLastUpdated(new Date());
+    }, 30000);
+
     return () => {
-      supabase.removeChannel(channel);
+      subscription.unsubscribe();
+      clearInterval(interval);
     };
-  }, [tripId]);
+  }, [destination, selectedDates, maxParticipants]);
 
-  useEffect(() => {
-    // Reset recent bookings counter after 30 seconds
-    if (recentBookings > 0) {
-      const timer = setTimeout(() => {
-        setRecentBookings(0);
-      }, 30000);
-      return () => clearTimeout(timer);
-    }
-  }, [recentBookings]);
-
-  const fetchCurrentParticipants = async () => {
+  const fetchAvailableSenseis = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('current_participants')
-        .eq('id', tripId)
-        .single();
-      
-      if (error) throw error;
-      if (data) {
-        setParticipants(data.current_participants);
+      let query = supabase
+        .from('sensei_profiles')
+        .select('*')
+        .eq('is_active', true);
+
+      if (destination) {
+        query = query.ilike('location', `%${destination}%`);
       }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setSenseis((data || []) as SenseiAvailability[]);
     } catch (error) {
-      console.error('Error fetching participants:', error);
+      console.error('Error fetching senseis:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const availabilityPercentage = (participants / maxParticipants) * 100;
-  const spotsLeft = maxParticipants - participants;
-  
-  const getAvailabilityStatus = () => {
-    if (availabilityPercentage >= 100) {
-      return {
-        status: "full",
-        label: "Fully Booked",
-        color: "destructive",
-        urgency: "high"
-      };
-    } else if (availabilityPercentage >= 90) {
-      return {
-        status: "critical",
-        label: `Only ${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left`,
-        color: "destructive",
-        urgency: "high"
-      };
-    } else if (availabilityPercentage >= 75) {
-      return {
-        status: "low",
-        label: "Filling Fast",
-        color: "warning",
-        urgency: "medium"
-      };
-    } else if (availabilityPercentage >= 50) {
-      return {
-        status: "medium",
-        label: "Half Full",
-        color: "secondary",
-        urgency: "low"
-      };
-    } else {
-      return {
-        status: "available",
-        label: "Available",
-        color: "secondary",
-        urgency: "none"
-      };
-    }
+  const isAvailableNow = (sensei: SenseiAvailability) => {
+    const periods = Array.isArray(sensei.availability_periods) ? sensei.availability_periods : [];
+    return !sensei.is_offline && periods.length > 0;
   };
 
-  const status = getAvailabilityStatus();
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Real-time Availability
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className={className}>
-      <div className="space-y-2">
-        {/* Main Status Badge */}
-        <div className="flex items-center gap-2">
-          <Badge 
-            variant={status.color as any} 
-            className="flex items-center gap-1"
-          >
-            <Users className="h-3 w-3" />
-            {status.label}
-          </Badge>
-          
-          {/* Real-time indicators */}
-          {showUrgency && recentBookings > 0 && (
-            <Badge variant="destructive" className="animate-pulse flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              {recentBookings} booked recently
-            </Badge>
-          )}
-          
-          {showUrgency && status.urgency === "high" && (
-            <Badge variant="destructive" className="animate-pulse flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              High Demand
-            </Badge>
-          )}
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Real-time Availability
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            Live
+          </div>
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Last updated: {lastUpdated.toLocaleTimeString()}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {senseis.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No senseis available for your criteria
+          </div>
+        ) : (
+          senseis.slice(0, 5).map((sensei) => (
+            <div
+              key={sensei.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={sensei.image_url} alt={sensei.name} />
+                    <AvatarFallback>{sensei.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${
+                    isAvailableNow(sensei) ? 'bg-green-500' : 'bg-gray-400'
+                  }`}>
+                    {isAvailableNow(sensei) ? (
+                      <Wifi className="h-2 w-2 text-white m-1" />
+                    ) : (
+                      <WifiOff className="h-2 w-2 text-white m-1" />
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <h4 className="font-semibold">{sensei.name}</h4>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {sensei.location}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {sensei.trips_led} trips
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="mt-1">
+                    {sensei.specialty}
+                  </Badge>
+                </div>
+              </div>
 
-        {/* Progress Bar */}
-        {showProgress && (
-          <div className="space-y-1">
-            <Progress 
-              value={availabilityPercentage} 
-              className="h-2"
-            />
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{participants} booked</span>
-              <span>{maxParticipants} max</span>
+              <div className="flex items-center gap-3">
+                <Badge 
+                  variant={isAvailableNow(sensei) ? "default" : "outline"}
+                  className={isAvailableNow(sensei) ? "bg-green-500 hover:bg-green-600" : ""}
+                >
+                  {isAvailableNow(sensei) ? "Available" : "Offline"}
+                </Badge>
+                
+                {isAvailableNow(sensei) && (
+                  <Button size="sm" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          ))
         )}
-
-        {/* Urgency Messages */}
-        {showUrgency && status.urgency === "high" && (
-          <div className="flex items-center gap-1 text-xs text-destructive">
-            <Clock className="h-3 w-3" />
-            <span>Book soon to secure your spot</span>
-          </div>
-        )}
-        
-        {showUrgency && status.urgency === "medium" && (
-          <div className="flex items-center gap-1 text-xs text-orange-600">
-            <Clock className="h-3 w-3" />
-            <span>Popular trip - consider booking early</span>
-          </div>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

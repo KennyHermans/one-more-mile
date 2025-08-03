@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
-import { RealTimeAvailability } from "./real-time-availability";
+
 import { Link } from "react-router-dom";
 import { MapPin, Users, Calendar, Plus, BarChart3 } from "lucide-react";
 
@@ -67,14 +67,14 @@ export function FeaturedTripCard({
           </div>
         </div>
         
-        {/* Real-time Availability */}
+        {/* Availability indicator */}
         {currentParticipants > 0 && maxParticipants > 0 && (
-          <RealTimeAvailability
-            tripId={id}
-            currentParticipants={currentParticipants}
-            maxParticipants={maxParticipants}
-            className="mb-4"
-          />
+          <div className="flex items-center gap-2 mb-4 p-3 bg-green-50 rounded-lg">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-green-700">
+              {maxParticipants - currentParticipants} spots available
+            </span>
+          </div>
         )}
         
         <div className="flex items-center justify-between">
