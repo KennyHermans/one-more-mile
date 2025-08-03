@@ -10,6 +10,8 @@ import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { BulkOperations } from "@/components/ui/bulk-operations";
 import { GlobalSearch } from "@/components/ui/global-search";
+import { CommunicationHub } from "@/components/ui/communication-hub";
+import { AdvancedTripManagement } from "@/components/ui/advanced-trip-management";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -828,9 +830,12 @@ const AdminDashboard = () => {
                   itemType="trips"
                   allItems={mockTrips}
                 />
-                <h2 className="text-2xl font-bold">Trip Management</h2>
-                <AdminTripManagementOverview />
+                <AdvancedTripManagement />
               </div>
+            )}
+            
+            {activeTab === "communication" && (
+              <CommunicationHub />
             )}
             
             {activeTab === "sensei-assignment" && (
