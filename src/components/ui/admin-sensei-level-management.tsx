@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Crown, Settings, History } from "lucide-react";
+import { Crown, Settings, History, AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Sensei {
   id: string;
@@ -41,6 +42,7 @@ export const AdminSenseiLevelManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [adminOverride, setAdminOverride] = useState(false);
   const { toast } = useToast();
 
   const fetchSenseis = async () => {
@@ -104,7 +106,8 @@ export const AdminSenseiLevelManagement = () => {
           p_sensei_id: selectedSensei.id,
           p_new_level: newLevel,
           p_changed_by: null, // Will be determined by the function
-          p_reason: reason
+          p_reason: reason,
+          p_admin_override: adminOverride
         });
 
       if (error) throw error;
@@ -118,6 +121,7 @@ export const AdminSenseiLevelManagement = () => {
       await fetchSenseis();
       await fetchLevelHistory(selectedSensei.id);
       setReason('');
+      setAdminOverride(false);
     } catch (error) {
       console.error('Error updating sensei level:', error);
       toast({
@@ -269,6 +273,20 @@ export const AdminSenseiLevelManagement = () => {
                                       onChange={(e) => setReason(e.target.value)}
                                       rows={3}
                                     />
+                                  </div>
+
+                                  <div className="flex items-center space-x-2 p-4 border border-orange-200 rounded-lg bg-orange-50">
+                                    <Checkbox
+                                      id="adminOverride"
+                                      checked={adminOverride}
+                                      onCheckedChange={(checked) => setAdminOverride(checked as boolean)}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                      <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                      <Label htmlFor="adminOverride" className="text-sm font-medium">
+                                        Admin Override (bypass level requirements)
+                                      </Label>
+                                    </div>
                                   </div>
 
                                   <Button
