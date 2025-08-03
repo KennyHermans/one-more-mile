@@ -1,414 +1,231 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "./button";
-import { RoleSwitcher } from "./role-switcher";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "./sheet";
-import { Badge } from "./badge";
-import { Separator } from "./separator";
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 import { 
   Menu, 
-  User, 
   Home, 
-  MapPin, 
-  Users, 
-  Info, 
-  MessageCircle,
+  Search, 
+  Calendar, 
+  User, 
+  Bell, 
+  MessageSquare,
   Settings,
-  Calendar,
+  Globe,
+  TrendingUp,
   Heart,
-  Bell,
-  LogOut,
-  Crown,
-  Shield,
-  Compass,
-  Mountain,
-  Star,
-  X,
-  ChevronRight
-} from "lucide-react";
-import { useProfileManagement } from "@/hooks/use-profile-management";
-import { useAdminCheck } from "@/hooks/use-admin-check";
-import { useToast } from "@/hooks/use-toast";
+  Star
+} from 'lucide-react';
+import { useProfileManagement } from '@/hooks/use-profile-management';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-interface NavItem {
-  icon: any;
+interface NavigationItem {
   label: string;
   href: string;
-  badge?: string;
-  description?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  isActive?: boolean;
 }
 
-export function EnhancedMobileNavigation() {
+export const EnhancedMobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, session, profileStatus } = useProfileManagement();
-  const { isAdmin } = useAdminCheck();
-  const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const { user } = useProfileManagement();
   const location = useLocation();
-  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
-  const handleSignOut = async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    } else {
-      setIsOpen(false);
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
-    }
-  };
-
-  const fetchNotificationCount = async (userId: string) => {
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data } = await supabase
-        .from('customer_notifications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('is_read', false);
-      
-      setUnreadCount(data?.length || 0);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      setUnreadCount(0);
-    }
-  };
-
-  // Update current role when profile status changes
-  useEffect(() => {
-    if (!profileStatus.isLoading) {
-      if (profileStatus.hasSenseiProfile && !profileStatus.hasCustomerProfile) {
-        setCurrentRole('sensei');
-      } else {
-        setCurrentRole('customer'); // Default to customer
-      }
-    }
-  }, [profileStatus]);
-
-  // Fetch notifications when user changes
-  useEffect(() => {
-    if (user) {
-      fetchNotificationCount(user.id);
-    } else {
-      setUnreadCount(0);
-    }
-  }, [user]);
-
-  // Close drawer when route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
-
-  const mainNavItems: NavItem[] = [
-    {
-      icon: Home,
-      label: "Home",
-      href: "/",
-      description: "Back to homepage"
-    },
-    {
-      icon: Compass,
-      label: "Explore Trips",
-      href: "/explore",
-      description: "Discover amazing adventures"
-    },
-    {
-      icon: Users,
-      label: "Our Senseis",
-      href: "/senseis",
-      description: "Meet our expert guides"
-    },
-    {
-      icon: Info,
-      label: "About",
-      href: "/about",
-      description: "Learn about our mission"
-    },
-    {
-      icon: MessageCircle,
-      label: "Contact",
-      href: "/contact",
-      description: "Get in touch with us"
-    }
-  ];
-
-  const userNavItems: NavItem[] = [
-    // Dashboard links - Always show appropriate dashboard for current role
-    {
-      icon: currentRole === 'customer' ? Calendar : Mountain,
-      label: currentRole === 'customer' ? "My Dashboard" : "Sensei Dashboard",
-      href: currentRole === 'customer' ? "/customer/dashboard" : "/sensei/dashboard",
-      description: currentRole === 'customer' ? "View your trips and bookings" : "Manage your trips and clients"
-    },
-    
-    // Admin Dashboard - only for admin
-    ...(isAdmin ? [{
-      icon: Shield,
-      label: "Admin Dashboard",
-      href: "/admin/dashboard",
-      description: "System administration"
-    }] : []),
-    
-    // Profile links - Clear role-based access
-    {
-      icon: User,
-      label: currentRole === 'sensei' && profileStatus.hasSenseiProfile 
-        ? "Sensei Profile" 
-        : currentRole === 'customer'
-          ? (profileStatus.hasCustomerProfile ? "My Profile" : "Complete Profile")
-          : profileStatus.hasSenseiProfile
-            ? "Create Customer Profile"
-            : "Create Profile",
-      href: currentRole === 'sensei' && profileStatus.hasSenseiProfile ? "/sensei-profile" : "/customer/profile",
-      description: currentRole === 'sensei' && profileStatus.hasSenseiProfile 
-        ? "Manage your sensei profile" 
-        : currentRole === 'customer'
-          ? "Edit your personal information"
-          : "Set up your customer profile"
-    },
-    
-    // Customer-specific quick access (only show when in customer mode)
-    ...(currentRole === 'customer' && profileStatus.hasCustomerProfile ? [
+  const getNavigationItems = (): NavigationItem[] => {
+    const commonItems: NavigationItem[] = [
       {
-        icon: Heart,
-        label: "Wishlist",
-        href: "/customer/dashboard",
-        description: "Saved adventures"
+        label: 'Home',
+        href: '/',
+        icon: Home,
+        isActive: location.pathname === '/'
       },
       {
-        icon: Bell,
-        label: "Notifications",
-        href: "/customer/dashboard",
-        description: "Updates & alerts",
-        badge: unreadCount > 0 ? unreadCount.toString() : undefined
+        label: 'Explore',
+        href: '/explore',
+        icon: Search,
+        isActive: location.pathname === '/explore'
       }
-    ] : []),
-    
-    // Add "Become a Sensei" CTA for customers who aren't Senseis yet
-    ...(currentRole === 'customer' && profileStatus.hasCustomerProfile && !profileStatus.hasSenseiProfile ? [{
-      icon: Mountain,
-      label: "Become a Sensei",
-      href: "/become-sensei",
-      description: "Start leading adventures"
-    }] : [])
-  ];
+    ];
 
-  const isCurrentPath = (path: string) => {
-    return location.pathname === path || 
-           (path !== "/" && location.pathname.startsWith(path));
+    if (!user) {
+      return commonItems;
+    }
+
+    const authenticatedItems: NavigationItem[] = [
+      ...commonItems,
+      {
+        label: 'My Trips',
+        href: '/customer/dashboard',
+        icon: Calendar,
+        isActive: location.pathname.includes('/dashboard')
+      },
+      {
+        label: 'Messages',
+        href: '/messages',
+        icon: MessageSquare,
+        badge: 2,
+        isActive: location.pathname === '/messages'
+      },
+      {
+        label: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
+        badge: unreadNotifications,
+        isActive: location.pathname === '/notifications'
+      }
+    ];
+
+    authenticatedItems.push({
+      label: 'Profile',
+      href: '/customer/profile',
+      icon: User,
+      isActive: location.pathname === '/customer/profile'
+    });
+
+    return authenticatedItems;
   };
 
-  const NavLink = ({ item }: { item: NavItem }) => {
-    const Icon = item.icon;
-    const isActive = isCurrentPath(item.href);
-    
-    return (
-      <Link 
-        to={item.href}
-        className={`group flex items-center justify-between p-4 rounded-lg transition-all duration-200 ${
-          isActive 
-            ? 'bg-primary/10 text-primary border border-primary/20' 
-            : 'hover:bg-muted/50 text-foreground hover:text-primary'
-        }`}
-        onClick={() => setIsOpen(false)}
-      >
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-md transition-colors ${
-            isActive ? 'bg-primary/20' : 'bg-muted group-hover:bg-primary/10'
-          }`}>
-            <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-medium">{item.label}</span>
-            {item.description && (
-              <span className="text-xs text-muted-foreground">{item.description}</span>
+  const quickActions = [
+    { label: 'Trending', icon: TrendingUp, href: '/explore?filter=trending' },
+    { label: 'Nearby', icon: Globe, href: '/explore?filter=nearby' },
+    { label: 'Favorites', icon: Heart, href: '/favorites' },
+    { label: 'Top Rated', icon: Star, href: '/explore?filter=top-rated' }
+  ];
+
+  // Bottom tab navigation for mobile
+  const bottomNavItems = getNavigationItems().slice(0, 4);
+
+  if (!isMobile) {
+    return null;
+  }
+
+  return (
+    <>
+      {/* Mobile Header with Hamburger */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="flex items-center justify-between p-4">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <div className="flex flex-col h-full">
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold">Navigation</h2>
+                  {user && (
+                    <p className="text-sm text-muted-foreground">
+                      Welcome back, {user.email}
+                    </p>
+                  )}
+                </div>
+
+                <nav className="space-y-2 flex-1">
+                  {getNavigationItems().map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex items-center justify-between w-full p-3 rounded-lg transition-colors",
+                        item.isActive 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && item.badge > 0 && (
+                        <Badge variant="secondary" className="ml-auto">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  ))}
+                </nav>
+
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="text-sm font-medium mb-2 text-muted-foreground">Quick Actions</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {quickActions.map((action) => (
+                      <Link
+                        key={action.href}
+                        to={action.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        <action.icon className="h-4 w-4" />
+                        <span className="text-xs">{action.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <Link to="/" className="font-bold text-lg">
+            SenseiTrip
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {user && (
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadNotifications > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs"
+                  >
+                    {unreadNotifications}
+                  </Badge>
+                )}
+              </Button>
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {item.badge && (
-            <Badge variant="secondary" className="h-5 text-xs">
-              {item.badge}
-            </Badge>
-          )}
-          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      </header>
+
+      {/* Bottom Tab Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+        <div className="flex items-center justify-around p-2">
+          {bottomNavItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex flex-col items-center gap-1 p-2 rounded-lg min-w-[60px] transition-colors relative",
+                item.isActive 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-xs font-medium">{item.label}</span>
+              {item.badge && item.badge > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center text-xs"
+                >
+                  {item.badge > 9 ? '9+' : item.badge}
+                </Badge>
+              )}
+            </Link>
+          ))}
         </div>
-      </Link>
-    );
-  };
+      </nav>
 
-  return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden relative hover:bg-primary/10 transition-colors"
-        >
-          <Menu className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center">
-              <span className="text-xs text-white font-bold">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            </div>
-          )}
-          <span className="sr-only">Toggle menu</span>
-        </Button>
-      </SheetTrigger>
-      
-      <SheetContent side="right" className="w-[350px] p-0 overflow-hidden">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <SheetHeader className="p-6 pb-4 bg-gradient-to-r from-primary/5 to-accent/5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img 
-                  src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png" 
-                  alt="One More Mile Logo" 
-                  className="h-8 w-auto"
-                />
-                <div>
-                  <SheetTitle className="text-lg font-serif text-left">One More Mile</SheetTitle>
-                  <p className="text-xs text-muted-foreground text-left">Adventure Awaits</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="h-8 w-8 hover:bg-primary/10"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </SheetHeader>
-
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 space-y-6">
-              {/* User Profile Section */}
-              {user && (
-                <div className="space-y-3">
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">Welcome back!</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      {profileStatus.hasSenseiProfile && (
-                        <Badge variant="outline" className="gap-1">
-                          <Crown className="h-3 w-3" />
-                          Sensei
-                        </Badge>
-                      )}
-                      {isAdmin && (
-                        <Badge variant="outline" className="gap-1">
-                          <Shield className="h-3 w-3" />
-                          Admin
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Role Switcher for dual-role users */}
-                  {profileStatus.hasCustomerProfile && profileStatus.hasSenseiProfile && (
-                    <RoleSwitcher
-                      currentRole={currentRole}
-                      hasCustomerProfile={profileStatus.hasCustomerProfile}
-                      hasSenseiProfile={profileStatus.hasSenseiProfile}
-                      onRoleChange={setCurrentRole}
-                      className="w-full"
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* Main Navigation */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                  Navigate
-                </h3>
-                <div className="space-y-1">
-                  {mainNavItems.map((item) => (
-                    <NavLink key={item.href} item={item} />
-                  ))}
-                </div>
-              </div>
-
-              {/* User Navigation */}
-              {user && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                      Your Account
-                    </h3>
-                    <div className="space-y-1">
-                      {userNavItems.map((item) => (
-                        <NavLink key={item.href} item={item} />
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Quick Actions */}
-              {!user && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                      Get Started
-                    </h3>
-                    <div className="space-y-2">
-                      <Button asChild className="w-full justify-start h-12">
-                        <Link to="/auth" onClick={() => setIsOpen(false)}>
-                          <User className="w-4 h-4 mr-3" />
-                          Sign In / Register
-                        </Link>
-                      </Button>
-                      <Button asChild variant="outline" className="w-full justify-start h-12">
-                        <Link to="/become-sensei" onClick={() => setIsOpen(false)}>
-                          <Star className="w-4 h-4 mr-3" />
-                          Become a Sensei
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Footer */}
-          {user && (
-            <div className="p-6 pt-0 mt-auto">
-              <Separator className="mb-4" />
-              <Button
-                variant="outline"
-                onClick={handleSignOut}
-                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="w-4 h-4 mr-3" />
-                Sign Out
-              </Button>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+      {/* Spacer for fixed navigation */}
+      <div className="md:hidden h-16 shrink-0" /> {/* Top spacer */}
+      <div className="md:hidden h-20 shrink-0" /> {/* Bottom spacer */}
+    </>
   );
-}
+};

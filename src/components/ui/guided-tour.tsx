@@ -1,312 +1,405 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowRight, ArrowLeft, MapPin, Bell, Megaphone, MessageCircle, Star, User, Calendar, CheckSquare, FileText, X, Lightbulb, Navigation } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Navigation, 
+  ArrowRight, 
+  ArrowLeft, 
+  X, 
+  Play, 
+  RotateCcw,
+  CheckCircle,
+  Circle,
+  MapPin,
+  Lightbulb,
+  Target
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useLocation } from 'react-router-dom';
 
 interface TourStep {
   id: string;
   title: string;
   description: string;
-  target: string;
-  icon: React.ElementType;
-  position: 'top' | 'bottom' | 'left' | 'right';
-  spotlight?: boolean;
+  target: string; // CSS selector
+  position: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  content: string;
+  optional?: boolean;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}
+
+interface TourConfig {
+  id: string;
+  name: string;
+  description: string;
+  route: string;
+  steps: TourStep[];
 }
 
 interface GuidedTourProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onComplete: () => void;
+  tourId?: string;
+  autoStart?: boolean;
+  onComplete?: () => void;
+  onSkip?: () => void;
 }
 
-const tourSteps: TourStep[] = [
-  {
-    id: 'welcome',
-    title: 'Welcome to Your Dashboard!',
-    description: 'This is your central hub for managing all your adventure travel needs. Let\'s take a quick tour!',
-    target: 'dashboard-title',
-    icon: Navigation,
-    position: 'bottom'
-  },
-  {
-    id: 'trips_tab',
-    title: 'Your Trips',
-    description: 'View and manage all your booked adventures. See trip details, payment status, and timeline visualization.',
-    target: 'trips-tab',
-    icon: MapPin,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'notifications_tab',
-    title: 'Smart Notifications',
-    description: 'Stay updated with personalized notifications about your trips, deadlines, and important updates.',
-    target: 'notifications-tab',
-    icon: Bell,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'news_tab',
-    title: 'News & Announcements',
-    description: 'Get the latest news from your guides and important announcements about your trips.',
-    target: 'news-tab',
-    icon: Megaphone,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'messages_tab',
-    title: 'Trip Messages',
-    description: 'Communicate with your guides and fellow travelers. Share experiences and ask questions.',
-    target: 'messages-tab',
-    icon: MessageCircle,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'reviews_tab',
-    title: 'Reviews & Feedback',
-    description: 'Share your experiences and read reviews from other adventurers to plan future trips.',
-    target: 'reviews-tab',
-    icon: Star,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'profile_tab',
-    title: 'Your Profile',
-    description: 'Manage your personal information, emergency contacts, and travel preferences.',
-    target: 'profile-tab',
-    icon: User,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'calendar_tab',
-    title: 'Trip Calendar',
-    description: 'View your trips in a calendar format to better plan your adventures.',
-    target: 'calendar-tab',
-    icon: Calendar,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'todos_tab',
-    title: 'To-Do List',
-    description: 'Keep track of important tasks and deadlines for your trips.',
-    target: 'todos-tab',
-    icon: CheckSquare,
-    position: 'bottom',
-    spotlight: true
-  },
-  {
-    id: 'documents_tab',
-    title: 'Travel Documents',
-    description: 'Upload and manage your travel documents, passports, and important files.',
-    target: 'documents-tab',
-    icon: FileText,
-    position: 'bottom',
-    spotlight: true
-  }
-];
-
-export function GuidedTour({ isOpen, onClose, onComplete }: GuidedTourProps) {
+export const GuidedTour: React.FC<GuidedTourProps> = ({ 
+  tourId,
+  autoStart = false,
+  onComplete,
+  onSkip
+}) => {
+  const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [currentTour, setCurrentTour] = useState<TourConfig | null>(null);
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [availableTours, setAvailableTours] = useState<TourConfig[]>([]);
+  const location = useLocation();
 
-  const currentTourStep = tourSteps[currentStep];
-  const isLastStep = currentStep === tourSteps.length - 1;
-
-  const handleNext = () => {
-    if (isLastStep) {
-      handleComplete();
-    } else {
-      setCurrentStep(currentStep + 1);
+  // Tour configurations
+  const tours: TourConfig[] = [
+    {
+      id: 'dashboard-basics',
+      name: 'Dashboard Basics',
+      description: 'Learn to navigate your dashboard',
+      route: '/dashboard',
+      steps: [
+        {
+          id: 'welcome',
+          title: 'Welcome to Your Dashboard',
+          description: 'Your central hub for managing trips',
+          target: 'body',
+          position: 'center',
+          content: 'This is your personal dashboard where you can view upcoming trips, messages, and account information.'
+        },
+        {
+          id: 'sidebar',
+          title: 'Navigation Sidebar',
+          description: 'Access all platform features',
+          target: '[data-tour="sidebar"]',
+          position: 'right',
+          content: 'Use the sidebar to navigate between trips, messages, profile settings, and more.'
+        },
+        {
+          id: 'trip-cards',
+          title: 'Your Trips',
+          description: 'View and manage your bookings',
+          target: '[data-tour="trip-cards"]',
+          position: 'top',
+          content: 'Here you can see all your upcoming and past trips. Click on any trip for detailed information.'
+        },
+        {
+          id: 'notifications',
+          title: 'Stay Updated',
+          description: 'Important alerts and messages',
+          target: '[data-tour="notifications"]',
+          position: 'bottom',
+          content: 'Check notifications for trip updates, messages from senseis, and important announcements.'
+        }
+      ]
+    },
+    {
+      id: 'booking-process',
+      name: 'How to Book a Trip',
+      description: 'Step-by-step booking guide',
+      route: '/explore',
+      steps: [
+        {
+          id: 'search',
+          title: 'Find Your Perfect Trip',
+          description: 'Browse available experiences',
+          target: '[data-tour="search"]',
+          position: 'bottom',
+          content: 'Use filters to find trips that match your interests, budget, and schedule.'
+        },
+        {
+          id: 'trip-details',
+          title: 'Trip Information',
+          description: 'Review all trip details',
+          target: '[data-tour="trip-card"]',
+          position: 'left',
+          content: 'Each trip card shows the destination, sensei, price, and key highlights.'
+        },
+        {
+          id: 'sensei-profile',
+          title: 'Meet Your Sensei',
+          description: 'Learn about your guide',
+          target: '[data-tour="sensei-info"]',
+          position: 'right',
+          content: 'View your sensei\'s background, expertise, and reviews from previous travelers.'
+        },
+        {
+          id: 'booking-button',
+          title: 'Complete Your Booking',
+          description: 'Reserve your spot',
+          target: '[data-tour="book-button"]',
+          position: 'top',
+          content: 'Click to start the booking process. You\'ll be guided through payment options and trip customization.',
+          action: {
+            label: 'Try Booking',
+            onClick: () => console.log('Demo booking initiated')
+          }
+        }
+      ]
+    },
+    {
+      id: 'admin-overview',
+      name: 'Admin Platform Tour',
+      description: 'Master the admin interface',
+      route: '/admin',
+      steps: [
+        {
+          id: 'analytics',
+          title: 'Platform Analytics',
+          description: 'Monitor key metrics',
+          target: '[data-tour="analytics"]',
+          position: 'bottom',
+          content: 'Track bookings, revenue, user activity, and platform performance in real-time.'
+        },
+        {
+          id: 'trip-management',
+          title: 'Trip Management',
+          description: 'Oversee all trips',
+          target: '[data-tour="trips"]',
+          position: 'left',
+          content: 'View all trips, manage cancellations, and handle customer support issues.'
+        },
+        {
+          id: 'sensei-management',
+          title: 'Sensei Oversight',
+          description: 'Manage your sensei network',
+          target: '[data-tour="senseis"]',
+          position: 'right',
+          content: 'Review sensei applications, manage profiles, and monitor performance metrics.'
+        }
+      ]
     }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleComplete = () => {
-    localStorage.setItem('dashboard_tour_completed', 'true');
-    onComplete();
-    onClose();
-  };
-
-  const handleSkip = () => {
-    localStorage.setItem('dashboard_tour_completed', 'true');
-    onClose();
-  };
+  ];
 
   useEffect(() => {
-    if (isOpen && currentTourStep?.target) {
-      // Scroll to the target element
-      const element = document.querySelector(`[data-tour-target="${currentTourStep.target}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Add highlight effect
-        element.classList.add('tour-highlight');
-        setTimeout(() => {
-          element.classList.remove('tour-highlight');
-        }, 2000);
-      }
+    // Filter tours relevant to current route
+    const relevantTours = tours.filter(tour => 
+      location.pathname.includes(tour.route.split('/')[1])
+    );
+    setAvailableTours(relevantTours);
+
+    // Auto-start tour if specified
+    if (autoStart && relevantTours.length > 0) {
+      startTour(tourId || relevantTours[0].id);
     }
-  }, [currentStep, isOpen, currentTourStep]);
+  }, [location.pathname, tourId, autoStart]);
 
-  if (!isOpen) return null;
+  const startTour = (selectedTourId: string) => {
+    const tour = tours.find(t => t.id === selectedTourId);
+    if (tour) {
+      setCurrentTour(tour);
+      setCurrentStep(0);
+      setIsActive(true);
+      setCompletedSteps(new Set());
+    }
+  };
 
-  if (isMinimized) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <Card className="w-80 shadow-lg border-primary">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Tour in Progress</span>
-                <Badge variant="outline" className="text-xs">
-                  {currentStep + 1}/{tourSteps.length}
-                </Badge>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setIsMinimized(false)}
+  const nextStep = () => {
+    if (currentTour && currentStep < currentTour.steps.length - 1) {
+      const currentStepId = currentTour.steps[currentStep].id;
+      setCompletedSteps(prev => new Set([...prev, currentStepId]));
+      setCurrentStep(prev => prev + 1);
+    } else {
+      completeTour();
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const skipTour = () => {
+    setIsActive(false);
+    setCurrentTour(null);
+    setCurrentStep(0);
+    onSkip?.();
+  };
+
+  const completeTour = () => {
+    if (currentTour) {
+      const currentStepId = currentTour.steps[currentStep].id;
+      setCompletedSteps(prev => new Set([...prev, currentStepId]));
+    }
+    setIsActive(false);
+    setCurrentTour(null);
+    setCurrentStep(0);
+    onComplete?.();
+  };
+
+  const restartTour = () => {
+    setCurrentStep(0);
+    setCompletedSteps(new Set());
+  };
+
+  if (!isActive || !currentTour) {
+    // Tour selector when not active
+    if (availableTours.length > 0) {
+      return (
+        <Card className="fixed bottom-4 right-4 z-50 w-80 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Navigation className="h-4 w-4" />
+              Guided Tours
+            </CardTitle>
+            <CardDescription>
+              Learn how to use this page effectively
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {availableTours.map((tour) => (
+              <div 
+                key={tour.id}
+                className="border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => startTour(tour.id)}
               >
-                Continue
-              </Button>
-            </div>
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium text-sm">{tour.name}</h4>
+                  <Badge variant="outline" className="text-xs">
+                    {tour.steps.length} steps
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">{tour.description}</p>
+                <Button size="sm" variant="outline" className="w-full text-xs">
+                  <Play className="h-3 w-3 mr-1" />
+                  Start Tour
+                </Button>
+              </div>
+            ))}
           </CardContent>
         </Card>
-      </div>
-    );
+      );
+    }
+    return null;
   }
+
+  const currentStepData = currentTour.steps[currentStep];
+  const progress = ((currentStep + 1) / currentTour.steps.length) * 100;
 
   return (
     <>
       {/* Overlay */}
       <div className="fixed inset-0 bg-black/50 z-40" />
       
-      {/* Tour Dialog */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Card className="w-96 shadow-xl border-primary">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <currentTourStep.icon className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">{currentTourStep.title}</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsMinimized(true)}
-                  title="Minimize tour"
-                >
-                  -
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleSkip}
-                  title="Close tour"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+      {/* Tour Modal */}
+      <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-w-[90vw] shadow-xl">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <div>
+                <CardTitle className="text-base">{currentStepData.title}</CardTitle>
+                <CardDescription className="text-xs">{currentStepData.description}</CardDescription>
               </div>
             </div>
-
-            <p className="text-sm text-muted-foreground mb-4">
-              {currentTourStep.description}
-            </p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  Step {currentStep + 1} of {tourSteps.length}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {Math.round(((currentStep + 1) / tourSteps.length) * 100)}% Complete
-                </span>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentStep === 0}
-                  className="flex items-center gap-1"
-                >
-                  <ArrowLeft className="h-3 w-3" />
-                  Back
-                </Button>
-                
-                {isLastStep ? (
-                  <Button
-                    size="sm"
-                    onClick={handleComplete}
-                    className="flex items-center gap-1"
-                  >
-                    Finish Tour
-                    <CheckSquare className="h-3 w-3" />
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    onClick={handleNext}
-                    className="flex items-center gap-1"
-                  >
-                    Next
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6"
+              onClick={skipTour}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Step {currentStep + 1} of {currentTour.steps.length}</span>
+              <span>{Math.round(progress)}% complete</span>
             </div>
-
-            {/* Progress indicator */}
-            <div className="mt-4 flex gap-1">
-              {tourSteps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`h-1 flex-1 rounded ${
-                    index <= currentStep ? 'bg-primary' : 'bg-muted'
-                  }`}
-                />
+            <Progress value={progress} className="h-1" />
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="bg-muted/50 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <Lightbulb className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm">{currentStepData.content}</p>
+            </div>
+          </div>
+          
+          {currentStepData.action && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="w-full"
+              onClick={currentStepData.action.onClick}
+            >
+              {currentStepData.action.label}
+            </Button>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1">
+              {currentTour.steps.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                  {completedSteps.has(step.id) ? (
+                    <CheckCircle className="h-3 w-3 text-green-600" />
+                  ) : index === currentStep ? (
+                    <Circle className="h-3 w-3 text-primary fill-current" />
+                  ) : (
+                    <Circle className="h-3 w-3 text-muted-foreground" />
+                  )}
+                </div>
               ))}
             </div>
             
-            <div className="mt-3 text-center">
+            <div className="flex gap-2">
               <Button
-                variant="ghost"
                 size="sm"
-                onClick={handleSkip}
-                className="text-xs text-muted-foreground"
+                variant="ghost"
+                onClick={restartTour}
+                className="text-xs"
               >
-                Skip Tour
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Restart
               </Button>
+              
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className="text-xs"
+                >
+                  <ArrowLeft className="h-3 w-3" />
+                </Button>
+                
+                <Button
+                  size="sm"
+                  onClick={nextStep}
+                  className="text-xs"
+                >
+                  {currentStep === currentTour.steps.length - 1 ? (
+                    <>
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Finish
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
-}
-
-// Helper function to check if tour should be shown
-export function shouldShowTour(): boolean {
-  return !localStorage.getItem('dashboard_tour_completed');
-}
-
-// Helper function to reset tour (for testing or user request)
-export function resetTour(): void {
-  localStorage.removeItem('dashboard_tour_completed');
-}
+};

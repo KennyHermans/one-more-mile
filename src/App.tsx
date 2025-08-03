@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
+import { EnhancedMobileNavigation } from "@/components/ui/enhanced-mobile-navigation";
+import { ContextualHelp } from "@/components/ui/contextual-help";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Senseis from "./pages/Senseis";
@@ -37,6 +39,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <div className="min-h-screen bg-background">
+          <EnhancedMobileNavigation />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/explore" element={<Explore />} />
@@ -61,7 +65,9 @@ const App = () => (
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+          <ContextualHelp />
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
