@@ -1,560 +1,523 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { 
-  Mail, 
   MessageSquare, 
   Send, 
-  Search, 
-  Filter,
-  Plus,
-  Archive,
-  Star,
+  Users, 
   Clock,
-  User,
-  Users,
-  FileText as Template,
-  Settings,
-  Paperclip,
-  Phone,
-  Video,
-  Calendar,
-  CreditCard
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+  CheckCheck,
+  Search,
+  MoreVertical
+} from 'lucide-react';
 
 interface Message {
   id: string;
-  from: string;
-  to: string;
-  subject: string;
-  content: string;
-  timestamp: Date;
-  type: 'email' | 'chat' | 'notification';
-  status: 'unread' | 'read' | 'replied' | 'archived';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  category: 'general' | 'support' | 'booking' | 'payment' | 'feedback';
-  attachments?: Array<{ name: string; url: string; type: string }>;
+  message_text: string;
+  sender_id: string;
+  sender_type: 'customer' | 'sensei' | 'admin';
+  recipient_id?: string;
+  trip_id: string;
+  message_context: 'group' | 'private';
+  message_type: 'text' | 'file';
+  file_url?: string;
+  created_at: string;
+  read_at?: string;
+  is_deleted: boolean;
 }
 
-interface Template {
-  id: string;
-  name: string;
-  subject: string;
-  content: string;
-  category: string;
-  variables: string[];
+interface Conversation {
+  trip_id: string;
+  trip_title: string;
+  trip_destination: string;
+  sensei_name: string;
+  sensei_avatar?: string;
+  last_message?: Message;
+  unread_count: number;
+  participants_count: number;
 }
 
-export function CommunicationHub() {
-  const [activeTab, setActiveTab] = useState("inbox");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      from: "sensei@onemoremail.com",
-      to: "admin@onemoremail.com",
-      subject: "Question about upcoming trip logistics",
-      content: "Hi, I have some questions about the transportation arrangements for the Mt. Fuji trip next week...",
-      timestamp: new Date(),
-      type: "email",
-      status: "unread",
-      priority: "normal",
-      category: "general"
-    },
-    {
-      id: "2", 
-      from: "customer@email.com",
-      to: "admin@onemoremail.com",
-      subject: "Payment plan request",
-      content: "I would like to discuss setting up a payment plan for my upcoming trip to Kyoto...",
-      timestamp: new Date(Date.now() - 3600000),
-      type: "email",
-      status: "read",
-      priority: "high",
-      category: "payment"
-    }
-  ]);
-  
-  const [templates, setTemplates] = useState<Template[]>([
-    {
-      id: "1",
-      name: "Welcome New Sensei",
-      subject: "Welcome to One More Mile!",
-      content: "Dear {{sensei_name}}, welcome to our community! We're excited to have you join us...",
-      category: "onboarding",
-      variables: ["sensei_name", "application_date"]
-    },
-    {
-      id: "2",
-      name: "Trip Reminder",
-      subject: "Your trip to {{destination}} is coming up!",
-      content: "Hi {{customer_name}}, this is a reminder that your trip to {{destination}} starts on {{trip_date}}...",
-      category: "reminders",
-      variables: ["customer_name", "destination", "trip_date"]
-    }
-  ]);
+interface CommunicationHubProps {
+  userId: string;
+  className?: string;
+}
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [isComposing, setIsComposing] = useState(false);
-  const [composeData, setComposeData] = useState({
-    to: "",
-    subject: "",
-    content: "",
-    priority: "normal",
-    category: "general"
-  });
-  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  
+export function CommunicationHub({ userId, className }: CommunicationHubProps) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [messageContext, setMessageContext] = useState<'group' | 'private'>('group');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Filter messages based on search and filter criteria
-  const filteredMessages = messages.filter(message => {
-    const matchesSearch = searchQuery === "" || 
-      message.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.from.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = selectedFilter === "all" || 
-      message.status === selectedFilter ||
-      message.category === selectedFilter ||
-      message.priority === selectedFilter;
-    
-    return matchesSearch && matchesFilter;
-  });
+  useEffect(() => {
+    fetchConversations();
+    setupRealtimeSubscription();
+  }, [userId]);
 
-  const unreadCount = messages.filter(m => m.status === 'unread').length;
-  const urgentCount = messages.filter(m => m.priority === 'urgent').length;
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation);
+    }
+  }, [selectedConversation]);
 
-  const handleSendMessage = async () => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const fetchConversations = async () => {
     try {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        from: "admin@onemoremail.com",
-        to: composeData.to,
-        subject: composeData.subject,
-        content: composeData.content,
-        timestamp: new Date(),
-        type: "email",
-        status: "read",
-        priority: composeData.priority as any,
-        category: composeData.category as any
-      };
+      // Get user's paid bookings with trip details
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('trip_bookings')
+        .select(`
+          trip_id,
+          trips (
+            title,
+            destination,
+            sensei_name,
+            sensei_profiles (
+              image_url
+            )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('payment_status', 'paid');
 
-      setMessages(prev => [newMessage, ...prev]);
-      setIsComposing(false);
-      setComposeData({
-        to: "",
-        subject: "",
-        content: "",
-        priority: "normal",
-        category: "general"
+      if (bookingsError) throw bookingsError;
+
+      // Get message statistics for each trip
+      const conversationsData = await Promise.all(
+        (bookings || []).map(async (booking) => {
+          const tripId = booking.trip_id;
+          
+          // Get last message
+          const { data: lastMessage } = await supabase
+            .from('trip_messages')
+            .select('*')
+            .eq('trip_id', tripId)
+            .eq('is_deleted', false)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          // Get unread count
+          const { count: unreadCount } = await supabase
+            .from('trip_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('trip_id', tripId)
+            .neq('sender_id', userId)
+            .is('read_at', null)
+            .eq('is_deleted', false);
+
+          // Get participants count
+          const { count: participantsCount } = await supabase
+            .from('trip_bookings')
+            .select('*', { count: 'exact', head: true })
+            .eq('trip_id', tripId)
+            .eq('payment_status', 'paid');
+
+          return {
+            trip_id: tripId,
+            trip_title: booking.trips?.title || 'Unknown Trip',
+            trip_destination: booking.trips?.destination || '',
+            sensei_name: booking.trips?.sensei_name || 'Unknown Sensei',
+            sensei_avatar: (booking.trips?.sensei_profiles as any)?.[0]?.image_url,
+            last_message: lastMessage ? {
+              ...lastMessage,
+              sender_type: lastMessage.sender_type as 'customer' | 'sensei' | 'admin',
+              message_context: lastMessage.message_context as 'group' | 'private',
+              message_type: lastMessage.message_type as 'text' | 'file'
+            } : undefined,
+            unread_count: unreadCount || 0,
+            participants_count: participantsCount || 0,
+          };
+        })
+      );
+
+      // Sort by last message time
+      conversationsData.sort((a, b) => {
+        const aTime = a.last_message?.created_at || '0';
+        const bTime = b.last_message?.created_at || '0';
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
       });
 
-      toast({
-        title: "Message sent",
-        description: "Your message has been sent successfully."
-      });
-    } catch (error) {
+      setConversations(conversationsData);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send message.",
-        variant: "destructive"
+        description: "Failed to load conversations",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (tripId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('trip_messages')
+        .select('*')
+        .eq('trip_id', tripId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+
+      const typedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender_type: msg.sender_type as 'customer' | 'sensei' | 'admin',
+        message_context: msg.message_context as 'group' | 'private',
+        message_type: msg.message_type as 'text' | 'file'
+      }));
+      
+      setMessages(typedMessages);
+
+      // Mark messages as read
+      await markMessagesAsRead(tripId);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load messages",
+        variant: "destructive",
       });
     }
   };
 
-  const applyTemplate = (template: Template) => {
-    setComposeData(prev => ({
-      ...prev,
-      subject: template.subject,
-      content: template.content
-    }));
-    setIsTemplateDialogOpen(false);
-    toast({
-      title: "Template applied",
-      description: `"${template.name}" template has been applied. Don't forget to replace variables.`
-    });
-  };
+  const markMessagesAsRead = async (tripId: string) => {
+    try {
+      await supabase
+        .from('trip_messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('trip_id', tripId)
+        .neq('sender_id', userId)
+        .is('read_at', null);
 
-  const markAsRead = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, status: 'read' as const } : msg
-    ));
-  };
-
-  const markAsReplied = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, status: 'replied' as const } : msg
-    ));
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'normal': return 'bg-blue-100 text-blue-800';
-      case 'low': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      // Update unread count in conversations
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.trip_id === tripId
+            ? { ...conv, unread_count: 0 }
+            : conv
+        )
+      );
+    } catch (error: any) {
+      console.error('Error marking messages as read:', error);
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'support': return <MessageSquare className="h-4 w-4" />;
-      case 'booking': return <Calendar className="h-4 w-4" />;
-      case 'payment': return <CreditCard className="h-4 w-4" />;
-      case 'feedback': return <Star className="h-4 w-4" />;
-      default: return <Mail className="h-4 w-4" />;
+  const setupRealtimeSubscription = () => {
+    const channel = supabase
+      .channel('messages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'trip_messages'
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          
+          // Update messages if it's for the current conversation
+          if (newMessage.trip_id === selectedConversation) {
+            setMessages(prev => [...prev, newMessage]);
+            markMessagesAsRead(newMessage.trip_id);
+          }
+          
+          // Update conversations
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation) return;
+
+    try {
+      const { error } = await supabase
+        .from('trip_messages')
+        .insert({
+          trip_id: selectedConversation,
+          sender_id: userId,
+          sender_type: 'customer',
+          message_text: newMessage,
+          message_context: messageContext,
+          message_type: 'text'
+        });
+
+      if (error) throw error;
+
+      setNewMessage('');
+      toast({
+        title: "Success",
+        description: "Message sent",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
     }
   };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const formatMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days < 7) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const filteredConversations = conversations.filter(conv =>
+    conv.trip_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.trip_destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.sensei_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedConv = conversations.find(c => c.trip_id === selectedConversation);
+
+  if (loading) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Messages
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-16 bg-muted animate-pulse rounded-md" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Communication Hub</h2>
-          <p className="text-muted-foreground">
-            Manage all communications with senseis and customers
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Badge variant="destructive">{unreadCount} unread</Badge>
-          )}
-          {urgentCount > 0 && (
-            <Badge variant="outline" className="border-orange-500 text-orange-600">
-              {urgentCount} urgent
-            </Badge>
-          )}
-          <Button onClick={() => setIsComposing(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Compose
-          </Button>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="inbox">
-            <Mail className="h-4 w-4 mr-2" />
-            Inbox ({unreadCount})
-          </TabsTrigger>
-          <TabsTrigger value="sent">
-            <Send className="h-4 w-4 mr-2" />
-            Sent
-          </TabsTrigger>
-          <TabsTrigger value="templates">
-            <Template className="h-4 w-4 mr-2" />
-            Templates
-          </TabsTrigger>
-          <TabsTrigger value="chat">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Live Chat
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="inbox" className="space-y-4">
-          {/* Search and Filter Bar */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          Messages
+        </CardTitle>
+        <CardDescription>
+          Communicate with your sensei and fellow travelers
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="flex h-96">
+          {/* Conversations List */}
+          <div className="w-1/3 border-r">
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search conversations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
-            <Select value={selectedFilter} onValueChange={setSelectedFilter}>
-              <SelectTrigger className="w-40">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Messages</SelectItem>
-                <SelectItem value="unread">Unread</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="support">Support</SelectItem>
-                <SelectItem value="booking">Booking</SelectItem>
-                <SelectItem value="payment">Payment</SelectItem>
-              </SelectContent>
-            </Select>
+            <ScrollArea className="h-80">
+              <div className="space-y-1 p-2">
+                {filteredConversations.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+                    <p className="text-sm">No conversations found</p>
+                  </div>
+                ) : (
+                  filteredConversations.map((conversation) => (
+                    <div
+                      key={conversation.trip_id}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedConversation === conversation.trip_id
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => setSelectedConversation(conversation.trip_id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={conversation.sensei_avatar} />
+                          <AvatarFallback>
+                            {conversation.sensei_name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium text-sm truncate">
+                              {conversation.trip_title}
+                            </p>
+                            {conversation.unread_count > 0 && (
+                              <Badge variant="destructive" className="ml-2 text-xs">
+                                {conversation.unread_count}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {conversation.trip_destination}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {conversation.participants_count} participants
+                            </span>
+                          </div>
+                          {conversation.last_message && (
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {conversation.last_message.message_text}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
-          {/* Messages List */}
-          <div className="grid gap-4">
-            {filteredMessages.map((message) => (
-              <Card 
-                key={message.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  message.status === 'unread' ? 'border-l-4 border-l-primary bg-muted/30' : ''
-                }`}
-                onClick={() => {
-                  setSelectedMessage(message);
-                  if (message.status === 'unread') {
-                    markAsRead(message.id);
-                  }
-                }}
-              >
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getCategoryIcon(message.category)}
-                        <span className="font-medium">{message.from}</span>
-                        <Badge className={getPriorityColor(message.priority)}>
-                          {message.priority}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
+          {/* Messages Area */}
+          <div className="flex-1 flex flex-col">
+            {selectedConversation ? (
+              <>
+                {/* Chat Header */}
+                <div className="p-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={selectedConv?.sensei_avatar} />
+                        <AvatarFallback>
+                          {selectedConv?.sensei_name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{selectedConv?.trip_title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedConv?.trip_destination}
+                        </p>
                       </div>
-                      <h4 className="font-semibold mb-1">{message.subject}</h4>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {message.content}
-                      </p>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      {message.attachments && (
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <Badge variant="outline">{message.status}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Tabs value={messageContext} onValueChange={(value) => setMessageContext(value as 'group' | 'private')}>
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="group" className="text-xs">Group</TabsTrigger>
+                          <TabsTrigger value="private" className="text-xs">Private</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                </div>
 
-        <TabsContent value="templates" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Message Templates</h3>
-            <Button variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
-          </div>
-          
-          <div className="grid gap-4">
-            {templates.map((template) => (
-              <Card key={template.id}>
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-semibold mb-1">{template.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-2">{template.subject}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{template.category}</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          Variables: {template.variables.join(', ')}
-                        </span>
+                {/* Messages */}
+                <ScrollArea className="flex-1 p-4">
+                  <div className="space-y-4">
+                    {messages.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-sm">No messages yet</p>
+                        <p className="text-xs">Start the conversation!</p>
                       </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => applyTemplate(template)}
-                    >
-                      Use Template
+                    ) : (
+                      messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${
+                            message.sender_id === userId ? 'justify-end' : 'justify-start'
+                          }`}
+                        >
+                          <div
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              message.sender_id === userId
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
+                            }`}
+                          >
+                            <p className="text-sm">{message.message_text}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-xs opacity-70">
+                                {formatMessageTime(message.created_at)}
+                              </span>
+                              {message.sender_id === userId && message.read_at && (
+                                <CheckCheck className="h-3 w-3 opacity-70" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+
+                {/* Message Input */}
+                <div className="p-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder={`Type a ${messageContext} message...`}
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button onClick={sendMessage} disabled={!newMessage.trim()}>
+                      <Send className="h-4 w-4" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="chat" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Chat Support</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Real-time Chat Support</h3>
-                <p className="text-muted-foreground mb-4">
-                  Connect with senseis and customers in real-time
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <Button>
-                    <Video className="h-4 w-4 mr-2" />
-                    Start Video Call
-                  </Button>
-                  <Button variant="outline">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Voice Call
-                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-center text-muted-foreground">
+                <div>
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4" />
+                  <p>Select a conversation to start messaging</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Communication Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Email Signature</label>
-                <Textarea 
-                  placeholder="Your email signature..."
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Auto-reply Message</label>
-                <Textarea 
-                  placeholder="Automatic reply message for new inquiries..."
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Enable notifications</span>
-                <input type="checkbox" className="rounded" />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Compose Dialog */}
-      <Dialog open={isComposing} onOpenChange={setIsComposing}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Compose Message</DialogTitle>
-            <DialogDescription>
-              Send a message to senseis or customers
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="To: email@example.com"
-                value={composeData.to}
-                onChange={(e) => setComposeData(prev => ({ ...prev, to: e.target.value }))}
-                className="flex-1"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsTemplateDialogOpen(true)}
-              >
-                <Template className="h-4 w-4 mr-1" />
-                Template
-              </Button>
-            </div>
-            
-            <Input
-              placeholder="Subject"
-              value={composeData.subject}
-              onChange={(e) => setComposeData(prev => ({ ...prev, subject: e.target.value }))}
-            />
-            
-            <div className="flex gap-2">
-              <Select value={composeData.priority} onValueChange={(value) => 
-                setComposeData(prev => ({ ...prev, priority: value }))
-              }>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={composeData.category} onValueChange={(value) => 
-                setComposeData(prev => ({ ...prev, category: value }))
-              }>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="support">Support</SelectItem>
-                  <SelectItem value="booking">Booking</SelectItem>
-                  <SelectItem value="payment">Payment</SelectItem>
-                  <SelectItem value="feedback">Feedback</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Textarea
-              placeholder="Message content..."
-              value={composeData.content}
-              onChange={(e) => setComposeData(prev => ({ ...prev, content: e.target.value }))}
-              rows={8}
-            />
+            )}
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsComposing(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSendMessage}>
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Template Selection Dialog */}
-      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Template</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            {templates.map((template) => (
-              <Card 
-                key={template.id} 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => applyTemplate(template)}
-              >
-                <CardContent className="pt-4">
-                  <h4 className="font-medium">{template.name}</h4>
-                  <p className="text-sm text-muted-foreground">{template.subject}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

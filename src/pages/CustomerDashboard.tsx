@@ -13,8 +13,10 @@ import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
 import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
 import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
+import { SmartNotifications } from "@/components/ui/smart-notifications";
+import { CommunicationHub } from "@/components/ui/communication-hub";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info } from "lucide-react";
+import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
 
 interface CustomerProfile {
@@ -407,10 +409,14 @@ const CustomerDashboard = () => {
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
             <TabsTrigger value="trips" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span className="hidden sm:inline">My Trips</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
             <TabsTrigger value="news" className="flex items-center gap-2">
               <Megaphone className="h-4 w-4" />
@@ -514,7 +520,16 @@ const CustomerDashboard = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="notifications" className="space-y-6">
+            {user && <SmartNotifications userId={user.id} />}
+          </TabsContent>
+
           <TabsContent value="messages" className="space-y-6">
+            {user && <CommunicationHub userId={user.id} />}
+          </TabsContent>
+
+          {/* Legacy Messages Tab for backward compatibility */}
+          <TabsContent value="legacy-messages" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Trip Messages</CardTitle>
