@@ -14,75 +14,65 @@ import {
 import {
   MapPin,
   Bell,
-  Megaphone,
   MessageCircle,
   Star,
   User,
-  CalendarIcon as Calendar,
-  CheckSquare,
-  FileText,
   Home
 } from "lucide-react";
+import { PriorityBadge } from "@/components/ui/priority-badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const sidebarItems = [
   {
     title: "Overview",
     value: "overview",
-    icon: Home
+    icon: Home,
+    description: "Dashboard home with key metrics and quick actions"
   },
   {
     title: "My Trips",
     value: "trips",
-    icon: MapPin
-  },
-  {
-    title: "Notifications",
-    value: "notifications",
-    icon: Bell
-  },
-  {
-    title: "News",
-    value: "news",
-    icon: Megaphone
+    icon: MapPin,
+    description: "All trip activities, calendar, and booking management"
   },
   {
     title: "Messages",
     value: "messages",
-    icon: MessageCircle
+    icon: MessageCircle,
+    description: "Unified communication hub"
   },
   {
     title: "Reviews",
     value: "reviews",
-    icon: Star
+    icon: Star,
+    description: "Trip ratings and feedback"
   },
   {
     title: "Profile",
     value: "profile",
-    icon: User
+    icon: User,
+    description: "Personal info, documents, and settings"
   },
   {
-    title: "Calendar",
-    value: "calendar",
-    icon: Calendar
-  },
-  {
-    title: "To-Do",
-    value: "todos",
-    icon: CheckSquare
-  },
-  {
-    title: "Documents",
-    value: "documents",
-    icon: FileText
+    title: "Notifications",
+    value: "notifications",
+    icon: Bell,
+    description: "All alerts, news, and announcements"
   }
 ];
 
 interface CustomerSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  notificationCounts?: Record<string, number>;
 }
 
-export function CustomerSidebar({ activeTab, onTabChange }: CustomerSidebarProps) {
+export function CustomerSidebar({ activeTab, onTabChange, notificationCounts = {} }: CustomerSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
@@ -95,31 +85,50 @@ export function CustomerSidebar({ activeTab, onTabChange }: CustomerSidebarProps
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    onClick={() => handleItemClick(item.value)}
-                    className={`cursor-pointer transition-colors ${
-                      isActive(item.value) 
-                        ? "bg-accent text-accent-foreground font-medium" 
-                        : "hover:bg-muted/50"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <TooltipProvider>
+      <Sidebar collapsible="icon">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sidebarItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton 
+                          onClick={() => handleItemClick(item.value)}
+                          className={`cursor-pointer transition-colors ${
+                            isActive(item.value) 
+                              ? "bg-accent text-accent-foreground font-medium" 
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                          {notificationCounts[item.value] && (
+                            <PriorityBadge 
+                              priority={item.value === "notifications" ? "urgent" : "medium"}
+                              count={notificationCounts[item.value]}
+                              className="ml-auto"
+                            />
+                          )}
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    </TooltipProvider>
   );
 }

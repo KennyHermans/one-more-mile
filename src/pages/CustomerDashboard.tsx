@@ -1005,12 +1005,19 @@ const CustomerDashboard = () => {
     }
   };
 
+  const notificationCounts = {
+    notifications: announcements.length,
+    messages: 0, // This would come from actual message count
+    trips: bookings.filter(b => b.booking_status === "pending").length
+  };
+
   return (
     <CustomerDashboardLayout
       customerName={profile?.full_name}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onEditProfile={handleEditProfile}
+      notificationCounts={notificationCounts}
     >
       <div data-tour-target="dashboard-title">
         {renderContent()}

@@ -12,6 +12,7 @@ interface CustomerDashboardLayoutProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onEditProfile?: () => void;
+  notificationCounts?: Record<string, number>;
 }
 
 export function CustomerDashboardLayout({ 
@@ -19,7 +20,8 @@ export function CustomerDashboardLayout({
   customerName, 
   activeTab, 
   onTabChange, 
-  onEditProfile 
+  onEditProfile,
+  notificationCounts 
 }: CustomerDashboardLayoutProps) {
   return (
     <DashboardAccessGuard requiredRole="customer">
@@ -28,7 +30,11 @@ export function CustomerDashboardLayout({
         
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
-            <CustomerSidebar activeTab={activeTab} onTabChange={onTabChange} />
+            <CustomerSidebar 
+              activeTab={activeTab} 
+              onTabChange={onTabChange} 
+              notificationCounts={notificationCounts}
+            />
             
             <main className="flex-1">
               <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
