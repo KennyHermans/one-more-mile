@@ -43,17 +43,31 @@ export const useSenseiGamification = (senseiId?: string) => {
     try {
       setIsLoading(true);
       
-      // Get level eligibility
+      // Get actual current level from sensei profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('sensei_profiles')
+        .select('sensei_level, level_achieved_at, level_requirements_met, trips_led, rating')
+        .eq('id', senseiId)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      // Get level eligibility for next level progress
       const { data: levelData, error: levelError } = await supabase
         .rpc('calculate_sensei_level_eligibility', { p_sensei_id: senseiId });
       
       if (levelError) throw levelError;
       
-      if (levelData && levelData.length > 0) {
-        setLevel(levelData[0]);
+      // Combine current level with eligibility data
+      if (profileData) {
+        setLevel({
+          eligible_level: profileData.sensei_level,
+          requirements_met: profileData.level_requirements_met || {},
+          next_level_requirements: levelData?.[0]?.next_level_requirements || {}
+        });
       }
 
-      // Get permissions
+      // Get permissions based on actual current level
       const { data: permissionsData, error: permissionsError } = await supabase
         .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
       
@@ -185,6 +199,18 @@ export const useSenseiGamification = (senseiId?: string) => {
 
   useEffect(() => {
     fetchLevelData();
+  }, [senseiId]);
+
+  // Add a refresh effect when component mounts/becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && senseiId) {
+        fetchLevelData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [senseiId]);
 
   return {
