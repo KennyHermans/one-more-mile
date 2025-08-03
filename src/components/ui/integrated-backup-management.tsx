@@ -149,16 +149,31 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
 
   const fetchSenseiData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      console.log('No authenticated user found');
+      return;
+    }
+
+    console.log('Fetching data for user:', user.id);
 
     // Get sensei profile
-    const { data: senseiProfile } = await supabase
+    const { data: senseiProfile, error: profileError } = await supabase
       .from('sensei_profiles')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (!senseiProfile) return;
+    if (profileError) {
+      console.error('Error fetching sensei profile:', profileError);
+      return;
+    }
+
+    if (!senseiProfile) {
+      console.log('No sensei profile found for user:', user.id);
+      return;
+    }
+
+    console.log('Found sensei profile:', senseiProfile.id);
 
     // Fetch backup requests for this sensei
     const { data: requestsData, error: requestsError } = await supabase
@@ -173,7 +188,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       .eq('sensei_id', senseiProfile.id)
       .order('requested_at', { ascending: false });
 
-    if (requestsError) throw requestsError;
+    if (requestsError) {
+      console.error('Error fetching backup requests:', requestsError);
+      throw requestsError;
+    }
+
+    console.log('Found backup requests:', requestsData?.length || 0);
     setRequests(requestsData || []);
 
     // Fetch available trips for backup applications
@@ -184,7 +204,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       .is('backup_sensei_id', null)
       .eq('is_active', true);
 
-    if (tripsError) throw tripsError;
+    if (tripsError) {
+      console.error('Error fetching available trips:', tripsError);
+      throw tripsError;
+    }
+
+    console.log('Found available trips for backup:', tripsData?.length || 0);
     setAvailableTrips(tripsData || []);
 
     // Fetch this sensei's backup applications
@@ -197,7 +222,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       .eq('sensei_id', senseiProfile.id)
       .order('applied_at', { ascending: false });
 
-    if (applicationsError) throw applicationsError;
+    if (applicationsError) {
+      console.error('Error fetching backup applications:', applicationsError);
+      throw applicationsError;
+    }
+
+    console.log('Found backup applications:', applicationsData?.length || 0);
     setApplications(applicationsData || []);
   };
 
@@ -303,7 +333,14 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading backup requests...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
