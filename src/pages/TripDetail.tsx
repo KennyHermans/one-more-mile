@@ -4,6 +4,8 @@ import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,7 +21,15 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  CreditCard
+  CreditCard,
+  Heart,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Mail,
+  Award,
+  Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -74,6 +84,8 @@ const TripDetail = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [bookingForm, setBookingForm] = useState({
     full_name: "",
     address: "",
@@ -299,6 +311,45 @@ const TripDetail = () => {
           </Button>
         </div>
 
+        <div className="absolute top-6 right-6 flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="bg-white/90 hover:bg-white"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: trip.title,
+                  text: trip.description,
+                  url: window.location.href,
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                toast({
+                  title: "Link copied!",
+                  description: "Trip link copied to clipboard",
+                });
+              }
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className={`bg-white/90 hover:bg-white ${isWishlisted ? 'text-red-500' : ''}`}
+            onClick={() => {
+              setIsWishlisted(!isWishlisted);
+              toast({
+                title: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
+                description: isWishlisted ? "Trip removed from your wishlist" : "Trip saved to your wishlist",
+              });
+            }}
+          >
+            <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
+
         <div className="absolute bottom-8 left-8 text-white">
           <Badge variant="secondary" className="bg-white/90 text-primary mb-4">
             {trip.theme}
@@ -332,107 +383,177 @@ const TripDetail = () => {
                 </p>
               </div>
 
-              {/* What's Included */}
-              {trip.included_amenities && trip.included_amenities.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-serif text-2xl font-bold mb-4 flex items-center">
-                      <CheckCircle className="mr-2 h-6 w-6 text-green-500" />
-                      What's Included
-                    </h3>
-                    <ul className="space-y-2">
-                      {trip.included_amenities.map((item, index) => (
-                        <li key={index} className="flex items-center font-sans">
-                          <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Interactive Content Tabs */}
+              <Tabs defaultValue="itinerary" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
+                  <TabsTrigger value="included">What's Included</TabsTrigger>
+                  <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                  <TabsTrigger value="map">Map View</TabsTrigger>
+                </TabsList>
 
-              {/* What's Not Included */}
-              {trip.excluded_items && trip.excluded_items.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-serif text-2xl font-bold mb-4 flex items-center">
-                      <XCircle className="mr-2 h-6 w-6 text-red-500" />
-                      What's Not Included
-                    </h3>
-                    <ul className="space-y-2">
-                      {trip.excluded_items.map((item, index) => (
-                        <li key={index} className="flex items-center font-sans">
-                          <XCircle className="mr-2 h-4 w-4 text-red-500" />
-                          {item}
-                        </li>
+                <TabsContent value="itinerary" className="mt-6">
+                  {trip.program && trip.program.length > 0 ? (
+                    <div className="space-y-4">
+                      {trip.program.map((day, index) => (
+                        <Collapsible
+                          key={index}
+                          open={expandedDay === day.day}
+                          onOpenChange={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Card className="cursor-pointer hover:shadow-md transition-all duration-200">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
+                                      {day.day}
+                                    </div>
+                                    <div>
+                                      <h3 className="font-serif text-lg font-bold">
+                                        Day {day.day}: {day.location}
+                                      </h3>
+                                      <p className="text-sm text-muted-foreground">
+                                        {day.activities.substring(0, 100)}...
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {expandedDay === day.day ? 
+                                    <ChevronUp className="h-5 w-5" /> : 
+                                    <ChevronDown className="h-5 w-5" />
+                                  }
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-2">
+                            <Card>
+                              <CardContent className="p-6 bg-muted/50">
+                                <h4 className="font-semibold mb-3">Full Day Activities</h4>
+                                <p className="font-sans text-muted-foreground leading-relaxed">
+                                  {day.activities}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          </CollapsibleContent>
+                        </Collapsible>
                       ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-6 text-center">
+                        <p className="text-muted-foreground">Detailed itinerary coming soon!</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
 
-              {/* Requirements */}
-              {trip.requirements && trip.requirements.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-serif text-2xl font-bold mb-4 flex items-center">
-                      <AlertCircle className="mr-2 h-6 w-6 text-yellow-500" />
-                      Requirements
-                    </h3>
-                    <ul className="space-y-2">
-                      {trip.requirements.map((item, index) => (
-                        <li key={index} className="flex items-center font-sans">
-                          <AlertCircle className="mr-2 h-4 w-4 text-yellow-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Day-by-Day Program */}
-              {trip.program && trip.program.length > 0 && (
-                <div>
-                  <h2 className="font-serif text-3xl font-bold mb-6">Day-by-Day Itinerary</h2>
-                  <div className="space-y-6">
-                    {trip.program.map((day, index) => (
-                      <Card key={index} className="overflow-hidden">
+                <TabsContent value="included" className="mt-6">
+                  <div className="grid gap-6">
+                    {trip.included_amenities && trip.included_amenities.length > 0 && (
+                      <Card>
                         <CardContent className="p-6">
-                          <div className="flex items-start space-x-4">
-                            <div className="flex-shrink-0">
-                              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                                {day.day}
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-serif text-xl font-bold mb-2">
-                                Day {day.day}: {day.location}
-                              </h3>
-                              <p className="font-sans text-muted-foreground leading-relaxed">
-                                {day.activities}
+                          <h3 className="font-serif text-xl font-bold mb-4 flex items-center">
+                            <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+                            What's Included
+                          </h3>
+                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {trip.included_amenities.map((item, index) => (
+                              <li key={index} className="flex items-center font-sans">
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {trip.excluded_items && trip.excluded_items.length > 0 && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <h3 className="font-serif text-xl font-bold mb-4 flex items-center">
+                            <XCircle className="mr-2 h-5 w-5 text-red-500" />
+                            What's Not Included
+                          </h3>
+                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {trip.excluded_items.map((item, index) => (
+                              <li key={index} className="flex items-center font-sans">
+                                <XCircle className="mr-2 h-4 w-4 text-red-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="requirements" className="mt-6">
+                  {trip.requirements && trip.requirements.length > 0 ? (
+                    <Card>
+                      <CardContent className="p-6">
+                        <h3 className="font-serif text-xl font-bold mb-4 flex items-center">
+                          <AlertCircle className="mr-2 h-5 w-5 text-yellow-500" />
+                          Requirements & Prerequisites
+                        </h3>
+                        <ul className="space-y-3">
+                          {trip.requirements.map((item, index) => (
+                            <li key={index} className="flex items-start font-sans">
+                              <AlertCircle className="mr-2 h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                          <div className="flex items-start">
+                            <Shield className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">Important Note</h4>
+                              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                Please ensure you meet all requirements before booking. Our team will verify your qualifications during the booking process.
                               </p>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-6 text-center">
+                        <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                        <h3 className="font-semibold mb-2">No Special Requirements</h3>
+                        <p className="text-muted-foreground">This trip is suitable for all experience levels!</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
 
-              {/* Trip Map */}
-              {trip.program && trip.program.length > 0 && (
-                <div>
-                  <h2 className="font-serif text-3xl font-bold mb-6">Trip Locations</h2>
-                  <TripItineraryMap 
-                    program={trip.program} 
-                    tripTitle={trip.title}
-                    className="w-full"
-                  />
-                </div>
-              )}
+                <TabsContent value="map" className="mt-6">
+                  {trip.program && trip.program.length > 0 ? (
+                    <div>
+                      <div className="mb-4">
+                        <h3 className="font-serif text-xl font-bold mb-2">Trip Locations</h3>
+                        <p className="text-muted-foreground">Explore the route and key destinations of your adventure</p>
+                      </div>
+                      <TripItineraryMap 
+                        program={trip.program} 
+                        tripTitle={trip.title}
+                        className="w-full"
+                      />
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-6 text-center">
+                        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="font-semibold mb-2">Map Coming Soon</h3>
+                        <p className="text-muted-foreground">Detailed location map will be available once the itinerary is finalized.</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Sidebar */}
