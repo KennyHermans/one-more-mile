@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AITripBuilder } from '@/components/ui/ai-trip-builder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -330,20 +331,42 @@ export function AdvancedTripPlanner({
     educational: Info
   };
 
+  const handleAITripGenerated = (aiTripData: any) => {
+    setTripPlan(prev => ({
+      ...prev,
+      ...aiTripData,
+      // Preserve existing ID and status if updating
+      id: prev.id,
+      status: prev.status || 'draft'
+    }));
+    
+    toast({
+      title: "AI Trip Loaded!",
+      description: "The AI-generated trip has been applied to your planner.",
+    });
+  };
+
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Trip Planner
-            </CardTitle>
-            <CardDescription>
-              Create and manage comprehensive trip itineraries
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
+    <div className={className}>
+      {/* AI Trip Builder */}
+      <div className="mb-6">
+        <AITripBuilder onTripGenerated={handleAITripGenerated} />
+      </div>
+
+      {/* Main Trip Planner */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Trip Planner
+              </CardTitle>
+              <CardDescription>
+                Create and manage comprehensive trip itineraries
+               </CardDescription>
+             </div>
+             <div className="flex items-center gap-2">
             <div className="text-sm text-muted-foreground">
               {completionProgress}% Complete
             </div>
@@ -895,6 +918,7 @@ export function AdvancedTripPlanner({
           </div>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
