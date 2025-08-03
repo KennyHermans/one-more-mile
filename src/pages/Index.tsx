@@ -6,6 +6,7 @@ import { ThemeCard } from "@/components/ui/theme-card";
 import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
 import { TripCardSkeleton } from "@/components/ui/trip-card-skeleton";
 import { TestimonialsSection } from "@/components/ui/testimonials-section";
+import { SocialProofSection } from "@/components/ui/social-proof-section";
 import { Dumbbell, ChefHat, Heart, Globe } from "lucide-react";
 
 const Index = () => {
@@ -98,6 +99,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      <SocialProofSection />
       
       <TestimonialsSection />
       
