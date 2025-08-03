@@ -160,30 +160,17 @@ const TripDetail = () => {
     const priceString = trip.price.replace(/[^0-9.]/g, '');
     const totalAmount = parseFloat(priceString);
     
-    switch (planType) {
-      case "2_payments":
-        return {
-          deposit: Math.round(totalAmount * 0.5),
-          installment: Math.round(totalAmount * 0.5),
-          count: 1
-        };
-      case "3_payments":
-        const deposit3 = Math.round(totalAmount * 0.4);
-        return {
-          deposit: deposit3,
-          installment: Math.round((totalAmount - deposit3) / 2),
-          count: 2
-        };
-      case "4_payments":
-        const deposit4 = Math.round(totalAmount * 0.3);
-        return {
-          deposit: deposit4,
-          installment: Math.round((totalAmount - deposit4) / 3),
-          count: 3
-        };
-      default:
-        return null;
+    if (planType === "deposit_1000") {
+      const depositAmount = 1000;
+      const remainingAmount = totalAmount - depositAmount;
+      return {
+        deposit: depositAmount,
+        installment: remainingAmount,
+        count: 1
+      };
     }
+    
+    return null;
   };
 
   const handleBookTrip = () => {
@@ -723,79 +710,35 @@ const TripDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Installment Plans */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg">Or choose an installment plan:</h4>
-              
-              {/* 2 Payments Plan */}
-              {(() => {
-                const breakdown = calculateInstallmentBreakdown("2_payments");
-                return breakdown ? (
-                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                        onClick={() => handlePaymentOption("2_payments")}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold">2 Payments</h4>
-                          <p className="text-sm text-muted-foreground">
-                            ${breakdown.deposit} now + ${breakdown.installment} in 30 days
-                          </p>
+            {/* Deposit Option */}
+            {(() => {
+              const breakdown = calculateInstallmentBreakdown("deposit_1000");
+              return breakdown ? (
+                <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                      onClick={() => handlePaymentOption("deposit_1000")}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center">
+                          <Clock className="h-6 w-6" />
                         </div>
-                        <Button variant="outline" size="sm" disabled={paymentLoading}>
-                          {paymentLoading ? "Loading..." : "Choose Plan"}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : null;
-              })()}
-
-              {/* 3 Payments Plan */}
-              {(() => {
-                const breakdown = calculateInstallmentBreakdown("3_payments");
-                return breakdown ? (
-                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                        onClick={() => handlePaymentOption("3_payments")}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-semibold">3 Payments</h4>
-                          <p className="text-sm text-muted-foreground">
-                            ${breakdown.deposit} now + ${breakdown.installment} × {breakdown.count} monthly
-                          </p>
+                          <h3 className="font-semibold text-lg">Pay with Deposit</h3>
+                          <p className="text-sm text-muted-foreground">€1,000 now + rest after 1 month</p>
                         </div>
-                        <Button variant="outline" size="sm" disabled={paymentLoading}>
-                          {paymentLoading ? "Loading..." : "Choose Plan"}
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                ) : null;
-              })()}
-
-              {/* 4 Payments Plan */}
-              {(() => {
-                const breakdown = calculateInstallmentBreakdown("4_payments");
-                return breakdown ? (
-                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                        onClick={() => handlePaymentOption("4_payments")}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold">4 Payments</h4>
-                          <p className="text-sm text-muted-foreground">
-                            ${breakdown.deposit} now + ${breakdown.installment} × {breakdown.count} monthly
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" disabled={paymentLoading}>
-                          {paymentLoading ? "Loading..." : "Choose Plan"}
-                        </Button>
+                      <div className="text-right">
+                        <div className="text-xl font-bold">€1,000</div>
+                        <div className="text-sm text-muted-foreground">then €{breakdown.installment}</div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ) : null;
-              })()}
-            </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      ✓ Secure your spot with €1,000 ✓ Pay remaining balance after 1 month ✓ Flexible payment schedule
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <h4 className="font-semibold mb-2">How it works:</h4>

@@ -105,24 +105,12 @@ serve(async (req) => {
       // Create installment payment plan
       let depositAmount, installmentAmount, installmentCount;
       
-      switch (planType) {
-        case "2_payments":
-          depositAmount = Math.round(totalAmountCents * 0.5); // 50% deposit
-          installmentAmount = totalAmountCents - depositAmount;
-          installmentCount = 1;
-          break;
-        case "3_payments":
-          depositAmount = Math.round(totalAmountCents * 0.4); // 40% deposit
-          installmentAmount = Math.round((totalAmountCents - depositAmount) / 2);
-          installmentCount = 2;
-          break;
-        case "4_payments":
-          depositAmount = Math.round(totalAmountCents * 0.3); // 30% deposit
-          installmentAmount = Math.round((totalAmountCents - depositAmount) / 3);
-          installmentCount = 3;
-          break;
-        default:
-          throw new Error("Invalid payment plan type");
+      if (planType === "deposit_1000") {
+        depositAmount = 100000; // €1000 in cents
+        installmentAmount = totalAmountCents - depositAmount;
+        installmentCount = 1;
+      } else {
+        throw new Error("Invalid payment plan type");
       }
 
       logStep("Payment plan calculated", { 
