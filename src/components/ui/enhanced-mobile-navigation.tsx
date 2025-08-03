@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./button";
+import { RoleSwitcher } from "./role-switcher";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "./sheet";
 import { Badge } from "./badge";
 import { Separator } from "./separator";
@@ -41,7 +42,9 @@ export function EnhancedMobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isSensei, setIsSensei] = useState(false);
+  const [hasSenseiProfile, setHasSenseiProfile] = useState(false);
+  const [hasCustomerProfile, setHasCustomerProfile] = useState(false);
+  const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const location = useLocation();
   const { toast } = useToast();
@@ -49,13 +52,37 @@ export function EnhancedMobileNavigation() {
   // Check if current user is admin
   const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
-  const checkSenseiStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from('sensei_profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
-    setIsSensei(!!data);
+  const checkUserProfiles = async (userId: string) => {
+    try {
+      // Check for sensei profile
+      const { data: senseiData } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // Check for customer profile
+      const { data: customerData } = await supabase
+        .from('customer_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      const isSensei = !!senseiData;
+      const isCustomer = !!customerData;
+      
+      setHasSenseiProfile(isSensei);
+      setHasCustomerProfile(isCustomer);
+      
+      // Set default role based on available profiles
+      if (isSensei && !isCustomer) {
+        setCurrentRole('sensei');
+      } else {
+        setCurrentRole('customer'); // Default to customer
+      }
+    } catch (error) {
+      console.error('Error checking user profiles:', error);
+    }
   };
 
   const handleSignOut = async () => {
@@ -97,11 +124,13 @@ export function EnhancedMobileNavigation() {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          checkSenseiStatus(session.user.id);
+          checkUserProfiles(session.user.id);
           // Fetch real notification count
           fetchNotificationCount(session.user.id);
         } else {
-          setIsSensei(false);
+          setHasSenseiProfile(false);
+          setHasCustomerProfile(false);
+          setCurrentRole('customer');
           setUnreadNotifications(0);
         }
       }
@@ -112,7 +141,7 @@ export function EnhancedMobileNavigation() {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkSenseiStatus(session.user.id);
+        checkUserProfiles(session.user.id);
         fetchNotificationCount(session.user.id);
       }
     });
@@ -159,14 +188,14 @@ export function EnhancedMobileNavigation() {
   ];
 
   const userNavItems: NavItem[] = [
-    // Dashboard links
-    ...(!isSensei ? [{
+    // Dashboard links - role-based
+    ...(currentRole === 'customer' && hasCustomerProfile ? [{
       icon: Calendar,
       label: "My Dashboard",
       href: "/customer/dashboard",
       description: "View your trips and bookings"
     }] : []),
-    ...(isSensei ? [{
+    ...(currentRole === 'sensei' && hasSenseiProfile ? [{
       icon: Mountain,
       label: "Sensei Dashboard",
       href: "/sensei/dashboard",
@@ -182,13 +211,13 @@ export function EnhancedMobileNavigation() {
     // Profile links - role-based
     {
       icon: User,
-      label: isSensei ? "Sensei Profile" : "My Profile",
-      href: isSensei ? "/sensei-profile" : "/customer/profile",
-      description: isSensei ? "Manage your sensei profile" : "Edit your personal information"
+      label: currentRole === 'sensei' && hasSenseiProfile ? "Sensei Profile" : "My Profile",
+      href: currentRole === 'sensei' && hasSenseiProfile ? "/sensei-profile" : "/customer/profile",
+      description: currentRole === 'sensei' && hasSenseiProfile ? "Manage your sensei profile" : "Edit your personal information"
     },
     
-    // Customer-specific quick access (only show if not viewing as sensei)
-    ...(!isSensei ? [
+    // Customer-specific quick access (only show when in customer mode)
+    ...(currentRole === 'customer' ? [
       {
         icon: Heart,
         label: "Wishlist",
@@ -302,30 +331,41 @@ export function EnhancedMobileNavigation() {
             <div className="p-6 space-y-6">
               {/* User Profile Section */}
               {user && (
-                <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
+                <div className="space-y-3">
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">Welcome back!</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      {hasSenseiProfile && (
+                        <Badge variant="outline" className="gap-1">
+                          <Crown className="h-3 w-3" />
+                          Sensei
+                        </Badge>
+                      )}
+                      {isAdmin && (
+                        <Badge variant="outline" className="gap-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">Welcome back!</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {user.email}
-                      </p>
-                    </div>
-                    {isSensei && (
-                      <Badge variant="outline" className="gap-1">
-                        <Crown className="h-3 w-3" />
-                        Sensei
-                      </Badge>
-                    )}
-                    {isAdmin && (
-                      <Badge variant="outline" className="gap-1">
-                        <Shield className="h-3 w-3" />
-                        Admin
-                      </Badge>
-                    )}
                   </div>
+                  
+                  {/* Role Switcher for dual-role users */}
+                  <RoleSwitcher
+                    currentRole={currentRole}
+                    hasCustomerProfile={hasCustomerProfile}
+                    hasSenseiProfile={hasSenseiProfile}
+                    onRoleChange={setCurrentRole}
+                    className="w-full"
+                  />
                 </div>
               )}
 

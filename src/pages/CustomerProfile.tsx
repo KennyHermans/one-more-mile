@@ -68,14 +68,25 @@ export default function CustomerProfile() {
         .from('customer_profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
       if (data) {
         setProfile(data);
+      } else {
+        // No profile exists, initialize empty profile for creation
+        setProfile({
+          id: '',
+          full_name: '',
+          phone: '',
+          emergency_contact_name: '',
+          emergency_contact_phone: '',
+          dietary_restrictions: '',
+          medical_conditions: ''
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

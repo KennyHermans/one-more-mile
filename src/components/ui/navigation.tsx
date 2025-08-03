@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./button";
 import { EnhancedMobileNavigation } from "./enhanced-mobile-navigation";
+import { RoleSwitcher } from "./role-switcher";
 import { User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -9,18 +10,44 @@ import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 export function Navigation() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isSensei, setIsSensei] = useState(false);
+  const [hasSenseiProfile, setHasSenseiProfile] = useState(false);
+  const [hasCustomerProfile, setHasCustomerProfile] = useState(false);
+  const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
 
   // Check if current user is admin
   const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
-  const checkSenseiStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from('sensei_profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
-    setIsSensei(!!data);
+  const checkUserProfiles = async (userId: string) => {
+    try {
+      // Check for sensei profile
+      const { data: senseiData } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // Check for customer profile
+      const { data: customerData } = await supabase
+        .from('customer_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      const isSensei = !!senseiData;
+      const isCustomer = !!customerData;
+      
+      setHasSenseiProfile(isSensei);
+      setHasCustomerProfile(isCustomer);
+      
+      // Set default role based on available profiles
+      if (isSensei && !isCustomer) {
+        setCurrentRole('sensei');
+      } else {
+        setCurrentRole('customer'); // Default to customer
+      }
+    } catch (error) {
+      console.error('Error checking user profiles:', error);
+    }
   };
 
   useEffect(() => {
@@ -30,9 +57,11 @@ export function Navigation() {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          checkSenseiStatus(session.user.id);
+          checkUserProfiles(session.user.id);
         } else {
-          setIsSensei(false);
+          setHasSenseiProfile(false);
+          setHasCustomerProfile(false);
+          setCurrentRole('customer');
         }
       }
     );
@@ -42,7 +71,7 @@ export function Navigation() {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkSenseiStatus(session.user.id);
+        checkUserProfiles(session.user.id);
       }
     });
 
@@ -79,15 +108,14 @@ export function Navigation() {
           </Link>
             {user ? (
              <div className="flex items-center space-x-4">
-               {/* Customer Dashboard - always show for authenticated users */}
-               {!isSensei && (
+               {/* Role-based Dashboard Links */}
+               {currentRole === 'customer' && hasCustomerProfile && (
                  <Link to="/customer/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                    My Dashboard
                  </Link>
                )}
                
-               {/* Sensei Dashboard - only for senseis */}
-               {isSensei && (
+               {currentRole === 'sensei' && hasSenseiProfile && (
                  <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                    Sensei Dashboard
                  </Link>
@@ -100,19 +128,34 @@ export function Navigation() {
                  </Link>
                )}
                
+               {/* Role Switcher for dual-role users */}
+               <RoleSwitcher
+                 currentRole={currentRole}
+                 hasCustomerProfile={hasCustomerProfile}
+                 hasSenseiProfile={hasSenseiProfile}
+                 onRoleChange={setCurrentRole}
+               />
+               
                {/* Role-based Profile buttons */}
-               {isSensei ? (
+               {currentRole === 'sensei' && hasSenseiProfile ? (
                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                    <Link to="/sensei-profile">
                      <User className="w-4 h-4 mr-2" />
                      Sensei Profile
                    </Link>
                  </Button>
-               ) : (
+               ) : hasCustomerProfile ? (
                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                    <Link to="/customer/profile">
                      <User className="w-4 h-4 mr-2" />
                      My Profile
+                   </Link>
+                 </Button>
+               ) : (
+                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                   <Link to="/customer/profile">
+                     <User className="w-4 h-4 mr-2" />
+                     Create Profile
                    </Link>
                  </Button>
                )}
