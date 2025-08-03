@@ -858,6 +858,10 @@ const AdminDashboard = () => {
               </div>
             )}
             
+            {activeTab === "trip-permissions" && (
+              <AdminTripManagementOverview />
+            )}
+            
             {activeTab === "proposals" && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">

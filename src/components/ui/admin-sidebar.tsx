@@ -73,6 +73,12 @@ const sidebarGroups = [
         value: "calendar",
         icon: Calendar,
         requiresPermission: null
+      },
+      {
+        title: "Trip Permissions",
+        value: "trip-permissions",
+        icon: Settings,
+        requiresPermission: "canManageTrips"
       }
     ]
   },
