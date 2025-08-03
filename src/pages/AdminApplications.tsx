@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/ui/navigation";
+import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,13 +43,8 @@ const AdminApplications = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user || user.email !== 'kenny_hermans93@hotmail.com') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
-          variant: "destructive",
-        });
-        window.location.href = '/';
+      if (!user) {
+        window.location.href = '/auth';
         return;
       }
       
@@ -200,8 +196,9 @@ const AdminApplications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Navigation />
+    <AdminAccessGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -449,8 +446,9 @@ const AdminApplications = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </AdminAccessGuard>
   );
 };
 

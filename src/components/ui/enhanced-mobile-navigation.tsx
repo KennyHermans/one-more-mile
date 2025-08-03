@@ -27,6 +27,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useProfileManagement } from "@/hooks/use-profile-management";
+import { useAdminCheck } from "@/hooks/use-admin-check";
 import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
@@ -40,13 +41,11 @@ interface NavItem {
 export function EnhancedMobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, session, profileStatus } = useProfileManagement();
+  const { isAdmin } = useAdminCheck();
   const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const { toast } = useToast();
-
-  // Check if current user is admin
-  const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
   const handleSignOut = async () => {
     const { supabase } = await import('@/integrations/supabase/client');

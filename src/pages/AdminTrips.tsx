@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
+import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -244,8 +245,8 @@ const AdminTrips = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session?.user || session.user.email !== 'kenny_hermans93@hotmail.com') {
-        navigate('/');
+      if (!session?.user) {
+        navigate('/auth');
         return;
       }
       
@@ -256,8 +257,8 @@ const AdminTrips = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!session?.user || session.user.email !== 'kenny_hermans93@hotmail.com') {
-          navigate('/');
+        if (!session?.user) {
+          navigate('/auth');
           return;
         }
         setUser(session.user);
@@ -647,8 +648,9 @@ const AdminTrips = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <AdminAccessGuard>
+      <div className="min-h-screen bg-background">
+        <Navigation />
       
       <div className="container py-8">
         <div className="flex justify-between items-center mb-8">
@@ -1274,8 +1276,9 @@ const AdminTrips = () => {
             });
           }}
         />
+        </div>
       </div>
-    </div>
+    </AdminAccessGuard>
   );
 };
 

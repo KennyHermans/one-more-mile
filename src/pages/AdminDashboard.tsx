@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/ui/navigation";
+import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview";
 import { AdminAnalyticsDashboard } from "@/components/ui/admin-analytics-dashboard";
@@ -315,13 +316,8 @@ const AdminDashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user || user.email !== 'kenny_hermans93@hotmail.com') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
-          variant: "destructive",
-        });
-        window.location.href = '/';
+      if (!user) {
+        window.location.href = '/auth';
         return;
       }
       
@@ -338,10 +334,9 @@ const AdminDashboard = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to authenticate.",
+        description: "Failed to load admin data.",
         variant: "destructive",
       });
-      window.location.href = '/';
     } finally {
       setLoading(false);
     }
@@ -629,8 +624,9 @@ const AdminDashboard = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted w-full">
+    <AdminAccessGuard>
+      <SidebarProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted w-full">
         {/* Global Header */}
         <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
           <div className="flex items-center justify-between h-full px-4">
@@ -1095,8 +1091,9 @@ const AdminDashboard = () => {
             )}
           </DialogContent>
         </Dialog>
-      </div>
-    </SidebarProvider>
+        </div>
+      </SidebarProvider>
+    </AdminAccessGuard>
   );
 };
 
