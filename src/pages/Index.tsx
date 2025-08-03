@@ -173,7 +173,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="h-10 w-10 rounded-full bg-accent"></div>
+                <img src="/lovable-uploads/dab7f695-040e-443d-bacf-212d4277616b.png" alt="One More Mile Logo" className="h-10 w-10 rounded-full object-cover" />
                 <span className="font-serif text-2xl font-semibold">One More Mile</span>
               </div>
               <p className="font-sans text-primary-foreground/80 mb-4 leading-relaxed">
