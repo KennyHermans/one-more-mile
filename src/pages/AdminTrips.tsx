@@ -762,10 +762,48 @@ const AdminTrips = () => {
                                   ? `${fromFormatted}-${format(range.to, "dd, yyyy")}`
                                   : `${fromFormatted} - ${toFormatted}`;
                                 
-                                setFormData(prev => ({ ...prev, dates: dateString }));
+                                // Calculate number of days
+                                const diffTime = range.to.getTime() - range.from.getTime();
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+                                
+                                // Auto-generate program days
+                                const programDays: ProgramDay[] = [];
+                                for (let i = 0; i < diffDays; i++) {
+                                  const dayDate = new Date(range.from);
+                                  dayDate.setDate(dayDate.getDate() + i);
+                                  
+                                  programDays.push({
+                                    day: i + 1,
+                                    location: formData.destination || "To be determined",
+                                    activities: i === 0 
+                                      ? "Arrival and check-in\nWelcome briefing\nOrientation" 
+                                      : i === diffDays - 1 
+                                      ? "Final activities\nDeparture preparation\nCheck-out"
+                                      : `Day ${i + 1} activities\nGuided exploration\nFree time`
+                                  });
+                                }
+                                
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  dates: dateString,
+                                  duration_days: diffDays,
+                                  program: programDays
+                                }));
                               } else if (range?.from) {
                                 const dateString = format(range.from, "MMMM dd, yyyy");
-                                setFormData(prev => ({ ...prev, dates: dateString }));
+                                // Single day trip
+                                const singleDayProgram: ProgramDay[] = [{
+                                  day: 1,
+                                  location: formData.destination || "To be determined",
+                                  activities: "Arrival\nMain activity\nDeparture"
+                                }];
+                                
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  dates: dateString,
+                                  duration_days: 1,
+                                  program: singleDayProgram
+                                }));
                               }
                             }}
                             numberOfMonths={2}
@@ -778,10 +816,17 @@ const AdminTrips = () => {
                         <Input
                           name="dates"
                           value={formData.dates}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            handleInputChange(e);
+                            // If manually typing dates, reset program to empty
+                            setFormData(prev => ({ ...prev, program: [] }));
+                          }}
                           placeholder="August 15 - September 12, 2025"
                           required
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          💡 Use the calendar above to auto-generate a day-by-day itinerary!
+                        </p>
                       </div>
                     </div>
                   </div>
