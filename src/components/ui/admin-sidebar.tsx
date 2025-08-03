@@ -25,7 +25,8 @@ import {
   Shield,
   MessageCircle,
   Home,
-  Edit
+  Edit,
+  Bot
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
@@ -87,6 +88,23 @@ const sidebarGroups = [
         value: "trip-permissions",
         icon: Settings,
         requiresPermission: "canManageTrips"
+      }
+    ]
+  },
+  {
+    label: "Automation & Alerts",
+    items: [
+      {
+        title: "Backup Alerts",
+        value: "alerts",
+        icon: AlertTriangle,
+        requiresPermission: null
+      },
+      {
+        title: "Automation",
+        value: "automation",
+        icon: Bot,
+        requiresPermission: null
       }
     ]
   },

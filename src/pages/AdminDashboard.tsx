@@ -10,6 +10,8 @@ import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
 import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assignment";
+import { DatabaseOptimization } from "@/components/ui/database-optimization";
+import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { BulkOperations } from "@/components/ui/bulk-operations";
@@ -721,11 +723,19 @@ const AdminDashboard = () => {
             </div>
             
             {activeTab === "dashboard" && (
-              <RealTimeAdminDashboard 
-                 onStatsUpdate={(newStats) => {
-                   // Real-time stats are handled within the component
-                 }}
-              />
+              <div className="space-y-6">
+                <RealTimeAdminDashboard 
+                  onStatsUpdate={(newStats) => {
+                    // Real-time stats are handled within the component
+                  }}
+                />
+                
+                {/* Database optimization utility */}
+                <DatabaseOptimization />
+                
+                {/* Phase 1 completion summary */}
+                <Phase1Summary />
+              </div>
             )}
             
             {activeTab === "analytics" && (
@@ -1073,6 +1083,18 @@ const AdminDashboard = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Sensei Management</h2>
                 <AdminSenseiOverview />
+              </div>
+            )}
+            
+            {activeTab === "alerts" && (
+              <div className="space-y-6">
+                <AdminBackupAlerts />
+              </div>
+            )}
+            
+            {activeTab === "automation" && (
+              <div className="space-y-6">
+                <AutomatedBackupAssignment />
               </div>
             )}
             
