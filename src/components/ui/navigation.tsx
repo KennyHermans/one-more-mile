@@ -16,6 +16,14 @@ export function Navigation() {
 
   // Update current role when profile status changes
   useEffect(() => {
+    console.log('🧭 Navigation profile status update:', {
+      isLoading: profileStatus.isLoading,
+      hasCustomerProfile: profileStatus.hasCustomerProfile,
+      hasSenseiProfile: profileStatus.hasSenseiProfile,
+      user: user?.email,
+      currentRole
+    });
+    
     if (!profileStatus.isLoading) {
       if (profileStatus.hasSenseiProfile && !profileStatus.hasCustomerProfile) {
         setCurrentRole('sensei');
