@@ -23,6 +23,7 @@ import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashb
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
+import { useTripPermissions } from "@/hooks/use-trip-permissions";
 
 // Enhanced Loading Components
 import { 
@@ -171,17 +172,17 @@ interface Announcement {
 }
 
 interface TripPermissions {
-  description?: boolean;
-  program?: boolean;
-  included_amenities?: boolean;
-  excluded_items?: boolean;
-  requirements?: boolean;
-  dates?: boolean;
-  price?: boolean;
-  group_size?: boolean;
-  title?: boolean;
-  destination?: boolean;
-  theme?: boolean;
+  title: boolean;
+  description: boolean;
+  destination: boolean;
+  theme: boolean;
+  dates: boolean;
+  price: boolean;
+  group_size: boolean;
+  included_amenities: boolean;
+  excluded_items: boolean;
+  requirements: boolean;
+  program: boolean;
 }
 
 interface ProgramDay {
@@ -498,7 +499,7 @@ const SenseiDashboard = () => {
 
       const permissionsMap: { [key: string]: TripPermissions } = {};
       permissionsData?.forEach(p => {
-        permissionsMap[p.trip_id] = p.permissions as TripPermissions;
+        permissionsMap[p.trip_id] = p.permissions as unknown as TripPermissions;
       });
       
       setPermissions(permissionsMap);
@@ -761,7 +762,16 @@ const SenseiDashboard = () => {
     }
   };
 
+  const { canEditField: canEditTripField } = useTripPermissions(
+    senseiProfile?.id,
+    editingTrip?.id
+  );
+
   const canEdit = (tripId: string, field: keyof TripPermissions): boolean => {
+    if (editingTrip?.id === tripId) {
+      return canEditTripField(field);
+    }
+    // Fallback to old permissions if not the currently editing trip
     const result = permissions[tripId]?.[field] === true;
     console.log(`canEdit(${tripId}, ${field}):`, result, 'permissions:', permissions[tripId]);
     return result;
