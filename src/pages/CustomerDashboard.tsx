@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,8 +20,7 @@ import { GettingStartedChecklist } from "@/components/ui/getting-started-checkli
 import { GuidedTour, shouldShowTour } from "@/components/ui/guided-tour";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
-import { Navigation } from "@/components/ui/navigation";
-import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
+import { CustomerDashboardLayout } from "@/components/ui/customer-dashboard-layout";
 
 interface CustomerProfile {
   id: string;
@@ -99,6 +97,7 @@ const CustomerDashboard = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -447,57 +446,16 @@ const CustomerDashboard = () => {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  return (
-    <DashboardAccessGuard requiredRole="customer">
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto p-4 lg:p-6">
-        <div className="mb-6" data-tour-target="dashboard-title">
-          <h1 className="text-2xl lg:text-3xl font-bold">My Dashboard</h1>
-          <p className="text-muted-foreground">Manage your trips, profile, and documents</p>
-        </div>
+  const handleEditProfile = () => {
+    setActiveTab("profile");
+  };
 
-        <Tabs defaultValue="trips" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
-            <TabsTrigger value="trips" className="flex items-center gap-2" data-tour-target="trips-tab">
-              <MapPin className="h-4 w-4" />
-              <span className="hidden sm:inline">My Trips</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2" data-tour-target="notifications-tab">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="news" className="flex items-center gap-2" data-tour-target="news-tab">
-              <Megaphone className="h-4 w-4" />
-              <span className="hidden sm:inline">News</span>
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2" data-tour-target="messages-tab">
-              <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Messages</span>
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-2" data-tour-target="reviews-tab">
-              <Star className="h-4 w-4" />
-              <span className="hidden sm:inline">Reviews</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2" data-tour-target="profile-tab">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2" data-tour-target="calendar-tab">
-              <CalendarIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Calendar</span>
-            </TabsTrigger>
-            <TabsTrigger value="todos" className="flex items-center gap-2" data-tour-target="todos-tab">
-              <CheckSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">To-Do</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2" data-tour-target="documents-tab">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Documents</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="trips" className="space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case "overview":
+      case "trips":
+        return (
+          <div className="space-y-6"  data-tour-target="trips-tab">
             {/* Onboarding Components */}
             {!profile && (
               <div className="grid gap-6 lg:grid-cols-2">
@@ -611,18 +569,18 @@ const CustomerDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="notifications" className="space-y-6">
-            {user && <SmartNotifications userId={user.id} />}
-          </TabsContent>
+      case "notifications":
+        return user && <SmartNotifications userId={user.id} />;
 
-          <TabsContent value="messages" className="space-y-6">
-            {user && <CommunicationHub userId={user.id} />}
-          </TabsContent>
+      case "messages":
+        return user && <CommunicationHub userId={user.id} />;
 
-          {/* Legacy Messages Tab for backward compatibility */}
-          <TabsContent value="legacy-messages" className="space-y-6">
+      case "legacy-messages":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Trip Messages</CardTitle>
@@ -663,10 +621,12 @@ const CustomerDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          {/* News Feed Tab */}
-          <TabsContent value="news" className="space-y-6">
+      case "news":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -753,9 +713,12 @@ const CustomerDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="reviews" className="space-y-6">
+      case "reviews":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Trip Reviews</CardTitle>
@@ -852,9 +815,12 @@ const CustomerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="profile" className="space-y-6">
+      case "profile":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
@@ -914,9 +880,12 @@ const CustomerDashboard = () => {
                 <Button onClick={updateProfile}>Save Profile</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="calendar" className="space-y-6">
+      case "calendar":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Trip Calendar</CardTitle>
@@ -931,9 +900,12 @@ const CustomerDashboard = () => {
                 />
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="todos" className="space-y-6">
+      case "todos":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>To-Do List</CardTitle>
@@ -979,9 +951,12 @@ const CustomerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        );
 
-          <TabsContent value="documents" className="space-y-6">
+      case "documents":
+        return (
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Documents</CardTitle>
@@ -1022,38 +997,52 @@ const CustomerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        );
 
-        {/* Review Dialog */}
-        {selectedTripForReview && (
-          <TripReviewDialog
-            open={reviewDialogOpen}
-            onOpenChange={setReviewDialogOpen}
-            trip={selectedTripForReview}
-            onSuccess={handleReviewSuccess}
-          />
-        )}
+      default:
+        return null;
+    }
+  };
 
-        {/* Onboarding Wizard */}
-        {user && (
-          <OnboardingWizard
-            isOpen={showOnboarding}
-            onClose={() => setShowOnboarding(false)}
-            userId={user.id}
-            onComplete={handleOnboardingComplete}
-          />
-        )}
-
-        {/* Guided Tour */}
-        <GuidedTour
-          isOpen={showTour}
-          onClose={() => setShowTour(false)}
-          onComplete={handleTourComplete}
-        />
-        </div>
+  return (
+    <CustomerDashboardLayout
+      customerName={profile?.full_name}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onEditProfile={handleEditProfile}
+    >
+      <div data-tour-target="dashboard-title">
+        {renderContent()}
       </div>
-    </DashboardAccessGuard>
+
+      {/* Review Dialog */}
+      {selectedTripForReview && (
+        <TripReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          trip={selectedTripForReview}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
+
+      {/* Onboarding Wizard */}
+      {user && (
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          userId={user.id}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+
+      {/* Guided Tour */}
+      <GuidedTour
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        onComplete={handleTourComplete}
+      />
+    </CustomerDashboardLayout>
   );
 };
 
