@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./button";
-import { Menu, X, User } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "./sheet";
+import { Menu, User, Home, MapPin, Users, Info, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
@@ -110,88 +111,117 @@ export function Navigation() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile Navigation Drawer */}
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <nav className="flex flex-col space-y-6">
+              {/* Logo section */}
+              <div className="flex items-center space-x-2 pb-4 border-b border-border">
+                <img 
+                  src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png" 
+                  alt="One More Mile Logo" 
+                  className="h-8 w-auto"
+                />
+                <span className="text-lg font-serif font-semibold text-foreground">
+                  One More Mile
+                </span>
+              </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="absolute top-16 left-0 right-0 bg-background border-b border-border md:hidden">
-            <div className="container py-4 space-y-4">
-              <Link 
-                to="/explore" 
-                className="block text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Explore Trips
-              </Link>
-              <Link 
-                to="/senseis" 
-                className="block text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Our Senseis
-              </Link>
-              <Link 
-                to="/about" 
-                className="block text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                to="/contact" 
-                className="block text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Contact
-              </Link>
+              {/* Navigation Links */}
+              <div className="flex flex-col space-y-4">
+                <Link 
+                  to="/" 
+                  className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Home className="h-4 w-4" />
+                  <span>Home</span>
+                </Link>
+                <Link 
+                  to="/explore" 
+                  className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span>Explore Trips</span>
+                </Link>
+                <Link 
+                  to="/senseis" 
+                  className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Our Senseis</span>
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Info className="h-4 w-4" />
+                  <span>About</span>
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Contact</span>
+                </Link>
+              </div>
+
+              {/* User section */}
+              <div className="pt-4 border-t border-border">
                 {user ? (
-                 <div className="space-y-2">
+                  <div className="space-y-3">
                     {isSensei && (
-                      <>
-                        <Button asChild variant="outline" className="w-full">
-                          <Link to="/sensei/dashboard" onClick={() => setIsOpen(false)}>
-                            My Dashboard
-                          </Link>
-                        </Button>
-                      </>
+                      <Button asChild variant="outline" className="w-full justify-start">
+                        <Link to="/sensei/dashboard" onClick={() => setIsOpen(false)}>
+                          <User className="w-4 h-4 mr-2" />
+                          My Dashboard
+                        </Link>
+                      </Button>
                     )}
                     {isAdmin && (
-                      <Button asChild variant="outline" className="w-full">
+                      <Button asChild variant="outline" className="w-full justify-start">
                         <Link to="/admin/dashboard" onClick={() => setIsOpen(false)}>
+                          <User className="w-4 h-4 mr-2" />
                           Admin Dashboard
                         </Link>
                       </Button>
                     )}
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to="/sensei-profile" onClick={() => setIsOpen(false)}>
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Button asChild variant="outline" className="w-full mb-2">
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
-                      Login
-                    </Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link to="/become-sensei" onClick={() => setIsOpen(false)}>
-                      Become a Sensei
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                    <Button asChild variant="outline" className="w-full justify-start">
+                      <Link to="/sensei-profile" onClick={() => setIsOpen(false)}>
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
+                        Login
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link to="/become-sensei" onClick={() => setIsOpen(false)}>
+                        Become a Sensei
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   );
