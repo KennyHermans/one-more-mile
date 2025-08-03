@@ -8,6 +8,8 @@ import { AdvancedAnalyticsDashboard } from "@/components/ui/advanced-analytics-d
 import { RealTimeAvailability } from "@/components/ui/real-time-availability";
 import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
+import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
+import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assignment";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { BulkOperations } from "@/components/ui/bulk-operations";
@@ -719,9 +721,10 @@ const AdminDashboard = () => {
             </div>
             
             {activeTab === "dashboard" && (
-              <AdminDashboardOverview 
-                stats={stats}
-                onTabChange={setActiveTab}
+              <RealTimeAdminDashboard 
+                 onStatsUpdate={(newStats) => {
+                   // Real-time stats are handled within the component
+                 }}
               />
             )}
             
