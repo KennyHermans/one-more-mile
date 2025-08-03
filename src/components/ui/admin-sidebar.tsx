@@ -46,6 +46,29 @@ const sidebarGroups = [
         value: "analytics", 
         icon: BarChart3,
         requiresPermission: null
+      },
+      {
+        title: "Advanced Analytics",
+        value: "advanced-analytics", 
+        icon: BarChart3,
+        requiresPermission: null
+      }
+    ]
+  },
+  {
+    label: "Intelligence & Reporting",
+    items: [
+      {
+        title: "Smart Alerts",
+        value: "smart-alerts",
+        icon: AlertTriangle,
+        requiresPermission: null
+      },
+      {
+        title: "Comprehensive Reports",
+        value: "comprehensive-reports",
+        icon: FileText,
+        requiresPermission: null
       }
     ]
   },
