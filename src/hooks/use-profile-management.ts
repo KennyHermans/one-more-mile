@@ -23,7 +23,6 @@ export const useProfileManagement = () => {
 
   const checkUserProfiles = async (userId: string) => {
     try {
-      console.log('🔍 Checking user profiles for userId:', userId);
       setProfileStatus(prev => ({ ...prev, isLoading: true }));
       
       // Check for both profiles simultaneously
@@ -39,13 +38,6 @@ export const useProfileManagement = () => {
           .eq('user_id', userId)
           .maybeSingle()
       ]);
-
-      console.log('📊 Profile check results:', {
-        customerResult: customerResult,
-        senseiResult: senseiResult,
-        hasCustomerProfile: !!customerResult.data,
-        hasSenseiProfile: !!senseiResult.data
-      });
 
       setProfileStatus({
         hasCustomerProfile: !!customerResult.data,
@@ -113,10 +105,7 @@ export const useProfileManagement = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile checking to avoid auth callback deadlocks
-          setTimeout(() => {
-            checkUserProfiles(session.user.id);
-          }, 0);
+          checkUserProfiles(session.user.id);
         } else {
           setProfileStatus({
             hasCustomerProfile: false,
