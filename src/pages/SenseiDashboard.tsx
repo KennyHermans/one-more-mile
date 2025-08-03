@@ -1156,7 +1156,10 @@ const SenseiDashboard = () => {
                                <Button 
                                  variant="outline" 
                                  size="sm"
-                                 onClick={() => setEditingTrip({ ...trip })}
+                                  onClick={() => setEditingTrip({ 
+                                    ...trip, 
+                                    program: Array.isArray(trip.program) ? trip.program : [] 
+                                  })}
                                >
                                  <Edit2 className="w-4 h-4" />
                                </Button>
@@ -1413,7 +1416,10 @@ const SenseiDashboard = () => {
                             <Button 
                               variant="outline" 
                               className="w-full mt-4" 
-                              onClick={() => setEditingTrip({ ...trip })}
+                               onClick={() => setEditingTrip({ 
+                                 ...trip, 
+                                 program: Array.isArray(trip.program) ? trip.program : [] 
+                               })}
                             >
                               <Edit2 className="w-4 h-4 mr-2" />
                               Edit Trip
@@ -1826,7 +1832,10 @@ const SenseiDashboard = () => {
                         <DialogTrigger asChild>
                           <Button 
                             className="w-full mt-4" 
-                            onClick={() => setEditingTrip({ ...trip })}
+                             onClick={() => setEditingTrip({ 
+                               ...trip, 
+                               program: Array.isArray(trip.program) ? trip.program : [] 
+                             })}
                           >
                             <Edit2 className="w-4 h-4 mr-2" />
                             Edit Trip
