@@ -79,24 +79,43 @@ export function Navigation() {
           </Link>
             {user ? (
              <div className="flex items-center space-x-4">
-               {isSensei && (
-                 <>
-                   <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                     My Dashboard
-                   </Link>
-                 </>
+               {/* Customer Dashboard - always show for authenticated users */}
+               {!isSensei && (
+                 <Link to="/customer/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                   My Dashboard
+                 </Link>
                )}
+               
+               {/* Sensei Dashboard - only for senseis */}
+               {isSensei && (
+                 <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                   Sensei Dashboard
+                 </Link>
+               )}
+               
+               {/* Admin Dashboard - only for admin */}
                {isAdmin && (
                  <Link to="/admin/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
                    Admin Dashboard
                  </Link>
                )}
-              <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
-                <Link to="/sensei-profile">
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </Link>
-              </Button>
+               
+               {/* Role-based Profile buttons */}
+               {isSensei ? (
+                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                   <Link to="/sensei-profile">
+                     <User className="w-4 h-4 mr-2" />
+                     Sensei Profile
+                   </Link>
+                 </Button>
+               ) : (
+                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                   <Link to="/customer/profile">
+                     <User className="w-4 h-4 mr-2" />
+                     My Profile
+                   </Link>
+                 </Button>
+               )}
             </div>
           ) : (
             <>

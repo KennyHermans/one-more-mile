@@ -159,6 +159,13 @@ export function EnhancedMobileNavigation() {
   ];
 
   const userNavItems: NavItem[] = [
+    // Dashboard links
+    ...(!isSensei ? [{
+      icon: Calendar,
+      label: "My Dashboard",
+      href: "/customer/dashboard",
+      description: "View your trips and bookings"
+    }] : []),
     ...(isSensei ? [{
       icon: Mountain,
       label: "Sensei Dashboard",
@@ -171,32 +178,32 @@ export function EnhancedMobileNavigation() {
       href: "/admin/dashboard",
       description: "System administration"
     }] : []),
+    
+    // Profile links - role-based
     {
       icon: User,
-      label: "Profile",
-      href: "/customer/dashboard",
-      description: "View your profile"
+      label: isSensei ? "Sensei Profile" : "My Profile",
+      href: isSensei ? "/sensei-profile" : "/customer/profile",
+      description: isSensei ? "Manage your sensei profile" : "Edit your personal information"
     },
-    {
-      icon: Calendar,
-      label: "My Bookings",
-      href: "/customer/dashboard",
-      description: "Manage your trips"
-    },
-    {
-      icon: Heart,
-      label: "Wishlist",
-      href: "/customer/dashboard",
-      description: "Saved adventures",
-      badge: "3"
-    },
-    {
-      icon: Bell,
-      label: "Notifications",
-      href: "/customer/dashboard",
-      description: "Updates & alerts",
-      badge: unreadNotifications > 0 ? unreadNotifications.toString() : undefined
-    }
+    
+    // Customer-specific quick access (only show if not viewing as sensei)
+    ...(!isSensei ? [
+      {
+        icon: Heart,
+        label: "Wishlist",
+        href: "/customer/dashboard",
+        description: "Saved adventures",
+        badge: "3"
+      },
+      {
+        icon: Bell,
+        label: "Notifications",
+        href: "/customer/dashboard",
+        description: "Updates & alerts",
+        badge: unreadNotifications > 0 ? unreadNotifications.toString() : undefined
+      }
+    ] : [])
   ];
 
   const isCurrentPath = (path: string) => {
