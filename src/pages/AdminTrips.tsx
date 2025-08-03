@@ -685,13 +685,18 @@ const AdminTrips = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Dates *</label>
-                    <Input
-                      name="dates"
-                      value={formData.dates}
-                      onChange={handleInputChange}
-                      placeholder="Apr 15-28, 2024"
-                      required
-                    />
+                    <div className="space-y-2">
+                      <Input
+                        name="dates"
+                        value={formData.dates}
+                        onChange={handleInputChange}
+                        placeholder="March 15-22, 2025"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Format: Month DD-DD, YYYY (e.g., "March 15-22, 2025" or "April 10-17, 2025")
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Group Size *</label>
