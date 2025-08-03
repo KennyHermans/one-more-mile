@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
 import { Progress } from "./progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Calendar, CalendarDays, TrendingUp, Users, Clock, MapPin, Star, Award, Target, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripAnalytics {
   completionRate: number;
@@ -21,37 +23,168 @@ interface PerformanceMetrics {
 }
 
 export function SenseiAnalyticsDashboard() {
-  // Mock data - in real app, fetch from database
-  const tripAnalytics: TripAnalytics = {
-    completionRate: 96,
-    averageRating: 4.8,
-    totalParticipants: 347,
-    revenueGenerated: 89450,
-    repeatCustomers: 73
-  };
+  const [tripAnalytics, setTripAnalytics] = useState<TripAnalytics>({
+    completionRate: 0,
+    averageRating: 0,
+    totalParticipants: 0,
+    revenueGenerated: 0,
+    repeatCustomers: 0
+  });
 
-  const performanceMetrics: PerformanceMetrics = {
-    tripsCompleted: 24,
-    averageGroupSize: 8.5,
-    customerSatisfaction: 4.7,
-    onTimePerformance: 98
-  };
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>({
+    tripsCompleted: 0,
+    averageGroupSize: 0,
+    customerSatisfaction: 0,
+    onTimePerformance: 0
+  });
 
-  const monthlyData = [
-    { month: "Jan", trips: 3, participants: 28, revenue: 8400 },
-    { month: "Feb", trips: 2, participants: 18, revenue: 5200 },
-    { month: "Mar", trips: 4, participants: 35, revenue: 10500 },
-    { month: "Apr", trips: 3, participants: 24, revenue: 7800 },
-    { month: "May", trips: 5, participants: 42, revenue: 12600 },
-    { month: "Jun", trips: 4, participants: 36, revenue: 10800 }
-  ];
-
-  const achievements = [
-    { title: "Top Rated Sensei", description: "Maintained 4.8+ rating for 6 months", icon: Star, unlocked: true },
-    { title: "Adventure Master", description: "Led 25+ successful trips", icon: Award, unlocked: true },
+  const [monthlyData, setMonthlyData] = useState<Array<{month: string, trips: number, participants: number, revenue: number}>>([]);
+  const [achievements, setAchievements] = useState([
+    { title: "Top Rated Sensei", description: "Maintained 4.8+ rating for 6 months", icon: Star, unlocked: false },
+    { title: "Adventure Master", description: "Led 25+ successful trips", icon: Award, unlocked: false },
     { title: "Community Builder", description: "100+ repeat customers", icon: Users, unlocked: false },
     { title: "Excellence Award", description: "99% completion rate", icon: Target, unlocked: false }
-  ];
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, []);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get sensei profile
+      const { data: senseiProfile } = await supabase
+        .from('sensei_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!senseiProfile) return;
+
+      // Get all trips for this sensei
+      const { data: trips } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('sensei_id', senseiProfile.id);
+
+      // Get all bookings for this sensei's trips
+      const { data: bookings } = await supabase
+        .from('trip_bookings')
+        .select('*')
+        .in('trip_id', trips?.map(t => t.id) || []);
+
+      // Get all reviews for this sensei
+      const { data: reviews } = await supabase
+        .from('trip_reviews')
+        .select('*')
+        .eq('sensei_id', senseiProfile.id);
+
+      // Calculate analytics
+      const activeTrips = trips?.filter(t => t.is_active) || [];
+      const completedTrips = trips?.filter(t => !t.is_active) || [];
+      const paidBookings = bookings?.filter(b => b.payment_status === 'paid') || [];
+      
+      const totalParticipants = paidBookings.length;
+      const totalRevenue = paidBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
+      const averageRating = reviews?.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
+      const averageGroupSize = activeTrips.length ? activeTrips.reduce((sum, trip) => sum + trip.current_participants, 0) / activeTrips.length : 0;
+
+      // Calculate completion rate (assuming completed trips are those that are not active)
+      const completionRate = trips?.length ? (completedTrips.length / trips.length) * 100 : 0;
+
+      // Calculate monthly data (last 6 months)
+      const monthlyStats = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' });
+        
+        const monthTrips = trips?.filter(trip => {
+          const tripDate = new Date(trip.created_at);
+          return tripDate.getMonth() === monthDate.getMonth() && tripDate.getFullYear() === monthDate.getFullYear();
+        }) || [];
+        
+        const monthBookings = paidBookings.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return bookingDate.getMonth() === monthDate.getMonth() && bookingDate.getFullYear() === monthDate.getFullYear();
+        });
+        
+        monthlyStats.push({
+          month: monthName,
+          trips: monthTrips.length,
+          participants: monthBookings.length,
+          revenue: monthBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0)
+        });
+      }
+
+      // Update achievements based on real data
+      const updatedAchievements = achievements.map(achievement => {
+        switch (achievement.title) {
+          case "Top Rated Sensei":
+            return { ...achievement, unlocked: averageRating >= 4.8 };
+          case "Adventure Master":
+            return { ...achievement, unlocked: (senseiProfile.trips_led || 0) >= 25 };
+          case "Community Builder":
+            return { ...achievement, unlocked: totalParticipants >= 100 };
+          case "Excellence Award":
+            return { ...achievement, unlocked: completionRate >= 99 };
+          default:
+            return achievement;
+        }
+      });
+
+      setTripAnalytics({
+        completionRate: Math.round(completionRate),
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalParticipants,
+        revenueGenerated: totalRevenue,
+        repeatCustomers: 0 // TODO: Calculate repeat customers
+      });
+
+      setPerformanceMetrics({
+        tripsCompleted: senseiProfile.trips_led || 0,
+        averageGroupSize: Math.round(averageGroupSize * 10) / 10,
+        customerSatisfaction: Math.round(averageRating * 10) / 10,
+        onTimePerformance: 100 // TODO: Calculate based on trip dates vs actual completion
+      });
+
+      setMonthlyData(monthlyStats);
+      setAchievements(updatedAchievements);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-16 bg-muted rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-48 bg-muted rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

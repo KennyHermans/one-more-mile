@@ -247,14 +247,19 @@ const SenseiDashboard = () => {
     notes: ""
   });
 
-  // Stats calculations
-  const activeTrips = trips.filter(trip => trip.is_active).length;
+  // Stats calculations using real data
+  const activeTrips = trips.filter(trip => trip.is_active && trip.trip_status === 'approved').length;
   const completedTrips = senseiProfile?.trips_led || 0;
   const upcomingTrips = trips.filter(trip => {
-    const tripDate = new Date(trip.dates.split(' - ')[0]);
-    return tripDate > new Date() && trip.is_active;
+    try {
+      const dateStr = trip.dates.split('-')[0].trim();
+      const tripDate = new Date(dateStr);
+      return tripDate > new Date() && trip.is_active && trip.trip_status === 'approved';
+    } catch {
+      return false;
+    }
   }).length;
-  const totalParticipants = trips.reduce((sum, trip) => sum + trip.current_participants, 0);
+  const totalParticipants = trips.reduce((sum, trip) => sum + (trip.current_participants || 0), 0);
 
   useEffect(() => {
     checkAuth();
