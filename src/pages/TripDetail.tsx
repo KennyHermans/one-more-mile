@@ -154,6 +154,58 @@ const TripDetail = () => {
     }
   };
 
+  const handleReserveNowPayLater = async () => {
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to create an account to reserve a trip.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!trip) return;
+
+    setPaymentLoading(true);
+    try {
+      // Calculate payment deadline (3 months from now)
+      const paymentDeadline = new Date();
+      paymentDeadline.setMonth(paymentDeadline.getMonth() + 3);
+
+      // Create booking without immediate payment
+      const { data, error } = await supabase
+        .from('trip_bookings')
+        .insert({
+          trip_id: trip.id,
+          user_id: user.id,
+          booking_status: 'reserved',
+          payment_status: 'pending',
+          payment_deadline: paymentDeadline.toISOString(),
+          total_amount: parseFloat(trip.price.replace(/[^0-9.]/g, ''))
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Reservation confirmed!",
+        description: `Your spot is reserved until ${paymentDeadline.toLocaleDateString()}. Please complete payment before the deadline.`,
+      });
+
+      setShowPaymentOptions(false);
+    } catch (error: any) {
+      toast({
+        title: "Reservation failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   const calculateInstallmentBreakdown = (planType: string) => {
     if (!trip) return null;
     
@@ -739,6 +791,31 @@ const TripDetail = () => {
                 </Card>
               ) : null;
             })()}
+
+            {/* Reserve Now, Pay Later Option */}
+            <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                  onClick={() => handleReserveNowPayLater()}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center">
+                      <Calendar className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">Reserve Now, Pay Later</h3>
+                      <p className="text-sm text-muted-foreground">Secure your spot - pay within 3 months</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-orange-500">Reserve</div>
+                    <div className="text-sm text-muted-foreground">3 months to pay</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  ✓ Reserve your spot instantly ✓ 3 months to pay in full ✓ Lose reservation if not paid by deadline
+                </p>
+              </CardContent>
+            </Card>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <h4 className="font-semibold mb-2">How it works:</h4>
