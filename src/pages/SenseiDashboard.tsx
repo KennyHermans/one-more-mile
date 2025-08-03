@@ -976,128 +976,120 @@ const SenseiDashboard = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-100">
-        <SenseiSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        <main className="flex-1 flex flex-col">
-          {/* Header with Navigation and Sidebar Trigger */}
-          <header className="h-16 flex items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Welcome back, {senseiProfile.name}!
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Manage your trips and profile from your dashboard
-                </p>
-              </div>
-            </div>
-            <Button 
-              onClick={() => setEditProfileOpen(true)}
-              className="flex items-center gap-2"
-              variant="outline"
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit Profile
-            </Button>
-          </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Navigation />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Welcome back, {senseiProfile.name}!
+            </h1>
+            <p className="text-lg text-gray-600">
+              Manage your trips and profile from your dashboard
+            </p>
+          </div>
+          <Button 
+            onClick={() => setEditProfileOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Edit2 className="w-4 h-4" />
+            Edit Profile
+          </Button>
+        </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 overflow-auto p-6">
-            {/* Overview Tab */}
-            {activeTab === "overview" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        <div className="ml-2">
-                          <p className="text-sm font-medium leading-none">Active Trips</p>
-                          <p className="text-2xl font-bold">{activeTrips}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center">
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        <div className="ml-2">
-                          <p className="text-sm font-medium leading-none">Trips Completed</p>
-                          <p className="text-2xl font-bold">{completedTrips}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <div className="ml-2">
-                          <p className="text-sm font-medium leading-none">Upcoming Trips</p>
-                          <p className="text-2xl font-bold">{upcomingTrips}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div className="ml-2">
-                          <p className="text-sm font-medium leading-none">Total Participants</p>
-                          <p className="text-2xl font-bold">{totalParticipants}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveTab("proposals")}
-                      >
-                        <Plus className="h-6 w-6" />
-                        <span>Create Trip Proposal</span>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveTab("messages")}
-                      >
-                        <MessageCircle className="h-6 w-6" />
-                        <span>Message Participants</span>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="h-20 flex flex-col gap-2"
-                        onClick={() => setActiveTab("availability")}
-                      >
-                        <CalendarIcon className="h-6 w-6" />
-                        <span>Update Availability</span>
-                      </Button>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="trips">My Trips</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="availability">Settings</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Active Trips</p>
+                      <p className="text-2xl font-bold">{activeTrips}</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Trips Completed</p>
+                      <p className="text-2xl font-bold">{completedTrips}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Upcoming Trips</p>
+                      <p className="text-2xl font-bold">{upcomingTrips}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium leading-none">Total Participants</p>
+                      <p className="text-2xl font-bold">{totalParticipants}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <Plus className="h-6 w-6" />
+                    <span>Create Trip Proposal</span>
+                  </Button>
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <MessageCircle className="h-6 w-6" />
+                    <span>Message Participants</span>
+                  </Button>
+                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                    <CalendarIcon className="h-6 w-6" />
+                    <span>Update Availability</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Analytics Tab */}
-            {activeTab === "analytics" && <SenseiAnalyticsDashboard />}
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <SenseiAnalyticsDashboard />
+          </TabsContent>
 
-            {/* Goals Tab */}
-            {activeTab === "goals" && <SenseiGoalsTracker />}
+          {/* Goals Tab */}
+          <TabsContent value="goals" className="space-y-6">
+            <SenseiGoalsTracker />
+          </TabsContent>
 
             {/* My Trips Tab */}
             {activeTab === "trips" && (
@@ -2187,6 +2179,9 @@ const SenseiDashboard = () => {
             <SenseiAvailabilitySettings />
           </TabsContent>
         </Tabs>
+          </div>
+        </main>
+      </div>
 
         {/* Cancel Trip Dialog */}
         <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
@@ -2350,8 +2345,10 @@ const SenseiDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
+        
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
