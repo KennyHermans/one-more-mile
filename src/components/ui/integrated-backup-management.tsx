@@ -83,10 +83,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('IntegratedBackupManagement mounted, isAdmin:', isAdmin);
     fetchData();
   }, [isAdmin]);
 
   const fetchData = async () => {
+    console.log('fetchData called, isAdmin:', isAdmin);
     try {
       setLoading(true);
       
@@ -338,6 +340,7 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading backup requests...</p>
+          <p className="text-xs text-muted-foreground mt-2">isAdmin: {isAdmin.toString()}</p>
         </div>
       </div>
     );
@@ -345,6 +348,15 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
 
   return (
     <div className="space-y-6">
+      {/* Debug Info */}
+      <div className="p-4 bg-muted/50 rounded-lg text-sm">
+        <p><strong>Debug Info:</strong></p>
+        <p>Mode: {isAdmin ? 'Admin' : 'Sensei'}</p>
+        <p>Requests: {requests.length}</p>
+        <p>Available Trips: {availableTrips.length}</p>
+        <p>Applications: {applications.length}</p>
+      </div>
+      
       <Tabs defaultValue="requests" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="requests">Backup Requests</TabsTrigger>
