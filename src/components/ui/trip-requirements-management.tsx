@@ -42,7 +42,7 @@ export function TripRequirementsManagement({ tripId }: { tripId: string }) {
     requirement_name: "",
     requirement_description: "",
     is_mandatory: true,
-    minimum_level: ""
+    minimum_level: "beginner"
   });
 
   const requirementTypes = [
@@ -110,7 +110,7 @@ export function TripRequirementsManagement({ tripId }: { tripId: string }) {
         requirement_name: "",
         requirement_description: "",
         is_mandatory: true,
-        minimum_level: ""
+        minimum_level: "beginner"
       });
       setIsAddingRequirement(false);
       fetchRequirements();
