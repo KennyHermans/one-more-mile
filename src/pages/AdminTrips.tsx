@@ -690,12 +690,15 @@ const AdminTrips = () => {
                         name="dates"
                         value={formData.dates}
                         onChange={handleInputChange}
-                        placeholder="March 15-22, 2025"
+                        placeholder="August 15 - September 12, 2025"
                         required
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Format: Month DD-DD, YYYY (e.g., "March 15-22, 2025" or "April 10-17, 2025")
-                      </p>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p><strong>Format examples:</strong></p>
+                        <p>• Same month: "March 15-22, 2025"</p>
+                        <p>• Different months: "August 15 - September 12, 2025"</p>
+                        <p>• Single day: "December 25, 2025"</p>
+                      </div>
                     </div>
                   </div>
                   <div>
