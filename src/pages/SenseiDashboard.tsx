@@ -1199,16 +1199,157 @@ const SenseiDashboard = () => {
                                <Badge variant={trip.is_active ? "default" : "secondary"}>
                                  {trip.is_active ? "Active" : "Inactive"}
                                </Badge>
-                               <Button 
-                                 variant="outline" 
-                                 size="sm"
-                                  onClick={() => setEditingTrip({ 
-                                    ...trip, 
-                                    program: ensureProgramIsArray(trip.program) 
-                                  })}
-                               >
-                                 <Edit2 className="w-4 h-4" />
-                               </Button>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => setEditingTrip({ 
+                                        ...trip, 
+                                        program: ensureProgramIsArray(trip.program) 
+                                      })}
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader>
+                                      <div className="flex justify-between items-center">
+                                        <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+                                        <Button
+                                          onClick={refreshPermissions}
+                                          variant="outline"
+                                          size="sm"
+                                        >
+                                          Refresh Permissions
+                                        </Button>
+                                      </div>
+                                    </DialogHeader>
+                                    
+                                    {editingTrip && (
+                                      <div className="space-y-6">
+                                        {/* Basic Info */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div>
+                                            <Label htmlFor="title">Title</Label>
+                                            <Input
+                                              id="title"
+                                              value={editingTrip.title}
+                                              onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
+                                              disabled={!canEdit(editingTrip.id, 'title')}
+                                            />
+                                            {!canEdit(editingTrip.id, 'title') && (
+                                              <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                            )}
+                                          </div>
+
+                                          <div>
+                                            <Label htmlFor="destination">Destination</Label>
+                                            <Input
+                                              id="destination"
+                                              value={editingTrip.destination}
+                                              onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
+                                              disabled={!canEdit(editingTrip.id, 'destination')}
+                                            />
+                                            {!canEdit(editingTrip.id, 'destination') && (
+                                              <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div>
+                                          <Label htmlFor="description">Description</Label>
+                                          <Textarea
+                                            id="description"
+                                            value={editingTrip.description}
+                                            onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
+                                            disabled={!canEdit(editingTrip.id, 'description')}
+                                            rows={4}
+                                          />
+                                          {!canEdit(editingTrip.id, 'description') && (
+                                            <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                          )}
+                                        </div>
+
+                                        {canEdit(editingTrip.id, 'program') && (
+                                          <div>
+                                            <div className="flex justify-between items-center mb-4">
+                                              <Label>Daily Program</Label>
+                                              <Button onClick={addProgramDay} variant="outline" size="sm">
+                                                Add Day
+                                              </Button>
+                                            </div>
+                                            <div className="space-y-4">
+                                              {editingTrip.program?.map((day: ProgramDay, dayIndex: number) => (
+                                                <Card key={dayIndex}>
+                                                  <CardContent className="pt-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                      <div>
+                                                        <Label>Day {day.day}</Label>
+                                                      </div>
+                                                      <div>
+                                                        <Label>Location</Label>
+                                                        <Input
+                                                          value={day.location}
+                                                          onChange={(e) => updateProgramDay(dayIndex, 'location', e.target.value)}
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                    <div>
+                                                      <div className="flex justify-between items-center mb-2">
+                                                        <Label>Activities</Label>
+                                                        <Button onClick={() => addActivity(dayIndex)} variant="outline" size="sm">
+                                                          Add Activity
+                                                        </Button>
+                                                      </div>
+                                                      <div className="space-y-2">
+                                                        {day.activities?.map((activity: string, actIndex: number) => (
+                                                          <Input
+                                                            key={actIndex}
+                                                            value={activity}
+                                                            onChange={(e) => updateActivity(dayIndex, actIndex, e.target.value)}
+                                                            placeholder={`Activity ${actIndex + 1}`}
+                                                          />
+                                                        ))}
+                                                      </div>
+                                                    </div>
+                                                  </CardContent>
+                                                </Card>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {canEdit(editingTrip.id, 'included_amenities') && (
+                                          <div>
+                                            <Label htmlFor="included_amenities">Included Amenities</Label>
+                                            <Textarea
+                                              id="included_amenities"
+                                              value={editingTrip.included_amenities?.join(', ') || ''}
+                                              onChange={(e) => setEditingTrip({
+                                                ...editingTrip, 
+                                                included_amenities: e.target.value.split(',').map(item => item.trim()).filter(item => item.length > 0)
+                                              })}
+                                              placeholder="Enter amenities separated by commas"
+                                              rows={3}
+                                            />
+                                          </div>
+                                        )}
+
+                                        <div className="flex justify-end space-x-2">
+                                          <Button variant="outline" onClick={() => setEditingTrip(null)}>
+                                            <X className="w-4 h-4 mr-2" />
+                                            Cancel
+                                          </Button>
+                                          <Button onClick={handleSaveTrip}>
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Save Changes
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </DialogContent>
+                                </Dialog>
                                 {trip.is_active && !trip.cancelled_by_sensei && (
                                   <Button 
                                     variant="destructive" 
