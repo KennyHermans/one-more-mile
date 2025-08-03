@@ -679,6 +679,9 @@ const SenseiDashboard = () => {
     if (!editingTrip) return;
 
     try {
+      // Store original trip data to compare changes
+      const originalTrip = trips.find(trip => trip.id === editingTrip.id);
+      
       const { error } = await supabase
         .from('trips')
         .update({
@@ -698,6 +701,36 @@ const SenseiDashboard = () => {
 
       if (error) throw error;
 
+      // Determine what changed
+      const changes: { [key: string]: any } = {};
+      if (originalTrip) {
+        const fieldsToCheck = ['title', 'destination', 'description', 'price', 'dates', 'group_size', 'program', 'included_amenities', 'excluded_items', 'requirements', 'theme'];
+        fieldsToCheck.forEach(field => {
+          if (JSON.stringify(originalTrip[field as keyof Trip]) !== JSON.stringify(editingTrip[field as keyof Trip])) {
+            changes[field] = {
+              from: originalTrip[field as keyof Trip],
+              to: editingTrip[field as keyof Trip]
+            };
+          }
+        });
+      }
+
+      // Send notifications if there are changes
+      if (Object.keys(changes).length > 0 && senseiProfile) {
+        try {
+          await supabase.functions.invoke('send-trip-update-notifications', {
+            body: {
+              tripId: editingTrip.id,
+              senseiId: senseiProfile.id,
+              changes: changes
+            }
+          });
+        } catch (notificationError) {
+          console.error('Failed to send notifications:', notificationError);
+          // Don't fail the trip update if notifications fail
+        }
+      }
+
       setTrips(trips.map(trip => 
         trip.id === editingTrip.id ? editingTrip : trip
       ));
@@ -705,7 +738,7 @@ const SenseiDashboard = () => {
 
       toast({
         title: "Success",
-        description: "Trip updated successfully!",
+        description: "Trip updated successfully! Customers and admins have been notified.",
       });
     } catch (error) {
       console.error('Error updating trip:', error);

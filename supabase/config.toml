@@ -37,3 +37,6 @@ verify_jwt = true
 
 [functions.process-installment-payment]
 verify_jwt = false
+
+[functions.send-trip-update-notifications]
+verify_jwt = true
