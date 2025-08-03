@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
+import { TripComparison } from "@/components/ui/trip-comparison";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,9 @@ interface FilterState {
 const Explore = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [comparisonTrips, setComparisonTrips] = useState<Trip[]>([]);
+  const [savedPresets, setSavedPresets] = useState<{ name: string; filters: FilterState }[]>([]);
   const [sortBy, setSortBy] = useState("newest");
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: "",
@@ -65,7 +69,21 @@ const Explore = () => {
 
   useEffect(() => {
     fetchTrips();
+    checkUser();
+    loadSavedPresets();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
+
+  const loadSavedPresets = () => {
+    const saved = localStorage.getItem('tripSearchPresets');
+    if (saved) {
+      setSavedPresets(JSON.parse(saved));
+    }
+  };
 
   const fetchTrips = async () => {
     try {
@@ -199,6 +217,14 @@ const Explore = () => {
           return new Date(b.dates || 0).getTime() - new Date(a.dates || 0).getTime();
       }
     });
+
+  const removeComparisonTrip = (tripId: string) => {
+    setComparisonTrips(prev => prev.filter(t => t.id !== tripId));
+  };
+
+  const selectTripFromComparison = (tripId: string) => {
+    window.location.href = `/trip/${tripId}`;
+  };
 
   const clearAllFilters = () => {
     setFilters({
@@ -350,6 +376,13 @@ const Explore = () => {
           )}
         </div>
       </section>
+
+      {/* Trip Comparison */}
+      <TripComparison
+        trips={comparisonTrips}
+        onRemoveTrip={removeComparisonTrip}
+        onSelectTrip={selectTripFromComparison}
+      />
     </div>
   );
 };

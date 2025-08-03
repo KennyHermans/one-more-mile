@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
+import { RealTimeAvailability } from "./real-time-availability";
 import { Link } from "react-router-dom";
-import { MapPin, Users, Calendar } from "lucide-react";
+import { MapPin, Users, Calendar, Plus, BarChart3 } from "lucide-react";
 
 interface FeaturedTripCardProps {
   id: string;
@@ -15,10 +16,15 @@ interface FeaturedTripCardProps {
   sensei: string;
   image: string;
   theme: string;
+  currentParticipants?: number;
+  maxParticipants?: number;
+  onCompare?: (tripId: string) => void;
+  isInComparison?: boolean;
 }
 
 export function FeaturedTripCard({ 
-  id, title, destination, description, price, dates, groupSize, sensei, image, theme 
+  id, title, destination, description, price, dates, groupSize, sensei, image, theme,
+  currentParticipants = 0, maxParticipants = 12, onCompare, isInComparison = false
 }: FeaturedTripCardProps) {
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-1 animate-scale-in">
@@ -61,14 +67,46 @@ export function FeaturedTripCard({
           </div>
         </div>
         
+        {/* Real-time Availability */}
+        {currentParticipants > 0 && maxParticipants > 0 && (
+          <RealTimeAvailability
+            tripId={id}
+            currentParticipants={currentParticipants}
+            maxParticipants={maxParticipants}
+            className="mb-4"
+          />
+        )}
+        
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Led by Sensei {sensei}</p>
             <p className="text-lg font-bold text-primary">{price}</p>
           </div>
-          <Button asChild className="font-sans font-medium transition-all duration-300 hover:scale-105">
-            <Link to={`/trip/${id}`}>Learn More</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {onCompare && (
+              <Button
+                variant={isInComparison ? "default" : "outline"}
+                size="sm"
+                onClick={() => onCompare(id)}
+                className="font-sans"
+              >
+                {isInComparison ? (
+                  <>
+                    <BarChart3 className="h-4 w-4 mr-1" />
+                    Compare
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Compare
+                  </>
+                )}
+              </Button>
+            )}
+            <Button asChild className="font-sans font-medium transition-all duration-300 hover:scale-105">
+              <Link to={`/trip/${id}`}>Learn More</Link>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
