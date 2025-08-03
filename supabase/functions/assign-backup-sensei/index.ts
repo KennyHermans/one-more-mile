@@ -44,9 +44,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Trip not found");
     }
 
-    // Find approved backup sensei applications for this trip
-    const { data: backupApplications, error: backupError } = await supabase
-      .from('backup_sensei_applications')
+    // First check for backup sensei requests (primary method)
+    const { data: backupRequests, error: requestError } = await supabase
+      .from('backup_sensei_requests')
       .select(`
         *,
         sensei_profiles:sensei_id (
@@ -60,47 +60,71 @@ const handler = async (req: Request): Promise<Response> => {
         )
       `)
       .eq('trip_id', tripId)
-      .eq('status', 'approved')
-      .order('applied_at', { ascending: true });
+      .eq('status', 'accepted')
+      .order('responded_at', { ascending: true });
 
-    if (backupError) {
-      console.error("Error fetching backup applications:", backupError);
-      throw backupError;
+    if (requestError) {
+      console.error("Error fetching backup requests:", requestError);
+      throw requestError;
     }
 
-    if (!backupApplications || backupApplications.length === 0) {
-      console.log("No approved backup senseis found for trip:", tripId);
-      
-      // Notify admin that no backup is available
-      await notifyAdminNoBackup(trip, cancellationReason, originalSenseiName);
-      
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "No approved backup senseis available. Admin has been notified." 
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
-    // Find the first available backup sensei (active and not offline)
     let selectedBackup = null;
-    for (const application of backupApplications) {
-      const sensei = application.sensei_profiles;
-      if (sensei && sensei.is_active && !sensei.is_offline) {
-        selectedBackup = application;
-        break;
+    let isFromRequest = false;
+
+    // Check backup requests first
+    if (backupRequests && backupRequests.length > 0) {
+      for (const request of backupRequests) {
+        const sensei = request.sensei_profiles;
+        if (sensei && sensei.is_active && !sensei.is_offline) {
+          selectedBackup = request;
+          isFromRequest = true;
+          break;
+        }
+      }
+    }
+
+    // If no backup requests, check backup applications
+    if (!selectedBackup) {
+      const { data: backupApplications, error: backupError } = await supabase
+        .from('backup_sensei_applications')
+        .select(`
+          *,
+          sensei_profiles:sensei_id (
+            id,
+            name,
+            user_id,
+            specialties,
+            rating,
+            is_active,
+            is_offline
+          )
+        `)
+        .eq('trip_id', tripId)
+        .eq('status', 'approved')
+        .order('applied_at', { ascending: true });
+
+      if (backupError) {
+        console.error("Error fetching backup applications:", backupError);
+        throw backupError;
+      }
+
+      if (backupApplications && backupApplications.length > 0) {
+        for (const application of backupApplications) {
+          const sensei = application.sensei_profiles;
+          if (sensei && sensei.is_active && !sensei.is_offline) {
+            selectedBackup = application;
+            isFromRequest = false;
+            break;
+          }
+        }
       }
     }
 
     if (!selectedBackup) {
       console.log("No available backup senseis found for trip:", tripId);
       
-      // Notify admin that backup senseis are not available
-      await notifyAdminNoAvailableBackup(trip, backupApplications, cancellationReason, originalSenseiName);
+      // Notify admin that no backup is available
+      await notifyAdminNoBackup(trip, cancellationReason, originalSenseiName);
       
       return new Response(
         JSON.stringify({ 
@@ -114,17 +138,18 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Assign the backup sensei to the trip
+    // Assign the backup sensei as the new main sensei
     const { error: updateError } = await supabase
       .from('trips')
       .update({
         sensei_id: selectedBackup.sensei_id,
         sensei_name: selectedBackup.sensei_profiles.name,
-        backup_sensei_id: selectedBackup.sensei_id,
+        backup_sensei_id: null, // Clear backup since they're now main
         replacement_needed: false,
         cancelled_by_sensei: false,
         cancellation_reason: null,
-        cancelled_at: null
+        cancelled_at: null,
+        updated_at: new Date().toISOString()
       })
       .eq('id', tripId);
 
@@ -133,14 +158,25 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Update the backup application status
-    const { error: statusError } = await supabase
-      .from('backup_sensei_applications')
-      .update({ status: 'assigned' })
-      .eq('id', selectedBackup.id);
+    // Update the backup status (request or application)
+    if (isFromRequest) {
+      const { error: statusError } = await supabase
+        .from('backup_sensei_requests')
+        .update({ status: 'assigned' })
+        .eq('id', selectedBackup.id);
 
-    if (statusError) {
-      console.error("Error updating backup application status:", statusError);
+      if (statusError) {
+        console.error("Error updating backup request status:", statusError);
+      }
+    } else {
+      const { error: statusError } = await supabase
+        .from('backup_sensei_applications')
+        .update({ status: 'assigned' })
+        .eq('id', selectedBackup.id);
+
+      if (statusError) {
+        console.error("Error updating backup application status:", statusError);
+      }
     }
 
     // Get backup sensei's user email
@@ -209,14 +245,14 @@ async function notifyBackupSensei(
   const emailResponse = await resend.emails.send({
     from: "One More Mile <onboarding@resend.dev>",
     to: [email],
-    subject: `🚨 Urgent: You've been assigned to lead "${trip.title}"`,
+    subject: `🚨 Urgent: You're now the main sensei for "${trip.title}"`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #2563eb;">🚨 Urgent Trip Assignment</h1>
+        <h1 style="color: #2563eb;">🚨 You're Now Leading This Trip!</h1>
         
         <p>Dear ${senseiName},</p>
         
-        <p><strong>You have been immediately assigned to lead a trip as a backup sensei!</strong></p>
+        <p><strong>You have been immediately assigned as the main sensei for this trip!</strong></p>
         
         <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h2 style="color: #1f2937; margin-top: 0;">Trip Details:</h2>

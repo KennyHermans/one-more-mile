@@ -12,6 +12,7 @@ const corsHeaders = {
 interface CancelTripRequest {
   tripId: string;
   cancellationReason: string;
+  originalSenseiName?: string;
   refundOffered?: boolean;
   alternativeTrips?: string[];
 }
@@ -44,6 +45,88 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Trip not found:", tripError);
       throw new Error("Trip not found");
     }
+
+    // Check if there's a backup sensei assigned or available
+    if (trip.backup_sensei_id) {
+      console.log("Backup sensei found, attempting to assign as main sensei");
+      
+      try {
+        // Call assign-backup-sensei function to handle the transition
+        const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke(
+          'assign-backup-sensei',
+          {
+            body: {
+              tripId,
+              cancellationReason,
+              originalSenseiName: trip.sensei_name
+            }
+          }
+        );
+
+        if (assignmentError) {
+          console.error('Failed to assign backup sensei:', assignmentError);
+          // Fall through to full cancellation
+        } else {
+          console.log('Successfully assigned backup sensei as main sensei');
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: 'Backup sensei assigned as main sensei',
+              backupAssigned: true
+            }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+      } catch (error) {
+        console.error('Error calling assign-backup-sensei:', error);
+        // Fall through to full cancellation
+      }
+    } else {
+      // Check for available backup requests that could be auto-assigned
+      const { data: backupRequests, error: requestsError } = await supabase
+        .from('backup_sensei_requests')
+        .select('*, sensei_profiles!inner(*)')
+        .eq('trip_id', tripId)
+        .eq('status', 'accepted')
+        .eq('sensei_profiles.is_active', true)
+        .eq('sensei_profiles.is_offline', false);
+
+      if (requestsError) {
+        console.error('Error checking backup requests:', requestsError);
+      } else if (backupRequests && backupRequests.length > 0) {
+        console.log('Found accepted backup requests, attempting assignment');
+        
+        try {
+          // Call assign-backup-sensei function
+          const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke(
+            'assign-backup-sensei',
+            {
+              body: {
+                tripId,
+                cancellationReason,
+                originalSenseiName: trip.sensei_name
+              }
+            }
+          );
+
+          if (!assignmentError) {
+            console.log('Successfully assigned backup sensei from requests');
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                message: 'Backup sensei assigned as main sensei',
+                backupAssigned: true
+              }),
+              { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            );
+          }
+        } catch (error) {
+          console.error('Error calling assign-backup-sensei:', error);
+        }
+      }
+    }
+
+    console.log('No backup available, proceeding with full trip cancellation');
 
     // Get all paid participants for this trip
     const { data: bookings, error: bookingsError } = await supabase
