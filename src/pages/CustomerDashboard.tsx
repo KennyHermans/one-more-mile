@@ -11,6 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
+import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
+import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
@@ -441,6 +443,10 @@ const CustomerDashboard = () => {
           </TabsList>
 
           <TabsContent value="trips" className="space-y-6">
+            {user && <PersonalizedDashboard userId={user.id} className="mb-6" />}
+            
+            {bookings.length > 0 && <TripTimelineVisualization tripBookings={bookings} className="mb-6" />}
+            
             <Card>
               <CardHeader>
                 <CardTitle>My Trips</CardTitle>
