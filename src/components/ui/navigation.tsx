@@ -31,7 +31,7 @@ export function Navigation() {
           <img 
             src="/lovable-uploads/81c21caf-1b83-4480-bbe6-7d895da092cd.png" 
             alt="One More Mile Logo" 
-            className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+            className="h-10 w-10 rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <span className="text-2xl font-serif font-semibold text-foreground group-hover:text-primary transition-colors">
             One More Mile
