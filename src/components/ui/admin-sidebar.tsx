@@ -26,6 +26,7 @@ import {
   Home
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 
 const sidebarGroups = [
   {
@@ -34,12 +35,14 @@ const sidebarGroups = [
       {
         title: "Dashboard",
         value: "dashboard",
-        icon: Home
+        icon: Home,
+        requiresPermission: null
       },
       {
         title: "Analytics",
         value: "analytics", 
-        icon: BarChart3
+        icon: BarChart3,
+        requiresPermission: null
       }
     ]
   },
@@ -50,22 +53,26 @@ const sidebarGroups = [
         title: "Applications",
         value: "applications",
         icon: FileText,
-        badge: true
+        badge: true,
+        requiresPermission: "canManageSenseis"
       },
       {
         title: "Trip Management",
         value: "trips",
-        icon: MapPin
+        icon: MapPin,
+        requiresPermission: "canManageTrips"
       },
       {
         title: "Sensei Assignment",
         value: "sensei-assignment",
-        icon: Shield
+        icon: Shield,
+        requiresPermission: "canManageSenseis"
       },
       {
         title: "Calendar",
         value: "calendar",
-        icon: Calendar
+        icon: Calendar,
+        requiresPermission: null
       }
     ]
   },
@@ -75,22 +82,26 @@ const sidebarGroups = [
       {
         title: "Trip Proposals",
         value: "proposals",
-        icon: TrendingUp
+        icon: TrendingUp,
+        requiresPermission: "canManageTrips"
       },
       {
         title: "Announcements",
         value: "announcements",
-        icon: Megaphone
+        icon: Megaphone,
+        requiresPermission: null
       },
       {
         title: "Feedback",
         value: "feedback",
-        icon: MessageCircle
+        icon: MessageCircle,
+        requiresPermission: "canViewCustomers"
       },
       {
         title: "Cancellations",
         value: "cancellations",
-        icon: AlertTriangle
+        icon: AlertTriangle,
+        requiresPermission: "canManageTrips"
       }
     ]
   },
@@ -100,12 +111,20 @@ const sidebarGroups = [
       {
         title: "Senseis",
         value: "senseis",
-        icon: Users
+        icon: Users,
+        requiresPermission: "canManageSenseis"
+      },
+      {
+        title: "Role Management",
+        value: "roles",
+        icon: Shield,
+        requiresPermission: "canManageFinances"
       },
       {
         title: "Settings",
         value: "settings",
-        icon: Settings
+        icon: Settings,
+        requiresPermission: "canManageFinances"
       }
     ]
   }
@@ -120,6 +139,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: AdminSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { permissions } = useAdminPermissions();
 
   const handleItemClick = (value: string) => {
     onTabChange(value);
@@ -129,40 +149,51 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
     return activeTab === value;
   };
 
+  const hasPermission = (requiredPermission: string | null) => {
+    if (!requiredPermission) return true;
+    return permissions[requiredPermission as keyof typeof permissions] === true;
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent>
-        {sidebarGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      onClick={() => handleItemClick(item.value)}
-                      className={`cursor-pointer transition-colors ${
-                        isActive(item.value) 
-                          ? "bg-accent text-accent-foreground font-medium" 
-                          : "hover:bg-muted/50"
-                      }`}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span className="flex items-center justify-between w-full">
-                        {item.title}
-                        {item.badge && pendingApplications > 0 && !isCollapsed && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {pendingApplications}
-                          </Badge>
-                        )}
-                      </span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {sidebarGroups.map((group) => {
+          const visibleItems = group.items.filter(item => hasPermission(item.requiresPermission));
+          
+          if (visibleItems.length === 0) return null;
+          
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {visibleItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        onClick={() => handleItemClick(item.value)}
+                        className={`cursor-pointer transition-colors ${
+                          isActive(item.value) 
+                            ? "bg-accent text-accent-foreground font-medium" 
+                            : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span className="flex items-center justify-between w-full">
+                          {item.title}
+                          {item.badge && pendingApplications > 0 && !isCollapsed && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {pendingApplications}
+                            </Badge>
+                          )}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
     </Sidebar>
   );

@@ -157,32 +157,41 @@ export type Database = {
       }
       admin_roles: {
         Row: {
+          assigned_by: string | null
           created_at: string
           granted_at: string
           granted_by: string | null
           id: string
           is_active: boolean
-          role: string
+          permissions: Json | null
+          role: Database["public"]["Enums"]["platform_role"]
+          role_description: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          assigned_by?: string | null
           created_at?: string
           granted_at?: string
           granted_by?: string | null
           id?: string
           is_active?: boolean
-          role?: string
+          permissions?: Json | null
+          role?: Database["public"]["Enums"]["platform_role"]
+          role_description?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          assigned_by?: string | null
           created_at?: string
           granted_at?: string
           granted_by?: string | null
           id?: string
           is_active?: boolean
-          role?: string
+          permissions?: Json | null
+          role?: Database["public"]["Enums"]["platform_role"]
+          role_description?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1618,6 +1627,22 @@ export type Database = {
           proficiency_bonus: number
         }[]
       }
+      can_manage_finances: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
+      can_manage_senseis: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
+      can_manage_trips: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
+      can_view_customers: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       get_customer_travel_stats: {
         Args: { _user_id: string }
         Returns: {
@@ -1643,6 +1668,10 @@ export type Database = {
           location: string
           rating: number
         }[]
+      }
+      get_user_platform_role: {
+        Args: { user_id?: string }
+        Returns: Database["public"]["Enums"]["platform_role"]
       }
       is_admin: {
         Args: { user_id?: string }
@@ -1715,7 +1744,11 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      platform_role:
+        | "admin"
+        | "journey_curator"
+        | "sensei_scout"
+        | "traveler_support"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1842,6 +1875,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      platform_role: [
+        "admin",
+        "journey_curator",
+        "sensei_scout",
+        "traveler_support",
+      ],
+    },
   },
 } as const

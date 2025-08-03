@@ -27,6 +27,7 @@ import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
 import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
+import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -1013,6 +1014,12 @@ const AdminDashboard = () => {
               </div>
             )}
             
+            {activeTab === "roles" && (
+              <div className="space-y-6">
+                <AdminRoleManagement />
+              </div>
+            )}
+
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Payment Settings</h2>
