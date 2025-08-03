@@ -20,6 +20,8 @@ import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
+import { SenseiSidebar } from "@/components/ui/sensei-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 // Enhanced Loading Components
 import { 
@@ -205,6 +207,7 @@ const SenseiDashboard = () => {
   const [cancelTripOpen, setCancelTripOpen] = useState(false);
   const [selectedTripForCancel, setSelectedTripForCancel] = useState<Trip | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   
   // New state for Applications functionality
   const [applications, setApplications] = useState<Application[]>([]);
@@ -973,313 +976,266 @@ const SenseiDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Navigation />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Welcome back, {senseiProfile.name}!
-            </h1>
-            <p className="text-lg text-gray-600">
-              Manage your trips and profile from your dashboard
-            </p>
-          </div>
-          <Button 
-            onClick={() => setEditProfileOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit Profile
-          </Button>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Trips</p>
-                  <p className="text-2xl font-bold">{activeTrips}</p>
-                </div>
-                <MapPin className="h-8 w-8 text-blue-600" />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-indigo-100">
+        <SenseiSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <main className="flex-1 flex flex-col">
+          {/* Header with Navigation and Sidebar Trigger */}
+          <header className="h-16 flex items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Welcome back, {senseiProfile.name}!
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Manage your trips and profile from your dashboard
+                </p>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Upcoming Trips</p>
-                  <p className="text-2xl font-bold">{upcomingTrips}</p>
-                </div>
-                <CalendarIcon className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Trips Completed</p>
-                  <p className="text-2xl font-bold">{completedTrips}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Participants</p>
-                  <p className="text-2xl font-bold">{totalParticipants}</p>
-                </div>
-                <Users className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-13">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="trips">My Trips</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup</TabsTrigger>
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="trip-editor">Editor</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals</TabsTrigger>
-            <TabsTrigger value="certificates">Certificates</TabsTrigger>
-            <TabsTrigger value="announcements">News</TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Messages</span>
-            </TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="availability">Settings</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Active Trips</p>
-                      <p className="text-2xl font-bold">{activeTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Trips Completed</p>
-                      <p className="text-2xl font-bold">{completedTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Upcoming Trips</p>
-                      <p className="text-2xl font-bold">{upcomingTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Total Participants</p>
-                      <p className="text-2xl font-bold">{totalParticipants}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
-            
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
-                    <Plus className="h-6 w-6" />
-                    <span>Create Trip Proposal</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
-                    <MessageCircle className="h-6 w-6" />
-                    <span>Message Participants</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
-                    <CalendarIcon className="h-6 w-6" />
-                    <span>Update Availability</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <Button 
+              onClick={() => setEditProfileOpen(true)}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit Profile
+            </Button>
+          </header>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <SenseiAnalyticsDashboard />
-          </TabsContent>
-
-          {/* Goals Tab */}
-          <TabsContent value="goals" className="space-y-6">
-            <SenseiGoalsTracker />
-          </TabsContent>
-
-          {/* My Trips Tab */}
-          <TabsContent value="trips" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">My Trips</h2>
-              <Badge variant="outline" className="text-sm">
-                {trips.length} total trips
-              </Badge>
-            </div>
-
-            {trips.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center">
-                  <p className="text-gray-600">No trips assigned yet.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {trips.map((trip) => (
-                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-auto p-6">
+            {/* Overview Tab */}
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card>
                     <CardContent className="pt-6">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold">{trip.title}</h3>
-                              <p className="text-gray-600 flex items-center">
-                                <MapPin className="w-4 h-4 mr-1" />
-                                {trip.destination}
-                              </p>
-                              <p className="text-gray-600 flex items-center">
-                                <CalendarIcon className="w-4 h-4 mr-1" />
-                                {trip.dates}
-                              </p>
-                            </div>
-                             <div className="flex items-center gap-2">
-                               <Badge variant={trip.is_active ? "default" : "secondary"}>
-                                 {trip.is_active ? "Active" : "Inactive"}
-                               </Badge>
-                               <Button 
-                                 variant="outline" 
-                                 size="sm"
-                                  onClick={() => {/* Switch to trip-editor tab - functionality is in current page */}}
-                               >
-                                 <Edit2 className="w-4 h-4" />
-                               </Button>
-                                {trip.is_active && !trip.cancelled_by_sensei && (
-                                  <Button 
-                                    variant="destructive" 
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedTripForCancel(trip);
-                                      setCancelTripOpen(true);
-                                    }}
-                                  >
-                                    Cancel my trip
-                                  </Button>
-                                )}
-                             </div>
-                          </div>
-                          
-                          <div className="grid md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">Participants</p>
-                              <p className="text-sm">{trip.current_participants}/{trip.max_participants}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">Status</p>
-                              <p className="text-sm">{trip.is_active ? "Active" : "Inactive"}</p>
-                            </div>
-                          </div>
-
-                          {/* Paid Participants Section */}
-                          <div className="border-t pt-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold flex items-center gap-2">
-                                <Users className="w-4 h-4" />
-                                Confirmed Participants ({tripParticipants[trip.id]?.length || 0})
-                              </h4>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => fetchPaidParticipants(trip.id)}
-                                disabled={loadingParticipants[trip.id]}
-                              >
-                                {loadingParticipants[trip.id] ? 'Loading...' : 'View Participants'}
-                              </Button>
-                            </div>
-                            
-                            {tripParticipants[trip.id] && (
-                              <div className="space-y-2 max-h-40 overflow-y-auto">
-                                {tripParticipants[trip.id].length === 0 ? (
-                                  <p className="text-sm text-gray-500 italic">No confirmed participants yet</p>
-                                ) : (
-                                  tripParticipants[trip.id].map((participant) => (
-                                    <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded text-sm border border-green-200">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                          <User className="w-4 h-4 text-green-600" />
-                                        </div>
-                                        <div>
-                                          <span className="font-medium text-green-800">{participant.customer_profiles.full_name}</span>
-                                          {participant.customer_profiles.phone && (
-                                            <div className="flex items-center gap-1 text-gray-600">
-                                              <Phone className="w-3 h-3" />
-                                              <span className="text-xs">{participant.customer_profiles.phone}</span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant="default" className="bg-green-600 text-xs">
-                                          Paid
-                                        </Badge>
-                                        <CheckCircle className="w-4 h-4 text-green-600" />
-                                      </div>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            )}
-                            
-                            <div className="mt-2 text-xs text-gray-500">
-                              * Only participants who have completed payment are shown
-                            </div>
-                          </div>
+                      <div className="flex items-center">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                        <div className="ml-2">
+                          <p className="text-sm font-medium leading-none">Active Trips</p>
+                          <p className="text-2xl font-bold">{activeTrips}</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center">
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        <div className="ml-2">
+                          <p className="text-sm font-medium leading-none">Trips Completed</p>
+                          <p className="text-2xl font-bold">{completedTrips}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <div className="ml-2">
+                          <p className="text-sm font-medium leading-none">Upcoming Trips</p>
+                          <p className="text-2xl font-bold">{upcomingTrips}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div className="ml-2">
+                          <p className="text-sm font-medium leading-none">Total Participants</p>
+                          <p className="text-2xl font-bold">{totalParticipants}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Button 
+                        variant="outline" 
+                        className="h-20 flex flex-col gap-2"
+                        onClick={() => setActiveTab("proposals")}
+                      >
+                        <Plus className="h-6 w-6" />
+                        <span>Create Trip Proposal</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="h-20 flex flex-col gap-2"
+                        onClick={() => setActiveTab("messages")}
+                      >
+                        <MessageCircle className="h-6 w-6" />
+                        <span>Message Participants</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="h-20 flex flex-col gap-2"
+                        onClick={() => setActiveTab("availability")}
+                      >
+                        <CalendarIcon className="h-6 w-6" />
+                        <span>Update Availability</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
-          </TabsContent>
+
+            {/* Analytics Tab */}
+            {activeTab === "analytics" && <SenseiAnalyticsDashboard />}
+
+            {/* Goals Tab */}
+            {activeTab === "goals" && <SenseiGoalsTracker />}
+
+            {/* My Trips Tab */}
+            {activeTab === "trips" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">My Trips</h2>
+                  <Badge variant="outline" className="text-sm">
+                    {trips.length} total trips
+                  </Badge>
+                </div>
+
+                {trips.length === 0 ? (
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <p className="text-gray-600">No trips assigned yet.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {trips.map((trip) => (
+                      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <h3 className="text-lg font-semibold">{trip.title}</h3>
+                                  <p className="text-gray-600 flex items-center">
+                                    <MapPin className="w-4 h-4 mr-1" />
+                                    {trip.destination}
+                                  </p>
+                                  <p className="text-gray-600 flex items-center">
+                                    <CalendarIcon className="w-4 h-4 mr-1" />
+                                    {trip.dates}
+                                  </p>
+                                </div>
+                                 <div className="flex items-center gap-2">
+                                   <Badge variant={trip.is_active ? "default" : "secondary"}>
+                                     {trip.is_active ? "Active" : "Inactive"}
+                                   </Badge>
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm"
+                                      onClick={() => setActiveTab("trip-editor")}
+                                   >
+                                     <Edit2 className="w-4 h-4" />
+                                   </Button>
+                                    {trip.is_active && !trip.cancelled_by_sensei && (
+                                      <Button 
+                                        variant="destructive" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedTripForCancel(trip);
+                                          setCancelTripOpen(true);
+                                        }}
+                                      >
+                                        Cancel my trip
+                                      </Button>
+                                    )}
+                                 </div>
+                              </div>
+                              
+                              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Participants</p>
+                                  <p className="text-sm">{trip.current_participants}/{trip.max_participants}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600">Status</p>
+                                  <p className="text-sm">{trip.is_active ? "Active" : "Inactive"}</p>
+                                </div>
+                              </div>
+
+                              {/* Paid Participants Section */}
+                              <div className="border-t pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold flex items-center gap-2">
+                                    <Users className="w-4 h-4" />
+                                    Confirmed Participants ({tripParticipants[trip.id]?.length || 0})
+                                  </h4>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fetchPaidParticipants(trip.id)}
+                                    disabled={loadingParticipants[trip.id]}
+                                  >
+                                    {loadingParticipants[trip.id] ? 'Loading...' : 'View Participants'}
+                                  </Button>
+                                </div>
+                                
+                                {tripParticipants[trip.id] && (
+                                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {tripParticipants[trip.id].length === 0 ? (
+                                      <p className="text-sm text-gray-500 italic">No confirmed participants yet</p>
+                                    ) : (
+                                      tripParticipants[trip.id].map((participant) => (
+                                        <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded text-sm border border-green-200">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                              <User className="w-4 h-4 text-green-600" />
+                                            </div>
+                                            <div>
+                                              <span className="font-medium text-green-800">{participant.customer_profiles.full_name}</span>
+                                              {participant.customer_profiles.phone && (
+                                                <div className="flex items-center gap-1 text-gray-600">
+                                                  <Phone className="w-3 h-3" />
+                                                  <span className="text-xs">{participant.customer_profiles.phone}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <Badge variant="default" className="bg-green-600 text-xs">
+                                              Paid
+                                            </Badge>
+                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                          </div>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                )}
+                                
+                                <div className="mt-2 text-xs text-gray-500">
+                                  * Only participants who have completed payment are shown
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Continue with other tabs... */}
 
           {/* Backup Sensei Tab */}
           <TabsContent value="backup-sensei" className="space-y-6">
