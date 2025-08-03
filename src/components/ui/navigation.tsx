@@ -5,14 +5,13 @@ import { EnhancedMobileNavigation } from "./enhanced-mobile-navigation";
 import { RoleSwitcher } from "./role-switcher";
 import { User } from "lucide-react";
 import { useProfileManagement } from "@/hooks/use-profile-management";
+import { useAdminCheck } from "@/hooks/use-admin-check";
 
 export function Navigation() {
   const { user, session, profileStatus } = useProfileManagement();
+  const { isAdmin } = useAdminCheck();
   const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
   const navigate = useNavigate();
-
-  // Check if current user is admin
-  const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
   // Update current role when profile status changes
   useEffect(() => {
