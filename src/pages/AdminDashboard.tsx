@@ -834,8 +834,8 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {activeTab === "communication" && (
-              <CommunicationHub />
+            {activeTab === "communication" && user && (
+              <CommunicationHub userId={user.id} />
             )}
             
             {activeTab === "sensei-assignment" && (
