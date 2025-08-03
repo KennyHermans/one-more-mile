@@ -188,19 +188,15 @@ export function EnhancedMobileNavigation() {
   ];
 
   const userNavItems: NavItem[] = [
-    // Dashboard links - role-based
-    ...(currentRole === 'customer' && hasCustomerProfile ? [{
-      icon: Calendar,
-      label: "My Dashboard",
-      href: "/customer/dashboard",
-      description: "View your trips and bookings"
-    }] : []),
-    ...(currentRole === 'sensei' && hasSenseiProfile ? [{
-      icon: Mountain,
-      label: "Sensei Dashboard",
-      href: "/sensei/dashboard",
-      description: "Manage your trips"
-    }] : []),
+    // Dashboard links - Always show appropriate dashboard for current role
+    {
+      icon: currentRole === 'customer' ? Calendar : Mountain,
+      label: currentRole === 'customer' ? "My Dashboard" : "Sensei Dashboard",
+      href: currentRole === 'customer' ? "/customer/dashboard" : "/sensei/dashboard",
+      description: currentRole === 'customer' ? "View your trips and bookings" : "Manage your trips and clients"
+    },
+    
+    // Admin Dashboard - only for admin
     ...(isAdmin ? [{
       icon: Shield,
       label: "Admin Dashboard",
@@ -208,12 +204,22 @@ export function EnhancedMobileNavigation() {
       description: "System administration"
     }] : []),
     
-    // Profile links - role-based
+    // Profile links - Clear role-based access
     {
       icon: User,
-      label: currentRole === 'sensei' && hasSenseiProfile ? "Sensei Profile" : "My Profile",
+      label: currentRole === 'sensei' && hasSenseiProfile 
+        ? "Sensei Profile" 
+        : currentRole === 'customer'
+          ? (hasCustomerProfile ? "My Profile" : "Complete Profile")
+          : hasSenseiProfile
+            ? "Create Customer Profile"
+            : "Create Profile",
       href: currentRole === 'sensei' && hasSenseiProfile ? "/sensei-profile" : "/customer/profile",
-      description: currentRole === 'sensei' && hasSenseiProfile ? "Manage your sensei profile" : "Edit your personal information"
+      description: currentRole === 'sensei' && hasSenseiProfile 
+        ? "Manage your sensei profile" 
+        : currentRole === 'customer'
+          ? "Edit your personal information"
+          : "Set up your customer profile"
     },
     
     // Customer-specific quick access (only show when in customer mode)

@@ -107,59 +107,64 @@ export function Navigation() {
             Contact
           </Link>
             {user ? (
-             <div className="flex items-center space-x-4">
-               {/* Role-based Dashboard Links */}
-               {currentRole === 'customer' && hasCustomerProfile && (
-                 <Link to="/customer/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                   My Dashboard
-                 </Link>
-               )}
-               
-               {currentRole === 'sensei' && hasSenseiProfile && (
-                 <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                   Sensei Dashboard
-                 </Link>
-               )}
-               
-               {/* Admin Dashboard - only for admin */}
-               {isAdmin && (
-                 <Link to="/admin/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
-                   Admin Dashboard
-                 </Link>
-               )}
-               
-               {/* Role Switcher for dual-role users */}
-               <RoleSwitcher
-                 currentRole={currentRole}
-                 hasCustomerProfile={hasCustomerProfile}
-                 hasSenseiProfile={hasSenseiProfile}
-                 onRoleChange={setCurrentRole}
-               />
-               
-               {/* Role-based Profile buttons */}
-               {currentRole === 'sensei' && hasSenseiProfile ? (
-                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
-                   <Link to="/sensei-profile">
-                     <User className="w-4 h-4 mr-2" />
-                     Sensei Profile
-                   </Link>
-                 </Button>
-               ) : hasCustomerProfile ? (
-                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
-                   <Link to="/customer/profile">
-                     <User className="w-4 h-4 mr-2" />
-                     My Profile
-                   </Link>
-                 </Button>
-               ) : (
-                 <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
-                   <Link to="/customer/profile">
-                     <User className="w-4 h-4 mr-2" />
-                     Create Profile
-                   </Link>
-                 </Button>
-               )}
-            </div>
+              <div className="flex items-center space-x-4">
+                {/* Dashboard Links - Always show the appropriate dashboard for current role */}
+                {currentRole === 'customer' ? (
+                  <Link to="/customer/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                    My Dashboard
+                  </Link>
+                ) : (
+                  <Link to="/sensei/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                    Sensei Dashboard
+                  </Link>
+                )}
+                
+                {/* Admin Dashboard - only for admin */}
+                {isAdmin && (
+                  <Link to="/admin/dashboard" className="font-sans text-foreground hover:text-primary transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full">
+                    Admin Dashboard
+                  </Link>
+                )}
+                
+                {/* Role Switcher for dual-role users */}
+                <RoleSwitcher
+                  currentRole={currentRole}
+                  hasCustomerProfile={hasCustomerProfile}
+                  hasSenseiProfile={hasSenseiProfile}
+                  onRoleChange={setCurrentRole}
+                />
+                
+                {/* Profile Management - Clear role-based access */}
+                {currentRole === 'sensei' && hasSenseiProfile ? (
+                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                    <Link to="/sensei-profile">
+                      <User className="w-4 h-4 mr-2" />
+                      Sensei Profile
+                    </Link>
+                  </Button>
+                ) : currentRole === 'customer' ? (
+                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                    <Link to="/customer/profile">
+                      <User className="w-4 h-4 mr-2" />
+                      {hasCustomerProfile ? 'My Profile' : 'Complete Profile'}
+                    </Link>
+                  </Button>
+                ) : hasSenseiProfile ? (
+                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                    <Link to="/customer/profile">
+                      <User className="w-4 h-4 mr-2" />
+                      Create Customer Profile
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                    <Link to="/customer/profile">
+                      <User className="w-4 h-4 mr-2" />
+                      Create Profile
+                    </Link>
+                  </Button>
+                )}
+             </div>
           ) : (
             <>
               <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
