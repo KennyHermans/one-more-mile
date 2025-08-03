@@ -263,7 +263,7 @@ export function AdvancedTripManagement() {
     if (suggestion) {
       toast({
         title: "Pricing updated",
-        description: `Price updated from $${suggestion.currentPrice} to $${suggestion.suggestedPrice}`
+        description: `Price updated from €${suggestion.currentPrice} to €${suggestion.suggestedPrice}`
       });
     }
   };
@@ -440,11 +440,11 @@ export function AdvancedTripManagement() {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-lg font-semibold">${trip.price}</span>
+                        <span className="text-lg font-semibold">€{trip.price}</span>
                         {pricingSuggestions[trip.id] && (
                           <Badge variant="outline" className="ml-2">
                             <TrendingUp className="h-3 w-3 mr-1" />
-                            ${pricingSuggestions[trip.id].suggestedPrice} suggested
+                            €{pricingSuggestions[trip.id].suggestedPrice} suggested
                           </Badge>
                         )}
                       </div>
@@ -641,8 +641,8 @@ export function AdvancedTripManagement() {
                       <div>
                         <h4 className="font-semibold">{trip?.title}</h4>
                         <div className="flex items-center gap-4 mt-2">
-                          <span>Current: <strong>${suggestion.currentPrice}</strong></span>
-                          <span>Suggested: <strong className="text-green-600">${suggestion.suggestedPrice}</strong></span>
+                          <span>Current: <strong>€{suggestion.currentPrice}</strong></span>
+                          <span>Suggested: <strong className="text-green-600">€{suggestion.suggestedPrice}</strong></span>
                           <Badge variant="outline">{suggestion.confidence}% confidence</Badge>
                         </div>
                       </div>

@@ -59,8 +59,8 @@ serve(async (req) => {
     const totalAmountDollars = parseFloat(priceString);
     const totalAmountCents = Math.round(totalAmountDollars * 100);
     
-    // Determine currency from price string
-    const currency = trip.price.includes('€') ? 'eur' : 'usd';
+    // Default to EUR currency (all trips now use Euro)
+    const currency = 'eur';
     logStep("Price calculation", { totalAmountDollars, totalAmountCents, currency });
 
     // Initialize Stripe
@@ -117,8 +117,8 @@ serve(async (req) => {
       let depositAmount, installmentAmount, installmentCount;
       
       if (planType === "deposit_1000") {
-        // Use €1000 or $1000 depending on trip currency
-        const depositAmountValue = currency === 'eur' ? 1000 : 1000;
+        // €1000 deposit (all prices are now in EUR)
+        const depositAmountValue = 1000;
         depositAmount = depositAmountValue * 100; // Convert to cents
         installmentAmount = totalAmountCents - depositAmount;
         installmentCount = 1;

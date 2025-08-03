@@ -192,7 +192,7 @@ export function AdvancedAnalyticsDashboard({
     const formatValue = (val: number) => {
       switch (format) {
         case 'currency':
-          return `$${val.toLocaleString()}`;
+          return `€${val.toLocaleString()}`;
         case 'percentage':
           return `${val.toFixed(1)}%`;
         default:
@@ -338,7 +338,7 @@ export function AdvancedAnalyticsDashboard({
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">${sensei.revenue.toLocaleString()}</p>
+                  <p className="font-semibold">€{sensei.revenue.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Revenue</p>
                 </div>
               </div>

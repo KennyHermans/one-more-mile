@@ -120,7 +120,7 @@ export function AdvancedTripPlanner({
     difficulty_level: 'moderate',
     theme: '',
     season: '',
-    price_range: { min: 1000, max: 3000, currency: 'USD' },
+    price_range: { min: 1000, max: 3000, currency: 'EUR' },
     included_amenities: [],
     excluded_items: [],
     requirements: [],
@@ -479,7 +479,7 @@ export function AdvancedTripPlanner({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Price Range (USD)</Label>
+                  <Label>Price Range (EUR)</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label htmlFor="min-price" className="text-xs">Minimum</Label>

@@ -56,7 +56,7 @@ export function AdminAnalyticsDashboard({ stats }: AdminAnalyticsDashboardProps)
   const kpiCards = [
     {
       title: "Total Revenue",
-      value: `$${(analyticsData.totalRevenue / 1000).toFixed(0)}K`,
+      value: `€${(analyticsData.totalRevenue / 1000).toFixed(0)}K`,
       change: `+${analyticsData.monthlyGrowth}%`,
       trend: "up",
       icon: DollarSign,
@@ -165,7 +165,7 @@ export function AdminAnalyticsDashboard({ stats }: AdminAnalyticsDashboardProps)
                   </div>
                   <div className="text-right">
                     <span className="font-semibold text-green-600">
-                      ${(month.revenue / 1000).toFixed(0)}K
+                      €{(month.revenue / 1000).toFixed(0)}K
                     </span>
                   </div>
                 </div>
