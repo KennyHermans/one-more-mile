@@ -586,6 +586,60 @@ const AdminDashboard = () => {
     });
   };
 
+  const createAnnouncement = async () => {
+    if (!announcementForm.title || !announcementForm.content) {
+      toast({
+        title: "Error",
+        description: "Title and content are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('admin_announcements')
+        .insert({
+          title: announcementForm.title,
+          content: announcementForm.content,
+          priority: announcementForm.priority,
+          target_audience: announcementForm.target_audience,
+          specific_sensei_ids: announcementForm.target_audience === 'specific_senseis' 
+            ? announcementForm.specific_sensei_ids 
+            : null,
+          is_active: true,
+          created_by_admin: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Announcement created successfully!",
+      });
+
+      // Reset form and close dialog
+      setAnnouncementForm({
+        title: '',
+        content: '',
+        priority: 'normal',
+        target_audience: 'all_senseis',
+        specific_sensei_ids: []
+      });
+      setCreateAnnouncementOpen(false);
+      
+      // Refresh announcements
+      await fetchAdminAnnouncements();
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create announcement.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const entityTypes = [
     { value: 'applications', label: 'Applications', count: applications.length },
     { value: 'trips', label: 'Trips', count: trips.length },
@@ -1059,6 +1113,104 @@ const AdminDashboard = () => {
             )}
           </main>
         </div>
+
+        {/* Create Announcement Dialog */}
+        <Dialog open={createAnnouncementOpen} onOpenChange={setCreateAnnouncementOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Create Admin Announcement</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={announcementForm.title}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter announcement title"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="content">Content</Label>
+                <textarea
+                  id="content"
+                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={announcementForm.content}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Enter announcement content"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <select
+                  id="priority"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={announcementForm.priority}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, priority: e.target.value as 'normal' | 'high' | 'urgent' }))}
+                >
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              
+              <div>
+                <Label htmlFor="audience">Target Audience</Label>
+                <select
+                  id="audience"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={announcementForm.target_audience}
+                  onChange={(e) => setAnnouncementForm(prev => ({ ...prev, target_audience: e.target.value as 'all_senseis' | 'active_senseis' | 'specific_senseis' }))}
+                >
+                  <option value="all_senseis">All Senseis</option>
+                  <option value="active_senseis">Active Senseis</option>
+                  <option value="specific_senseis">Specific Senseis</option>
+                </select>
+              </div>
+              
+              {announcementForm.target_audience === 'specific_senseis' && (
+                <div>
+                  <Label>Select Senseis</Label>
+                  <div className="mt-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                    {senseis.map((sensei) => (
+                      <div key={sensei.id} className="flex items-center space-x-2 py-1">
+                        <Checkbox
+                          checked={announcementForm.specific_sensei_ids.includes(sensei.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setAnnouncementForm(prev => ({
+                                ...prev,
+                                specific_sensei_ids: [...prev.specific_sensei_ids, sensei.id]
+                              }));
+                            } else {
+                              setAnnouncementForm(prev => ({
+                                ...prev,
+                                specific_sensei_ids: prev.specific_sensei_ids.filter(id => id !== sensei.id)
+                              }));
+                            }
+                          }}
+                        />
+                        <span className="text-sm">{sensei.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setCreateAnnouncementOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={createAnnouncement}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Announcement
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Application Detail Dialog */}
         <Dialog open={selectedApplication !== null} onOpenChange={() => setSelectedApplication(null)}>
