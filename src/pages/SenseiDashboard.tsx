@@ -23,7 +23,7 @@ import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificate
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 import { SenseiSidebar } from "@/components/ui/sensei-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 
 // Enhanced Loading Components
 import { 
@@ -1085,24 +1085,22 @@ const SenseiDashboard = () => {
             Edit Profile
           </Button>
         </div>
-
-        <Tabs defaultValue="overview" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 xl:grid-cols-14 overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="trips">My Trips</TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals</TabsTrigger>
-            <TabsTrigger value="availability">Settings</TabsTrigger>
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="certificates">Certificates</TabsTrigger>
-            <TabsTrigger value="announcements">Announcements</TabsTrigger>
-            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
-            <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
-          </TabsList>
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 xl:grid-cols-14 overflow-x-auto">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="goals">Goals</TabsTrigger>
+          <TabsTrigger value="trips">My Trips</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          <TabsTrigger value="todos">Todos</TabsTrigger>
+          <TabsTrigger value="proposals">Proposals</TabsTrigger>
+          <TabsTrigger value="availability">Settings</TabsTrigger>
+          <TabsTrigger value="applications">Applications</TabsTrigger>
+          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+          <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
+          <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
+        </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
@@ -2750,7 +2748,11 @@ const SenseiDashboard = () => {
             <SenseiAvailabilitySettings />
           </TabsContent>
         </Tabs>
-      </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
 
       {/* Cancel Trip Dialog */}
       <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
@@ -2913,8 +2915,13 @@ const SenseiDashboard = () => {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
-      </div>
+       </Dialog>
+
+       {/* Dialogs continue outside the sidebar layout */}
+       <DialogContent>
+         {/* Dialog content continues here - but need to move this outside properly */}
+       </DialogContent>
+      </SidebarProvider>
     </DashboardAccessGuard>
   );
 };
