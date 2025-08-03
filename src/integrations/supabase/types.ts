@@ -1860,13 +1860,21 @@ export type Database = {
         }[]
       }
       upgrade_sensei_level: {
-        Args: {
-          p_sensei_id: string
-          p_new_level: Database["public"]["Enums"]["sensei_level"]
-          p_changed_by?: string
-          p_reason?: string
-        }
-        Returns: boolean
+        Args:
+          | {
+              p_sensei_id: string
+              p_new_level: Database["public"]["Enums"]["sensei_level"]
+              p_changed_by?: string
+              p_reason?: string
+            }
+          | {
+              p_sensei_id: string
+              p_new_level: Database["public"]["Enums"]["sensei_level"]
+              p_changed_by?: string
+              p_reason?: string
+              p_admin_override?: boolean
+            }
+        Returns: Json
       }
       validate_sensei_action: {
         Args: { p_sensei_id: string; p_action: string }
