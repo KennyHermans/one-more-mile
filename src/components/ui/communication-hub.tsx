@@ -86,7 +86,8 @@ export function CommunicationHub({ userId, className }: CommunicationHubProps) {
             title,
             destination,
             sensei_name,
-            sensei_profiles (
+            sensei_id,
+            sensei_profiles!trips_sensei_id_fkey (
               image_url
             )
           )
@@ -132,7 +133,7 @@ export function CommunicationHub({ userId, className }: CommunicationHubProps) {
             trip_title: booking.trips?.title || 'Unknown Trip',
             trip_destination: booking.trips?.destination || '',
             sensei_name: booking.trips?.sensei_name || 'Unknown Sensei',
-            sensei_avatar: (booking.trips?.sensei_profiles as any)?.[0]?.image_url,
+            sensei_avatar: booking.trips?.sensei_profiles?.image_url,
             last_message: lastMessage ? {
               ...lastMessage,
               sender_type: lastMessage.sender_type as 'customer' | 'sensei' | 'admin',
