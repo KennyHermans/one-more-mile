@@ -2345,7 +2345,6 @@ const SenseiDashboard = () => {
       </Dialog>
     </div>
   );
-  );
 };
 
 export default SenseiDashboard;
