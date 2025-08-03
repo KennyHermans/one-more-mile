@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +24,8 @@ import {
   TrendingUp,
   Shield,
   MessageCircle,
-  Home
+  Home,
+  Edit
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
@@ -73,6 +75,12 @@ const sidebarGroups = [
         value: "calendar",
         icon: Calendar,
         requiresPermission: null
+      },
+      {
+        title: "Trip Editor",
+        value: "trip-editor",
+        icon: Edit,
+        requiresPermission: "canManageTrips"
       },
       {
         title: "Trip Permissions",
@@ -146,9 +154,14 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { permissions } = useAdminPermissions();
+  const navigate = useNavigate();
 
   const handleItemClick = (value: string) => {
-    onTabChange(value);
+    if (value === "trip-editor") {
+      navigate("/admin/trips");
+    } else {
+      onTabChange(value);
+    }
   };
 
   const isActive = (value: string) => {
