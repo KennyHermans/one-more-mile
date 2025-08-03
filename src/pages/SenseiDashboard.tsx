@@ -195,6 +195,24 @@ interface ProgramDay {
   coordinates?: [number, number];
 }
 
+// Helper function to ensure program is always an array
+const ensureProgramIsArray = (program: any): ProgramDay[] => {
+  if (Array.isArray(program)) return program;
+  if (typeof program === 'string') {
+    try {
+      const parsed = JSON.parse(program);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  if (program && typeof program === 'object') {
+    // If it's an object but not an array, wrap it in an array
+    return [program];
+  }
+  return [];
+};
+
 const SenseiDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
@@ -356,7 +374,13 @@ const SenseiDashboard = () => {
 
       if (error) throw error;
       
-      setTrips(data || []);
+      // Process trips to ensure program field is properly formatted
+      const processedTrips = (data || []).map(trip => ({
+        ...trip,
+        program: ensureProgramIsArray(trip.program)
+      }));
+      
+      setTrips(processedTrips);
       
       // Convert trips to calendar events
       const tripEvents: CalendarEvent[] = (data || []).map(trip => {
@@ -683,36 +707,46 @@ const SenseiDashboard = () => {
 
   const addProgramDay = () => {
     if (!editingTrip) return;
+    const currentProgram = ensureProgramIsArray(editingTrip.program);
     const newDay: ProgramDay = {
-      day: editingTrip.program.length + 1,
+      day: currentProgram.length + 1,
       location: "",
       activities: [""]
     };
     setEditingTrip({
       ...editingTrip,
-      program: [...editingTrip.program, newDay]
+      program: [...currentProgram, newDay]
     });
   };
 
   const updateProgramDay = (dayIndex: number, field: keyof ProgramDay, value: any) => {
     if (!editingTrip) return;
-    const updatedProgram = [...editingTrip.program];
-    updatedProgram[dayIndex] = { ...updatedProgram[dayIndex], [field]: value };
-    setEditingTrip({ ...editingTrip, program: updatedProgram });
+    const currentProgram = ensureProgramIsArray(editingTrip.program);
+    const updatedProgram = [...currentProgram];
+    if (updatedProgram[dayIndex]) {
+      updatedProgram[dayIndex] = { ...updatedProgram[dayIndex], [field]: value };
+      setEditingTrip({ ...editingTrip, program: updatedProgram });
+    }
   };
 
   const addActivity = (dayIndex: number) => {
     if (!editingTrip) return;
-    const updatedProgram = [...editingTrip.program];
-    updatedProgram[dayIndex].activities.push("");
-    setEditingTrip({ ...editingTrip, program: updatedProgram });
+    const currentProgram = ensureProgramIsArray(editingTrip.program);
+    const updatedProgram = [...currentProgram];
+    if (updatedProgram[dayIndex]) {
+      updatedProgram[dayIndex].activities.push("");
+      setEditingTrip({ ...editingTrip, program: updatedProgram });
+    }
   };
 
   const updateActivity = (dayIndex: number, activityIndex: number, value: string) => {
     if (!editingTrip) return;
-    const updatedProgram = [...editingTrip.program];
-    updatedProgram[dayIndex].activities[activityIndex] = value;
-    setEditingTrip({ ...editingTrip, program: updatedProgram });
+    const currentProgram = ensureProgramIsArray(editingTrip.program);
+    const updatedProgram = [...currentProgram];
+    if (updatedProgram[dayIndex] && updatedProgram[dayIndex].activities) {
+      updatedProgram[dayIndex].activities[activityIndex] = value;
+      setEditingTrip({ ...editingTrip, program: updatedProgram });
+    }
   };
 
   const saveTodos = (newTodos: TodoItem[]) => {
@@ -1158,7 +1192,7 @@ const SenseiDashboard = () => {
                                  size="sm"
                                   onClick={() => setEditingTrip({ 
                                     ...trip, 
-                                    program: Array.isArray(trip.program) ? trip.program : [] 
+                                    program: ensureProgramIsArray(trip.program) 
                                   })}
                                >
                                  <Edit2 className="w-4 h-4" />
@@ -1418,7 +1452,7 @@ const SenseiDashboard = () => {
                               className="w-full mt-4" 
                                onClick={() => setEditingTrip({ 
                                  ...trip, 
-                                 program: Array.isArray(trip.program) ? trip.program : [] 
+                                 program: ensureProgramIsArray(trip.program) 
                                })}
                             >
                               <Edit2 className="w-4 h-4 mr-2" />
@@ -1834,7 +1868,7 @@ const SenseiDashboard = () => {
                             className="w-full mt-4" 
                              onClick={() => setEditingTrip({ 
                                ...trip, 
-                               program: Array.isArray(trip.program) ? trip.program : [] 
+                               program: ensureProgramIsArray(trip.program) 
                              })}
                           >
                             <Edit2 className="w-4 h-4 mr-2" />
