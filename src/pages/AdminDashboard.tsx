@@ -8,6 +8,8 @@ import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
+import { BulkOperations } from "@/components/ui/bulk-operations";
+import { GlobalSearch } from "@/components/ui/global-search";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -223,6 +225,26 @@ const AdminDashboard = () => {
     description: "",
     onConfirm: () => {}
   });
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [savedFilters, setSavedFilters] = useState([
+    {
+      id: "1",
+      name: "Pending Applications",
+      query: "",
+      filters: [{ key: 'status', label: 'Pending', value: 'pending', type: 'status' as const }],
+      entityType: "applications"
+    },
+    {
+      id: "2", 
+      name: "Active Trips This Month",
+      query: "",
+      filters: [
+        { key: 'status', label: 'Active', value: 'active', type: 'status' as const },
+        { key: 'date', label: 'Last 30 days', value: '30d', type: 'date' as const }
+      ],
+      entityType: "trips"
+    }
+  ]);
   const { toast } = useToast();
 
   // Stats
@@ -539,6 +561,58 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleGlobalSearch = (query: string, searchFilters: any[], entityType: string) => {
+    setGlobalSearchQuery(query);
+    // Apply global search logic here
+    console.log("Global search:", { query, searchFilters, entityType });
+    
+    // Switch to the appropriate tab based on entity type
+    if (entityType !== 'all') {
+      setActiveTab(entityType);
+    }
+  };
+
+  const handleSaveFilter = (filter: any) => {
+    const newFilter = {
+      ...filter,
+      id: Date.now().toString()
+    };
+    setSavedFilters(prev => [...prev, newFilter]);
+    toast({
+      title: "Filter saved",
+      description: `"${filter.name}" has been saved for future use.`
+    });
+  };
+
+  const entityTypes = [
+    { value: 'applications', label: 'Applications', count: applications.length },
+    { value: 'trips', label: 'Trips', count: trips.length },
+    { value: 'senseis', label: 'Senseis', count: senseis.length },
+    { value: 'bookings', label: 'Bookings', count: 150 }
+  ];
+
+  // Mock data for bulk operations
+  const mockApplications = applications.map(app => ({
+    id: app.id,
+    name: app.full_name,
+    email: app.email,
+    status: app.status
+  }));
+
+  const mockTrips = trips.map(trip => ({
+    id: trip.id,
+    title: trip.title,
+    destination: trip.destination,
+    status: trip.is_active ? 'active' : 'inactive'
+  }));
+
+  const mockSenseis = senseis.map(sensei => ({
+    id: sensei.id,
+    name: sensei.name,
+    location: sensei.location,
+    status: 'active'
+  }));
+
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -574,6 +648,19 @@ const AdminDashboard = () => {
           />
           
           <main className="flex-1 p-6 overflow-auto">
+            <div className="space-y-6">
+              {/* Global Search */}
+              <GlobalSearch
+                onSearch={handleGlobalSearch}
+                entityTypes={entityTypes}
+                recentSearches={["pending applications", "active trips", "offline senseis"]}
+                savedFilters={savedFilters}
+                onSaveFilter={handleSaveFilter}
+              />
+              
+              <SmartAlerts />
+            </div>
+            
             {activeTab === "dashboard" && (
               <AdminDashboardOverview 
                 stats={stats}
@@ -610,6 +697,13 @@ const AdminDashboard = () => {
                   filteredCount={filteredApplications.length}
                   statusOptions={statusOptions}
                   locationOptions={locationOptions}
+                />
+                
+                <BulkOperations
+                  selectedItems={selectedItems}
+                  onSelectionChange={setSelectedItems}
+                  itemType="applications"
+                  allItems={mockApplications}
                 />
 
                 {selectedItems.length > 0 && (
@@ -728,6 +822,12 @@ const AdminDashboard = () => {
             
             {activeTab === "trips" && (
               <div className="space-y-6">
+                <BulkOperations
+                  selectedItems={selectedItems}
+                  onSelectionChange={setSelectedItems}
+                  itemType="trips"
+                  allItems={mockTrips}
+                />
                 <h2 className="text-2xl font-bold">Trip Management</h2>
                 <AdminTripManagementOverview />
               </div>
