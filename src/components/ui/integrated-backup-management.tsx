@@ -382,8 +382,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg">{request.trips.title}</CardTitle>
-                        <CardDescription>{request.trips.theme} • {request.trips.dates}</CardDescription>
+                        <CardTitle className="text-lg">
+                          {request.trips?.title || 'Trip information unavailable'}
+                        </CardTitle>
+                        <CardDescription>
+                          {request.trips?.theme || 'Unknown theme'} • {request.trips?.dates || 'Unknown dates'}
+                        </CardDescription>
                       </div>
                       <Badge className={getStatusColor(request.status)}>
                         {getStatusIcon(request.status)}
@@ -393,11 +397,13 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">{request.trips.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {request.trips?.description || 'No description available'}
+                      </p>
                       <div className="flex items-center gap-4 text-sm">
                         <span>Match Score: {request.match_score}%</span>
-                        <span>Duration: {request.trips.duration_days} days</span>
-                        <span>Difficulty: {request.trips.difficulty_level}</span>
+                        <span>Duration: {request.trips?.duration_days || 'Unknown'} days</span>
+                        <span>Difficulty: {request.trips?.difficulty_level || 'Unknown'}</span>
                       </div>
                       {request.status === 'pending' && !isAdmin && (
                         <div className="flex gap-2 pt-2">
@@ -491,8 +497,12 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg">{application.trips.title}</CardTitle>
-                        <CardDescription>{application.trips.theme} • {application.trips.dates}</CardDescription>
+                        <CardTitle className="text-lg">
+                          {application.trips?.title || 'Trip information unavailable'}
+                        </CardTitle>
+                        <CardDescription>
+                          {application.trips?.theme || 'Unknown theme'} • {application.trips?.dates || 'Unknown dates'}
+                        </CardDescription>
                       </div>
                       <Badge className={getStatusColor(application.status)}>
                         {getStatusIcon(application.status)}
@@ -519,7 +529,7 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
               {respondingTo === 'accepted' ? 'Accept' : 'Decline'} Backup Request
             </DialogTitle>
             <DialogDescription>
-              Trip: {selectedRequest?.trips.title}
+              Trip: {selectedRequest?.trips?.title || 'Unknown trip'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
