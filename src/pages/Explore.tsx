@@ -30,6 +30,14 @@ interface Trip {
   rating: number;
   difficulty_level: string;
   duration_days: number;
+  included_amenities: string[];
+  excluded_items: string[];
+  requirements: string[];
+  max_participants: number;
+  current_participants: number;
+  sensei_id?: string;
+  trip_status?: string;
+  is_active?: boolean;
 }
 
 interface FilterState {
