@@ -15,6 +15,10 @@ import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
 import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
 import { SmartNotifications } from "@/components/ui/smart-notifications";
 import { CommunicationHub } from "@/components/ui/communication-hub";
+import { OnboardingWizard } from "@/components/ui/onboarding-wizard";
+import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
+import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
+import { GuidedTour, shouldShowTour } from "@/components/ui/guided-tour";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
@@ -92,6 +96,8 @@ const CustomerDashboard = () => {
   const [selectedTripForReview, setSelectedTripForReview] = useState<any>(null);
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -114,6 +120,9 @@ const CustomerDashboard = () => {
         fetchUserReviews(user.id),
         fetchAnnouncements(user.id)
       ]);
+      
+      // Check if user needs onboarding
+      checkOnboardingStatus(user.id);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -122,6 +131,28 @@ const CustomerDashboard = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkOnboardingStatus = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('customer_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // Show onboarding if no profile exists
+      if (!profile) {
+        setShowOnboarding(true);
+      } else {
+        // Show tour for first-time users (if they haven't seen it)
+        if (shouldShowTour()) {
+          setShowTour(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
     }
   };
 
@@ -248,6 +279,22 @@ const CustomerDashboard = () => {
     if (user) {
       fetchUserReviews(user.id);
     }
+  };
+
+  const handleOnboardingComplete = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+      setShowOnboarding(false);
+      
+      // Show tour after onboarding
+      if (shouldShowTour()) {
+        setTimeout(() => setShowTour(true), 1000);
+      }
+    }
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
   };
 
   const updateProfile = async () => {
@@ -403,55 +450,99 @@ const CustomerDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto p-4 lg:p-6">
-        <div className="mb-6">
+        <div className="mb-6" data-tour-target="dashboard-title">
           <h1 className="text-2xl lg:text-3xl font-bold">My Dashboard</h1>
           <p className="text-muted-foreground">Manage your trips, profile, and documents</p>
         </div>
 
         <Tabs defaultValue="trips" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
-            <TabsTrigger value="trips" className="flex items-center gap-2">
+            <TabsTrigger value="trips" className="flex items-center gap-2" data-tour-target="trips-tab">
               <MapPin className="h-4 w-4" />
               <span className="hidden sm:inline">My Trips</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger value="notifications" className="flex items-center gap-2" data-tour-target="notifications-tab">
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="news" className="flex items-center gap-2">
+            <TabsTrigger value="news" className="flex items-center gap-2" data-tour-target="news-tab">
               <Megaphone className="h-4 w-4" />
               <span className="hidden sm:inline">News</span>
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
+            <TabsTrigger value="messages" className="flex items-center gap-2" data-tour-target="messages-tab">
               <MessageCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-2">
+            <TabsTrigger value="reviews" className="flex items-center gap-2" data-tour-target="reviews-tab">
               <Star className="h-4 w-4" />
               <span className="hidden sm:inline">Reviews</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2" data-tour-target="profile-tab">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <TabsTrigger value="calendar" className="flex items-center gap-2" data-tour-target="calendar-tab">
               <CalendarIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Calendar</span>
             </TabsTrigger>
-            <TabsTrigger value="todos" className="flex items-center gap-2">
+            <TabsTrigger value="todos" className="flex items-center gap-2" data-tour-target="todos-tab">
               <CheckSquare className="h-4 w-4" />
               <span className="hidden sm:inline">To-Do</span>
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
+            <TabsTrigger value="documents" className="flex items-center gap-2" data-tour-target="documents-tab">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="trips" className="space-y-6">
-            {user && <PersonalizedDashboard userId={user.id} className="mb-6" />}
+            {/* Onboarding Components */}
+            {!profile && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <ProfileCompletionIndicator 
+                  profile={profile} 
+                  documents={documents}
+                  className="order-1"
+                />
+                <GettingStartedChecklist
+                  userId={user?.id || ''}
+                  userProfile={profile}
+                  userBookings={bookings}
+                  userDocuments={documents}
+                  userReviews={userReviews}
+                  className="order-2"
+                />
+              </div>
+            )}
             
-            {bookings.length > 0 && <TripTimelineVisualization tripBookings={bookings} className="mb-6" />}
+            {profile && (
+              <>
+                {user && <PersonalizedDashboard userId={user.id} className="mb-6" />}
+                
+                {/* Show completion indicator if profile is incomplete */}
+                {profile && (!profile.emergency_contact_name || !profile.emergency_contact_phone) && (
+                  <ProfileCompletionIndicator 
+                    profile={profile} 
+                    documents={documents}
+                    className="mb-6"
+                  />
+                )}
+                
+                {/* Show getting started checklist for new users */}
+                {(bookings.length === 0 || userReviews.length === 0) && (
+                  <GettingStartedChecklist
+                    userId={user?.id || ''}
+                    userProfile={profile}
+                    userBookings={bookings}
+                    userDocuments={documents}
+                    userReviews={userReviews}
+                    className="mb-6"
+                  />
+                )}
+                
+                {bookings.length > 0 && <TripTimelineVisualization tripBookings={bookings} className="mb-6" />}
+              </>
+            )}
             
             <Card>
               <CardHeader>
@@ -941,6 +1032,23 @@ const CustomerDashboard = () => {
             onSuccess={handleReviewSuccess}
           />
         )}
+
+        {/* Onboarding Wizard */}
+        {user && (
+          <OnboardingWizard
+            isOpen={showOnboarding}
+            onClose={() => setShowOnboarding(false)}
+            userId={user.id}
+            onComplete={handleOnboardingComplete}
+          />
+        )}
+
+        {/* Guided Tour */}
+        <GuidedTour
+          isOpen={showTour}
+          onClose={() => setShowTour(false)}
+          onComplete={handleTourComplete}
+        />
       </div>
     </div>
   );
