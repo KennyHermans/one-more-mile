@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
+import { SenseiBackupRequests } from "@/components/ui/sensei-backup-requests";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
@@ -59,7 +60,8 @@ import {
   XCircle,
   Eye,
   Download,
-  Megaphone
+  Megaphone,
+  UserPlus
 } from "lucide-react";
 
 const localizer = momentLocalizer(moment);

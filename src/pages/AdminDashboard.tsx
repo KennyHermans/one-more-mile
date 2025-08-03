@@ -26,6 +26,7 @@ import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dial
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
+import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
