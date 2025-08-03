@@ -528,6 +528,16 @@ const SenseiDashboard = () => {
     }
   };
 
+  const refreshPermissions = async () => {
+    if (user) {
+      await fetchTripPermissions(user.id);
+      toast({
+        title: "Permissions Refreshed",
+        description: "Trip permissions have been updated.",
+      });
+    }
+  };
+
   // Announcements functionality
   const fetchAnnouncements = async (userId: string) => {
     try {
@@ -660,7 +670,9 @@ const SenseiDashboard = () => {
   };
 
   const canEdit = (tripId: string, field: keyof TripPermissions): boolean => {
-    return permissions[tripId]?.[field] === true;
+    const result = permissions[tripId]?.[field] === true;
+    console.log(`canEdit(${tripId}, ${field}):`, result, 'permissions:', permissions[tripId]);
+    return result;
   };
 
   const handleSaveTrip = async () => {
@@ -1459,10 +1471,19 @@ const SenseiDashboard = () => {
                               Edit Trip
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
-                            </DialogHeader>
+                           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                             <DialogHeader>
+                               <div className="flex justify-between items-center">
+                                 <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+                                 <Button
+                                   onClick={refreshPermissions}
+                                   variant="outline"
+                                   size="sm"
+                                 >
+                                   Refresh Permissions
+                                 </Button>
+                               </div>
+                             </DialogHeader>
                             
                             {editingTrip && (
                               <div className="space-y-6">
