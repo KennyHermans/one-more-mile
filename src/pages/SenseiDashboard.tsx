@@ -2916,7 +2916,6 @@ const SenseiDashboard = () => {
         </div>
       </div>
     </DashboardAccessGuard>
-    </DashboardAccessGuard>
   );
 };
 
