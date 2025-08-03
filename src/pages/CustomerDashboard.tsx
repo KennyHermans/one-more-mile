@@ -451,7 +451,7 @@ const CustomerDashboard = () => {
       const { data, error } = await supabase.functions.invoke('create-payment-plan', {
         body: {
           tripId: booking.trip_id,
-          paymentType: 'fullPayment'
+          fullPayment: true
         }
       });
 
