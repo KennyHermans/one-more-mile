@@ -1,12 +1,25 @@
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { HeroSection } from "@/components/ui/hero-section";
 import { StatsSection } from "@/components/ui/stats-section";
 import { ThemeCard } from "@/components/ui/theme-card";
 import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
+import { TripCardSkeleton } from "@/components/ui/trip-card-skeleton";
 import { TestimonialsSection } from "@/components/ui/testimonials-section";
 import { Dumbbell, ChefHat, Heart, Globe } from "lucide-react";
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading for featured trips
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const themes = [
     {
       title: "Sports & Nutrition Retreats",
@@ -101,9 +114,17 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredTrips.map((trip) => (
-              <FeaturedTripCard key={trip.id} {...trip} />
-            ))}
+            {isLoading ? (
+              <>
+                <TripCardSkeleton />
+                <TripCardSkeleton />
+                <TripCardSkeleton />
+              </>
+            ) : (
+              featuredTrips.map((trip) => (
+                <FeaturedTripCard key={trip.id} {...trip} />
+              ))
+            )}
           </div>
         </div>
       </section>
