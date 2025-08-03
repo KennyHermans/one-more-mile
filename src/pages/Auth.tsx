@@ -56,7 +56,7 @@ const Auth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -69,7 +69,22 @@ const Auth = () => {
 
       if (error) {
         setError(error.message);
-      } else {
+      } else if (data.user) {
+        // Automatically create customer profile for new users
+        try {
+          await supabase
+            .from('customer_profiles')
+            .insert([
+              {
+                user_id: data.user.id,
+                full_name: name,
+              }
+            ]);
+        } catch (profileError) {
+          console.error('Error creating customer profile:', profileError);
+          // Don't fail the signup if profile creation fails
+        }
+        
         setSuccess("Check your email for the confirmation link!");
       }
     } catch (error: any) {
@@ -109,8 +124,14 @@ const Auth = () => {
           <Card>
             <CardHeader>
               <CardTitle className="font-serif text-2xl text-center">
-                {isSignUp ? "Join as a Sensei" : "Sensei Login"}
+                {isSignUp ? "Create Your Account" : "Welcome Back"}
               </CardTitle>
+              <p className="text-center text-muted-foreground">
+                {isSignUp 
+                  ? "Join our community of adventurers and guides"
+                  : "Sign in to access your dashboard"
+                }
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               {error && (

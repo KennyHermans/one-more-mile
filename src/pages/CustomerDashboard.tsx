@@ -22,6 +22,7 @@ import { GuidedTour, shouldShowTour } from "@/components/ui/guided-tour";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { Navigation } from "@/components/ui/navigation";
+import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 
 interface CustomerProfile {
   id: string;
@@ -447,9 +448,10 @@ const CustomerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="container mx-auto p-4 lg:p-6">
+    <DashboardAccessGuard requiredRole="customer">
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto p-4 lg:p-6">
         <div className="mb-6" data-tour-target="dashboard-title">
           <h1 className="text-2xl lg:text-3xl font-bold">My Dashboard</h1>
           <p className="text-muted-foreground">Manage your trips, profile, and documents</p>
@@ -1049,8 +1051,9 @@ const CustomerDashboard = () => {
           onClose={() => setShowTour(false)}
           onComplete={handleTourComplete}
         />
+        </div>
       </div>
-    </div>
+    </DashboardAccessGuard>
   );
 };
 

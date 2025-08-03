@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
+import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -981,8 +982,9 @@ const SenseiDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Navigation />
+    <DashboardAccessGuard requiredRole="sensei">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -2667,7 +2669,8 @@ const SenseiDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardAccessGuard>
   );
 };
 

@@ -1,82 +1,29 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./button";
 import { EnhancedMobileNavigation } from "./enhanced-mobile-navigation";
 import { RoleSwitcher } from "./role-switcher";
 import { User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { useProfileManagement } from "@/hooks/use-profile-management";
 
 export function Navigation() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [hasSenseiProfile, setHasSenseiProfile] = useState(false);
-  const [hasCustomerProfile, setHasCustomerProfile] = useState(false);
+  const { user, session, profileStatus } = useProfileManagement();
   const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
+  const navigate = useNavigate();
 
   // Check if current user is admin
   const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
-  const checkUserProfiles = async (userId: string) => {
-    try {
-      // Check for sensei profile
-      const { data: senseiData } = await supabase
-        .from('sensei_profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      // Check for customer profile
-      const { data: customerData } = await supabase
-        .from('customer_profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      const isSensei = !!senseiData;
-      const isCustomer = !!customerData;
-      
-      setHasSenseiProfile(isSensei);
-      setHasCustomerProfile(isCustomer);
-      
-      // Set default role based on available profiles
-      if (isSensei && !isCustomer) {
+  // Update current role when profile status changes
+  useEffect(() => {
+    if (!profileStatus.isLoading) {
+      if (profileStatus.hasSenseiProfile && !profileStatus.hasCustomerProfile) {
         setCurrentRole('sensei');
       } else {
         setCurrentRole('customer'); // Default to customer
       }
-    } catch (error) {
-      console.error('Error checking user profiles:', error);
     }
-  };
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          checkUserProfiles(session.user.id);
-        } else {
-          setHasSenseiProfile(false);
-          setHasCustomerProfile(false);
-          setCurrentRole('customer');
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkUserProfiles(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  }, [profileStatus]);
 
   return (
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
@@ -129,13 +76,13 @@ export function Navigation() {
                 {/* Role Switcher for dual-role users */}
                 <RoleSwitcher
                   currentRole={currentRole}
-                  hasCustomerProfile={hasCustomerProfile}
-                  hasSenseiProfile={hasSenseiProfile}
+                  hasCustomerProfile={profileStatus.hasCustomerProfile}
+                  hasSenseiProfile={profileStatus.hasSenseiProfile}
                   onRoleChange={setCurrentRole}
                 />
                 
                 {/* Profile Management - Clear role-based access */}
-                {currentRole === 'sensei' && hasSenseiProfile ? (
+                {currentRole === 'sensei' && profileStatus.hasSenseiProfile ? (
                   <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                     <Link to="/sensei-profile">
                       <User className="w-4 h-4 mr-2" />
@@ -146,10 +93,10 @@ export function Navigation() {
                   <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                     <Link to="/customer/profile">
                       <User className="w-4 h-4 mr-2" />
-                      {hasCustomerProfile ? 'My Profile' : 'Complete Profile'}
+                      {profileStatus.hasCustomerProfile ? 'My Profile' : 'Complete Profile'}
                     </Link>
                   </Button>
-                ) : hasSenseiProfile ? (
+                ) : profileStatus.hasSenseiProfile ? (
                   <Button asChild variant="outline" className="font-sans font-medium transition-all duration-300 hover:scale-105">
                     <Link to="/customer/profile">
                       <User className="w-4 h-4 mr-2" />
@@ -161,6 +108,15 @@ export function Navigation() {
                     <Link to="/customer/profile">
                       <User className="w-4 h-4 mr-2" />
                       Create Profile
+                    </Link>
+                  </Button>
+                )}
+
+                {/* Become a Sensei CTA for customers who aren't Senseis yet */}
+                {currentRole === 'customer' && profileStatus.hasCustomerProfile && !profileStatus.hasSenseiProfile && (
+                  <Button asChild variant="default" className="font-sans font-medium transition-all duration-300 hover:scale-105">
+                    <Link to="/become-sensei">
+                      Become a Sensei
                     </Link>
                   </Button>
                 )}

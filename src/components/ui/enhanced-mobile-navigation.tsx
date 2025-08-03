@@ -26,8 +26,7 @@ import {
   X,
   ChevronRight
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { useProfileManagement } from "@/hooks/use-profile-management";
 import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
@@ -40,52 +39,17 @@ interface NavItem {
 
 export function EnhancedMobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [hasSenseiProfile, setHasSenseiProfile] = useState(false);
-  const [hasCustomerProfile, setHasCustomerProfile] = useState(false);
+  const { user, session, profileStatus } = useProfileManagement();
   const [currentRole, setCurrentRole] = useState<'customer' | 'sensei'>('customer');
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const { toast } = useToast();
 
   // Check if current user is admin
   const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
-  const checkUserProfiles = async (userId: string) => {
-    try {
-      // Check for sensei profile
-      const { data: senseiData } = await supabase
-        .from('sensei_profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      // Check for customer profile
-      const { data: customerData } = await supabase
-        .from('customer_profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      const isSensei = !!senseiData;
-      const isCustomer = !!customerData;
-      
-      setHasSenseiProfile(isSensei);
-      setHasCustomerProfile(isCustomer);
-      
-      // Set default role based on available profiles
-      if (isSensei && !isCustomer) {
-        setCurrentRole('sensei');
-      } else {
-        setCurrentRole('customer'); // Default to customer
-      }
-    } catch (error) {
-      console.error('Error checking user profiles:', error);
-    }
-  };
-
   const handleSignOut = async () => {
+    const { supabase } = await import('@/integrations/supabase/client');
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
@@ -104,50 +68,39 @@ export function EnhancedMobileNavigation() {
 
   const fetchNotificationCount = async (userId: string) => {
     try {
+      const { supabase } = await import('@/integrations/supabase/client');
       const { data } = await supabase
         .from('customer_notifications')
         .select('id')
         .eq('user_id', userId)
         .eq('is_read', false);
       
-      setUnreadNotifications(data?.length || 0);
+      setUnreadCount(data?.length || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      setUnreadNotifications(0);
+      setUnreadCount(0);
     }
   };
 
+  // Update current role when profile status changes
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          checkUserProfiles(session.user.id);
-          // Fetch real notification count
-          fetchNotificationCount(session.user.id);
-        } else {
-          setHasSenseiProfile(false);
-          setHasCustomerProfile(false);
-          setCurrentRole('customer');
-          setUnreadNotifications(0);
-        }
+    if (!profileStatus.isLoading) {
+      if (profileStatus.hasSenseiProfile && !profileStatus.hasCustomerProfile) {
+        setCurrentRole('sensei');
+      } else {
+        setCurrentRole('customer'); // Default to customer
       }
-    );
+    }
+  }, [profileStatus]);
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkUserProfiles(session.user.id);
-        fetchNotificationCount(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Fetch notifications when user changes
+  useEffect(() => {
+    if (user) {
+      fetchNotificationCount(user.id);
+    } else {
+      setUnreadCount(0);
+    }
+  }, [user]);
 
   // Close drawer when route changes
   useEffect(() => {
@@ -207,15 +160,15 @@ export function EnhancedMobileNavigation() {
     // Profile links - Clear role-based access
     {
       icon: User,
-      label: currentRole === 'sensei' && hasSenseiProfile 
+      label: currentRole === 'sensei' && profileStatus.hasSenseiProfile 
         ? "Sensei Profile" 
         : currentRole === 'customer'
-          ? (hasCustomerProfile ? "My Profile" : "Complete Profile")
-          : hasSenseiProfile
+          ? (profileStatus.hasCustomerProfile ? "My Profile" : "Complete Profile")
+          : profileStatus.hasSenseiProfile
             ? "Create Customer Profile"
             : "Create Profile",
-      href: currentRole === 'sensei' && hasSenseiProfile ? "/sensei-profile" : "/customer/profile",
-      description: currentRole === 'sensei' && hasSenseiProfile 
+      href: currentRole === 'sensei' && profileStatus.hasSenseiProfile ? "/sensei-profile" : "/customer/profile",
+      description: currentRole === 'sensei' && profileStatus.hasSenseiProfile 
         ? "Manage your sensei profile" 
         : currentRole === 'customer'
           ? "Edit your personal information"
@@ -223,22 +176,29 @@ export function EnhancedMobileNavigation() {
     },
     
     // Customer-specific quick access (only show when in customer mode)
-    ...(currentRole === 'customer' ? [
+    ...(currentRole === 'customer' && profileStatus.hasCustomerProfile ? [
       {
         icon: Heart,
         label: "Wishlist",
         href: "/customer/dashboard",
-        description: "Saved adventures",
-        badge: "3"
+        description: "Saved adventures"
       },
       {
         icon: Bell,
         label: "Notifications",
         href: "/customer/dashboard",
         description: "Updates & alerts",
-        badge: unreadNotifications > 0 ? unreadNotifications.toString() : undefined
+        badge: unreadCount > 0 ? unreadCount.toString() : undefined
       }
-    ] : [])
+    ] : []),
+    
+    // Add "Become a Sensei" CTA for customers who aren't Senseis yet
+    ...(currentRole === 'customer' && profileStatus.hasCustomerProfile && !profileStatus.hasSenseiProfile ? [{
+      icon: Mountain,
+      label: "Become a Sensei",
+      href: "/become-sensei",
+      description: "Start leading adventures"
+    }] : [])
   ];
 
   const isCurrentPath = (path: string) => {
@@ -294,10 +254,10 @@ export function EnhancedMobileNavigation() {
           className="md:hidden relative hover:bg-primary/10 transition-colors"
         >
           <Menu className="h-5 w-5" />
-          {unreadNotifications > 0 && (
+          {unreadCount > 0 && (
             <div className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center">
               <span className="text-xs text-white font-bold">
-                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             </div>
           )}
@@ -349,7 +309,7 @@ export function EnhancedMobileNavigation() {
                           {user.email}
                         </p>
                       </div>
-                      {hasSenseiProfile && (
+                      {profileStatus.hasSenseiProfile && (
                         <Badge variant="outline" className="gap-1">
                           <Crown className="h-3 w-3" />
                           Sensei
@@ -365,13 +325,15 @@ export function EnhancedMobileNavigation() {
                   </div>
                   
                   {/* Role Switcher for dual-role users */}
-                  <RoleSwitcher
-                    currentRole={currentRole}
-                    hasCustomerProfile={hasCustomerProfile}
-                    hasSenseiProfile={hasSenseiProfile}
-                    onRoleChange={setCurrentRole}
-                    className="w-full"
-                  />
+                  {profileStatus.hasCustomerProfile && profileStatus.hasSenseiProfile && (
+                    <RoleSwitcher
+                      currentRole={currentRole}
+                      hasCustomerProfile={profileStatus.hasCustomerProfile}
+                      hasSenseiProfile={profileStatus.hasSenseiProfile}
+                      onRoleChange={setCurrentRole}
+                      className="w-full"
+                    />
+                  )}
                 </div>
               )}
 
