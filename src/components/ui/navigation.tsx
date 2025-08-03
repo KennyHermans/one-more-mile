@@ -29,7 +29,7 @@ export function Navigation() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-3 group">
           <img 
-            src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png" 
+            src="/lovable-uploads/81c21caf-1b83-4480-bbe6-7d895da092cd.png" 
             alt="One More Mile Logo" 
             className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
           />
