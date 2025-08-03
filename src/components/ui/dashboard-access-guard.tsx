@@ -15,10 +15,19 @@ interface DashboardAccessGuardProps {
 export function DashboardAccessGuard({ requiredRole, children }: DashboardAccessGuardProps) {
   const { user, profileStatus } = useProfileManagement();
   const navigate = useNavigate();
+  
+  console.log('🛡️ DashboardAccessGuard check:', {
+    requiredRole,
+    user: user?.email,
+    isLoading: profileStatus.isLoading,
+    hasCustomerProfile: profileStatus.hasCustomerProfile,
+    hasSenseiProfile: profileStatus.hasSenseiProfile
+  });
 
   useEffect(() => {
     // Redirect to auth if not logged in
     if (!user) {
+      console.log('🚫 No user found, redirecting to auth');
       navigate('/auth');
       return;
     }
@@ -26,6 +35,7 @@ export function DashboardAccessGuard({ requiredRole, children }: DashboardAccess
 
   // Show loading while checking profiles
   if (profileStatus.isLoading || !user) {
+    console.log('⏳ Loading state or no user');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner />
@@ -37,6 +47,8 @@ export function DashboardAccessGuard({ requiredRole, children }: DashboardAccess
   const hasRequiredProfile = requiredRole === 'customer' 
     ? profileStatus.hasCustomerProfile 
     : profileStatus.hasSenseiProfile;
+
+  console.log('🔐 Profile check result:', { hasRequiredProfile, requiredRole });
 
   if (!hasRequiredProfile) {
     return (
