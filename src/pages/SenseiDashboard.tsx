@@ -1090,6 +1090,13 @@ const SenseiDashboard = () => {
           </div>
         );
 
+      case "gamification":
+        return senseiProfile ? (
+          <SenseiGamificationDashboard senseiId={senseiProfile.id} />
+        ) : (
+          <div className="text-center py-8">Loading gamification data...</div>
+        );
+
       case "analytics":
         return <SenseiAnalyticsDashboard />;
 

@@ -25,7 +25,8 @@ import {
   Calendar,
   CheckSquare,
   Settings,
-  Home
+  Home,
+  Crown
 } from "lucide-react";
 
 const sidebarItems = [
@@ -33,6 +34,11 @@ const sidebarItems = [
     title: "Overview",
     value: "overview",
     icon: Home
+  },
+  {
+    title: "Level & Progress",
+    value: "gamification",
+    icon: Crown
   },
   {
     title: "Analytics",

@@ -36,6 +36,7 @@ import { AdminTripManagementOverview } from "@/components/ui/admin-trip-manageme
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
 import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
+import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -1116,6 +1117,7 @@ const AdminDashboard = () => {
             {activeTab === "roles" && (
               <div className="space-y-6">
                 <AdminRoleManagement />
+                <AdminSenseiLevelManagement />
               </div>
             )}
 
