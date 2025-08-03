@@ -2179,176 +2179,172 @@ const SenseiDashboard = () => {
             <SenseiAvailabilitySettings />
           </TabsContent>
         </Tabs>
-          </div>
-        </main>
       </div>
 
-        {/* Cancel Trip Dialog */}
-        <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cancel Trip</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                Are you sure you want to cancel "{selectedTripForCancel?.title}"? 
-                This will notify the admin so they can find a replacement Sensei.
-              </p>
+      {/* Cancel Trip Dialog */}
+      <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Trip</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Are you sure you want to cancel "{selectedTripForCancel?.title}"? 
+              This will notify the admin so they can find a replacement Sensei.
+            </p>
+            <div>
+              <Label htmlFor="cancellation-reason">Reason for cancellation *</Label>
+              <Textarea
+                id="cancellation-reason"
+                placeholder="Please explain why you need to cancel this trip..."
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => {
+                setCancelTripOpen(false);
+                setSelectedTripForCancel(null);
+                setCancellationReason("");
+              }}>
+                Keep Trip
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleCancelTrip}
+                disabled={!cancellationReason.trim()}
+              >
+                Cancel Trip
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="public" className="mt-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="public">Public Information</TabsTrigger>
+              <TabsTrigger value="admin">Admin Information</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="public" className="space-y-4 mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={profileFormData.name}
+                    onChange={(e) => setProfileFormData({...profileFormData, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="specialty">Main Specialty</Label>
+                  <Input
+                    id="specialty"
+                    value={profileFormData.specialty}
+                    onChange={(e) => setProfileFormData({...profileFormData, specialty: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={profileFormData.location}
+                    onChange={(e) => setProfileFormData({...profileFormData, location: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="experience">Experience</Label>
+                  <Input
+                    id="experience"
+                    value={profileFormData.experience}
+                    onChange={(e) => setProfileFormData({...profileFormData, experience: e.target.value})}
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor="cancellation-reason">Reason for cancellation *</Label>
+                <Label htmlFor="bio">Bio</Label>
                 <Textarea
-                  id="cancellation-reason"
-                  placeholder="Please explain why you need to cancel this trip..."
-                  value={cancellationReason}
-                  onChange={(e) => setCancellationReason(e.target.value)}
+                  id="bio"
+                  value={profileFormData.bio}
+                  onChange={(e) => setProfileFormData({...profileFormData, bio: e.target.value})}
                   rows={4}
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => {
-                  setCancelTripOpen(false);
-                  setSelectedTripForCancel(null);
-                  setCancellationReason("");
-                }}>
-                  Keep Trip
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={handleCancelTrip}
-                  disabled={!cancellationReason.trim()}
-                >
-                  Cancel Trip
-                </Button>
+              <div>
+                <Label htmlFor="image_url">Profile Image URL</Label>
+                <Input
+                  id="image_url"
+                  value={profileFormData.image_url}
+                  onChange={(e) => setProfileFormData({...profileFormData, image_url: e.target.value})}
+                />
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </TabsContent>
 
-        {/* Edit Profile Dialog */}
-        <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
-            </DialogHeader>
-            
-            <Tabs defaultValue="public" className="mt-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="public">Public Information</TabsTrigger>
-                <TabsTrigger value="admin">Admin Information</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="public" className="space-y-4 mt-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={profileFormData.name}
-                      onChange={(e) => setProfileFormData({...profileFormData, name: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="specialty">Main Specialty</Label>
-                    <Input
-                      id="specialty"
-                      value={profileFormData.specialty}
-                      onChange={(e) => setProfileFormData({...profileFormData, specialty: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={profileFormData.location}
-                      onChange={(e) => setProfileFormData({...profileFormData, location: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="experience">Experience</Label>
-                    <Input
-                      id="experience"
-                      value={profileFormData.experience}
-                      onChange={(e) => setProfileFormData({...profileFormData, experience: e.target.value})}
-                    />
-                  </div>
-                </div>
+            <TabsContent value="admin" className="space-y-4 mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={profileFormData.bio}
-                    onChange={(e) => setProfileFormData({...profileFormData, bio: e.target.value})}
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="image_url">Profile Image URL</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
-                    id="image_url"
-                    value={profileFormData.image_url}
-                    onChange={(e) => setProfileFormData({...profileFormData, image_url: e.target.value})}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="admin" className="space-y-4 mt-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={profileFormData.phone}
-                      onChange={(e) => setProfileFormData({...profileFormData, phone: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      value={profileFormData.email}
-                      onChange={(e) => setProfileFormData({...profileFormData, email: e.target.value})}
-                      disabled
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="availability">Availability Notes</Label>
-                  <Textarea
-                    id="availability"
-                    value={profileFormData.availability}
-                    onChange={(e) => setProfileFormData({...profileFormData, availability: e.target.value})}
-                    rows={3}
+                    id="phone"
+                    value={profileFormData.phone}
+                    onChange={(e) => setProfileFormData({...profileFormData, phone: e.target.value})}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="notes">Admin Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={profileFormData.notes}
-                    onChange={(e) => setProfileFormData({...profileFormData, notes: e.target.value})}
-                    rows={3}
-                    placeholder="Internal notes for admin use..."
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={profileFormData.email}
+                    onChange={(e) => setProfileFormData({...profileFormData, email: e.target.value})}
+                    disabled
                   />
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+              <div>
+                <Label htmlFor="availability">Availability Notes</Label>
+                <Textarea
+                  id="availability"
+                  value={profileFormData.availability}
+                  onChange={(e) => setProfileFormData({...profileFormData, availability: e.target.value})}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="notes">Admin Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={profileFormData.notes}
+                  onChange={(e) => setProfileFormData({...profileFormData, notes: e.target.value})}
+                  rows={3}
+                  placeholder="Internal notes for admin use..."
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
 
-            <div className="flex gap-4 mt-6">
-              <Button onClick={handleProfileUpdate}>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
-              <Button variant="outline" onClick={() => setEditProfileOpen(false)}>
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        
-        </main>
-      </div>
-    </SidebarProvider>
+          <div className="flex gap-4 mt-6">
+            <Button onClick={handleProfileUpdate}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Changes
+            </Button>
+            <Button variant="outline" onClick={() => setEditProfileOpen(false)}>
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
   );
 };
 
