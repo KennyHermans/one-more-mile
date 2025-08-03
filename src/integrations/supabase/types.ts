@@ -238,6 +238,42 @@ export type Database = {
           },
         ]
       }
+      customer_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_trip_id: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_trip_id?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_trip_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       customer_profiles: {
         Row: {
           created_at: string
@@ -323,6 +359,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payment_failures: {
         Row: {
@@ -1233,7 +1296,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_travel_stats: {
+        Row: {
+          avg_rating_given: number | null
+          preferred_themes: string[] | null
+          reviews_written: number | null
+          total_spent: number | null
+          trips_completed: number | null
+          trips_pending: number | null
+          trips_wishlisted: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_payment_deadline: {
