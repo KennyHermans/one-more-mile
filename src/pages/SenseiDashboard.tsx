@@ -1067,24 +1067,26 @@ const SenseiDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Welcome back, {senseiProfile.name}!
-            </h1>
-            <p className="text-lg text-gray-600">
-              Manage your trips and profile from your dashboard
-            </p>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                Welcome back, {senseiProfile.name}!
+              </h1>
+              <p className="text-lg text-gray-600">
+                Manage your trips and profile from your dashboard
+              </p>
+            </div>
+            <Button 
+              onClick={() => setEditProfileOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit Profile
+            </Button>
           </div>
-          <Button 
-            onClick={() => setEditProfileOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit Profile
-          </Button>
-        </div>
+
+          <Tabs defaultValue="overview" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 xl:grid-cols-14 overflow-x-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -2748,14 +2750,9 @@ const SenseiDashboard = () => {
             <SenseiAvailabilitySettings />
           </TabsContent>
         </Tabs>
-              </div>
-            </main>
-          </div>
-        </div>
-      </SidebarProvider>
-
-      {/* Cancel Trip Dialog */}
-      <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
+        
+        {/* Cancel Trip Dialog */}
+        <Dialog open={cancelTripOpen} onOpenChange={setCancelTripOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cancel Trip</DialogTitle>
@@ -2915,13 +2912,10 @@ const SenseiDashboard = () => {
             </Button>
           </div>
         </DialogContent>
-       </Dialog>
-
-       {/* Dialogs continue outside the sidebar layout */}
-       <DialogContent>
-         {/* Dialog content continues here - but need to move this outside properly */}
-       </DialogContent>
-      </SidebarProvider>
+      </Dialog>
+        </div>
+      </div>
+    </DashboardAccessGuard>
     </DashboardAccessGuard>
   );
 };
