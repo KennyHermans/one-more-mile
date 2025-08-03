@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
+import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Senseis from "./pages/Senseis";
@@ -40,11 +42,11 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/become-sensei" element={<BecomeSensei />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/applications" element={<AdminApplications />} />
-            <Route path="/admin/trips" element={<AdminTrips />} />
-            <Route path="/sensei/dashboard" element={<SenseiDashboard />} />
-            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminAccessGuard><AdminDashboard /></AdminAccessGuard>} />
+            <Route path="/admin/applications" element={<AdminAccessGuard><AdminApplications /></AdminAccessGuard>} />
+            <Route path="/admin/trips" element={<AdminAccessGuard><AdminTrips /></AdminAccessGuard>} />
+            <Route path="/sensei/dashboard" element={<DashboardAccessGuard requiredRole="sensei"><SenseiDashboard /></DashboardAccessGuard>} />
+            <Route path="/customer/dashboard" element={<DashboardAccessGuard requiredRole="customer"><CustomerDashboard /></DashboardAccessGuard>} />
             <Route path="/customer/profile" element={<CustomerProfile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
