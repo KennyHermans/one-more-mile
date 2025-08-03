@@ -75,6 +75,21 @@ export function EnhancedMobileNavigation() {
     }
   };
 
+  const fetchNotificationCount = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from('customer_notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_read', false);
+      
+      setUnreadNotifications(data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setUnreadNotifications(0);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -83,8 +98,8 @@ export function EnhancedMobileNavigation() {
         setUser(session?.user ?? null);
         if (session?.user) {
           checkSenseiStatus(session.user.id);
-          // Mock notification count - in real app, fetch from database
-          setUnreadNotifications(Math.floor(Math.random() * 5));
+          // Fetch real notification count
+          fetchNotificationCount(session.user.id);
         } else {
           setIsSensei(false);
           setUnreadNotifications(0);
@@ -98,7 +113,7 @@ export function EnhancedMobileNavigation() {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkSenseiStatus(session.user.id);
-        setUnreadNotifications(Math.floor(Math.random() * 5));
+        fetchNotificationCount(session.user.id);
       }
     });
 

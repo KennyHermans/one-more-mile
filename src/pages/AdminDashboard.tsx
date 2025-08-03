@@ -171,6 +171,7 @@ interface SenseiProfile {
   bio: string;
   rating: number;
   trips_led: number;
+  is_active?: boolean;
 }
 
 interface DashboardStats {
@@ -591,29 +592,29 @@ const AdminDashboard = () => {
     { value: 'applications', label: 'Applications', count: applications.length },
     { value: 'trips', label: 'Trips', count: trips.length },
     { value: 'senseis', label: 'Senseis', count: senseis.length },
-    { value: 'bookings', label: 'Bookings', count: 150 }
+    { value: 'bookings', label: 'Bookings', count: tripBookings ? Object.values(tripBookings).flat().length : 0 }
   ];
 
-  // Mock data for bulk operations
-  const mockApplications = applications.map(app => ({
+  // Transform data for bulk operations (these are not mock but mapped real data)
+  const transformedApplications = applications.map(app => ({
     id: app.id,
     name: app.full_name,
     email: app.email,
     status: app.status
   }));
 
-  const mockTrips = trips.map(trip => ({
+  const transformedTrips = trips.map(trip => ({
     id: trip.id,
     title: trip.title,
     destination: trip.destination,
     status: trip.is_active ? 'active' : 'inactive'
   }));
 
-  const mockSenseis = senseis.map(sensei => ({
+  const transformedSenseis = senseis.map(sensei => ({
     id: sensei.id,
     name: sensei.name,
     location: sensei.location,
-    status: 'active'
+    status: sensei.is_active ? 'active' : 'inactive'
   }));
 
   if (loading || !user) {
@@ -713,7 +714,7 @@ const AdminDashboard = () => {
                   selectedItems={selectedItems}
                   onSelectionChange={setSelectedItems}
                   itemType="applications"
-                  allItems={mockApplications}
+                  allItems={transformedApplications}
                 />
 
                 {selectedItems.length > 0 && (
@@ -836,7 +837,7 @@ const AdminDashboard = () => {
                   selectedItems={selectedItems}
                   onSelectionChange={setSelectedItems}
                   itemType="trips"
-                  allItems={mockTrips}
+                  allItems={transformedTrips}
                 />
                 <AdvancedTripManagement />
               </div>

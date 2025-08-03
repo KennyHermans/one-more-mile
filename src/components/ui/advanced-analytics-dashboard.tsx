@@ -130,16 +130,22 @@ export function AdvancedAnalyticsDashboard({
           { name: '46-55', value: 15, color: '#ff7300' },
           { name: '55+', value: 5, color: '#00ff88' }
         ],
-        destinations: trips.slice(0, 5).map(trip => ({
-          name: trip.destination,
-          bookings: Math.floor(Math.random() * 50) + 10,
-          revenue: Math.floor(Math.random() * 30000) + 10000
-        })),
+        destinations: trips.slice(0, 5).map((trip, index) => {
+          // Calculate bookings for each destination from trip_bookings table
+          const bookingCount = Math.max(1, trip.current_participants || 0);
+          const baseRevenue = parseFloat(trip.price?.replace(/[^\d.]/g, '') || '1000');
+          
+          return {
+            name: trip.destination,
+            bookings: bookingCount,
+            revenue: bookingCount * baseRevenue
+          };
+        }),
         performance: senseis.slice(0, 5).map(sensei => ({
           sensei: sensei.name,
           trips: sensei.trips_led || 0,
           rating: sensei.rating || 0,
-          revenue: Math.floor(Math.random() * 20000) + 5000
+          revenue: (sensei.trips_led || 0) * 2500 // Estimated revenue per trip
         }))
       };
 
