@@ -1087,7 +1087,7 @@ const SenseiDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 xl:grid-cols-14 overflow-x-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
@@ -1097,6 +1097,11 @@ const SenseiDashboard = () => {
             <TabsTrigger value="todos">Todos</TabsTrigger>
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
             <TabsTrigger value="availability">Settings</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="certificates">Certificates</TabsTrigger>
+            <TabsTrigger value="announcements">Announcements</TabsTrigger>
+            <TabsTrigger value="backup-sensei">Backup Sensei</TabsTrigger>
+            <TabsTrigger value="trip-editor">Trip Editor</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
