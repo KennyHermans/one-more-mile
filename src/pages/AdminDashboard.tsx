@@ -14,6 +14,7 @@ import { BulkOperations } from "@/components/ui/bulk-operations";
 import { GlobalSearch } from "@/components/ui/global-search";
 import { CommunicationHub } from "@/components/ui/communication-hub";
 import { AdvancedTripManagement } from "@/components/ui/advanced-trip-management";
+import { TripCalendar } from "@/components/ui/trip-calendar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1021,6 +1022,13 @@ const AdminDashboard = () => {
             {activeTab === "roles" && (
               <div className="space-y-6">
                 <AdminRoleManagement />
+              </div>
+            )}
+
+            {activeTab === "calendar" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Trip Calendar</h2>
+                <TripCalendar />
               </div>
             )}
 
