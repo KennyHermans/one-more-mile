@@ -324,6 +324,167 @@ export type Database = {
           },
         ]
       }
+      payment_failures: {
+        Row: {
+          amount: number
+          attempted_at: string
+          created_at: string
+          failure_reason: string
+          id: string
+          payment_plan_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          attempted_at?: string
+          created_at?: string
+          failure_reason: string
+          id?: string
+          payment_plan_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          attempted_at?: string
+          created_at?: string
+          failure_reason?: string
+          id?: string
+          payment_plan_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_failures_payment_plan_id_fkey"
+            columns: ["payment_plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_plans: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          deposit_amount: number
+          id: string
+          installment_amount: number
+          installment_count: number
+          next_payment_date: string | null
+          payments_completed: number | null
+          plan_type: string
+          status: string | null
+          stripe_customer_id: string | null
+          total_amount: number
+          trip_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          deposit_amount: number
+          id?: string
+          installment_amount: number
+          installment_count: number
+          next_payment_date?: string | null
+          payments_completed?: number | null
+          plan_type: string
+          status?: string | null
+          stripe_customer_id?: string | null
+          total_amount: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          deposit_amount?: number
+          id?: string
+          installment_amount?: number
+          installment_count?: number
+          next_payment_date?: string | null
+          payments_completed?: number | null
+          plan_type?: string
+          status?: string | null
+          stripe_customer_id?: string | null
+          total_amount?: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plans_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_plans_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminders: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          is_sent: boolean | null
+          message: string
+          reminder_type: string
+          scheduled_date: string
+          sent_at: string | null
+          trip_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_sent?: boolean | null
+          message: string
+          reminder_type: string
+          scheduled_date: string
+          sent_at?: string | null
+          trip_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_sent?: boolean | null
+          message?: string
+          reminder_type?: string
+          scheduled_date?: string
+          sent_at?: string | null
+          trip_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_settings: {
         Row: {
           created_at: string

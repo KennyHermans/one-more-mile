@@ -28,3 +28,12 @@ verify_jwt = false
 
 [functions.payment-reminders]
 verify_jwt = false
+
+[functions.create-payment-plan]
+verify_jwt = true
+
+[functions.handle-payment-success]
+verify_jwt = true
+
+[functions.process-installment-payment]
+verify_jwt = false

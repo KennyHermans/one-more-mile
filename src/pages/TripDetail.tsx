@@ -86,6 +86,8 @@ const TripDetail = () => {
   const [user, setUser] = useState<any>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [bookingForm, setBookingForm] = useState({
     full_name: "",
     address: "",
@@ -107,7 +109,8 @@ const TripDetail = () => {
     }
   };
 
-  const handleBookTrip = (payNow: boolean) => {
+
+  const handlePaymentOption = async (planType: string, fullPayment = false) => {
     if (!user) {
       toast({
         title: "Please sign in",
@@ -117,88 +120,83 @@ const TripDetail = () => {
       navigate('/auth');
       return;
     }
-    setBookingForm(prev => ({ ...prev, payNow }));
-    setShowBookingDialog(true);
-  };
 
-  const handleBookingSubmit = async () => {
-    if (!user || !trip) return;
+    if (!trip) return;
 
-    setBookingLoading(true);
+    setPaymentLoading(true);
     try {
-      // Extract price as number
-      const priceString = trip.price.replace(/[^0-9.]/g, '');
-      const totalAmount = parseFloat(priceString);
-
-      // Set payment status based on user choice
-      const paymentStatus = bookingForm.payNow ? 'paid' : 'pending';
-      const bookingStatus = bookingForm.payNow ? 'confirmed' : 'reserved';
-
-      // Create booking
-      const { error: bookingError } = await supabase
-        .from('trip_bookings')
-        .insert({
-          trip_id: trip.id,
-          user_id: user.id,
-          total_amount: totalAmount,
-          payment_status: paymentStatus,
-          booking_status: bookingStatus
-        });
-
-      if (bookingError) throw bookingError;
-
-      // Create or update customer profile with basic info
-      const { error: profileError } = await supabase
-        .from('customer_profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: bookingForm.full_name,
-          phone: bookingForm.phone
-        });
-
-      if (profileError) throw profileError;
-
-      // Create initial todos for the customer
-      const defaultTodos = [
-        { title: "Complete passport verification", description: "Upload a clear photo of your passport", due_date: null, created_by_admin: true },
-        { title: "Submit travel insurance details", description: "Provide proof of travel insurance coverage", due_date: null, created_by_admin: true },
-        { title: "Add emergency contact details", description: "Complete your emergency contact information", due_date: null, created_by_admin: true },
-        { title: "Update dietary restrictions", description: "Let us know about any dietary restrictions or allergies", due_date: null, created_by_admin: true },
-        { title: "Medical conditions", description: "Share any medical conditions we should be aware of", due_date: null, created_by_admin: true }
-      ];
-
-      const todoInserts = defaultTodos.map(todo => ({
-        user_id: user.id,
-        trip_id: trip.id,
-        ...todo
-      }));
-
-      const { error: todoError } = await supabase
-        .from('customer_todos')
-        .insert(todoInserts);
-
-      if (todoError) throw todoError;
-
-      const successMessage = bookingForm.payNow 
-        ? "Payment successful! Your trip is confirmed."
-        : "Reservation successful! You can pay later in your dashboard.";
-
-      toast({
-        title: bookingForm.payNow ? "Booking confirmed!" : "Reservation successful!",
-        description: successMessage,
+      const { data, error } = await supabase.functions.invoke('create-payment-plan', {
+        body: {
+          tripId: trip.id,
+          planType,
+          fullPayment
+        }
       });
 
-      setShowBookingDialog(false);
-      navigate('/customer/dashboard');
+      if (error) throw error;
+
+      if (data.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+        toast({
+          title: "Redirecting to payment",
+          description: "Please complete your payment in the new tab",
+        });
+      }
     } catch (error: any) {
       toast({
-        title: "Booking failed",
+        title: "Payment setup failed",
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setBookingLoading(false);
+      setPaymentLoading(false);
     }
+  };
+
+  const calculateInstallmentBreakdown = (planType: string) => {
+    if (!trip) return null;
+    
+    const priceString = trip.price.replace(/[^0-9.]/g, '');
+    const totalAmount = parseFloat(priceString);
+    
+    switch (planType) {
+      case "2_payments":
+        return {
+          deposit: Math.round(totalAmount * 0.5),
+          installment: Math.round(totalAmount * 0.5),
+          count: 1
+        };
+      case "3_payments":
+        const deposit3 = Math.round(totalAmount * 0.4);
+        return {
+          deposit: deposit3,
+          installment: Math.round((totalAmount - deposit3) / 2),
+          count: 2
+        };
+      case "4_payments":
+        const deposit4 = Math.round(totalAmount * 0.3);
+        return {
+          deposit: deposit4,
+          installment: Math.round((totalAmount - deposit4) / 3),
+          count: 3
+        };
+      default:
+        return null;
+    }
+  };
+
+  const handleBookTrip = () => {
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to create an account to book a trip.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    setShowPaymentOptions(true);
   };
 
   useEffect(() => {
@@ -636,21 +634,11 @@ const TripDetail = () => {
                     <Button 
                       className="w-full font-sans font-medium" 
                       size="lg"
-                      onClick={() => handleBookTrip(true)}
+                      onClick={handleBookTrip}
                       disabled={trip.current_participants >= trip.max_participants}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
-                      {trip.current_participants >= trip.max_participants ? 'Fully Booked' : `Book & Pay Now ${trip.price}`}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="w-full font-sans font-medium" 
-                      size="lg"
-                      onClick={() => handleBookTrip(false)}
-                      disabled={trip.current_participants >= trip.max_participants}
-                    >
-                      Reserve Now, Pay Later
+                      {trip.current_participants >= trip.max_participants ? 'Fully Booked' : 'Book This Trip'}
                     </Button>
                   </div>
 
@@ -699,84 +687,134 @@ const TripDetail = () => {
         </div>
       </section>
 
-      {/* Booking Dialog */}
-      <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      {/* Payment Options Dialog */}
+      <Dialog open={showPaymentOptions} onOpenChange={setShowPaymentOptions}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Book Your Adventure</DialogTitle>
+            <DialogTitle>Choose Your Payment Plan</DialogTitle>
             <DialogDescription>
-              Complete your booking for {trip?.title}. We'll create your customer account and dashboard.
+              Select how you'd like to pay for your {trip?.title} adventure ({trip?.price} total)
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="full_name">Full Name *</Label>
-                <Input
-                  id="full_name"
-                  value={bookingForm.full_name}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, full_name: e.target.value }))}
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  value={bookingForm.phone}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
+          <div className="grid gap-6 py-6">
+            {/* Full Payment Option */}
+            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors cursor-pointer"
+                  onClick={() => handlePaymentOption("", true)}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">Pay in Full</h3>
+                      <p className="text-sm text-muted-foreground">Complete payment now</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary">{trip?.price}</div>
+                    <Badge variant="secondary" className="mt-1">Recommended</Badge>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  ✓ Instant booking confirmation ✓ Best value ✓ No additional fees
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Installment Plans */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-lg">Or choose an installment plan:</h4>
+              
+              {/* 2 Payments Plan */}
+              {(() => {
+                const breakdown = calculateInstallmentBreakdown("2_payments");
+                return breakdown ? (
+                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                        onClick={() => handlePaymentOption("2_payments")}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold">2 Payments</h4>
+                          <p className="text-sm text-muted-foreground">
+                            ${breakdown.deposit} now + ${breakdown.installment} in 30 days
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" disabled={paymentLoading}>
+                          {paymentLoading ? "Loading..." : "Choose Plan"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null;
+              })()}
+
+              {/* 3 Payments Plan */}
+              {(() => {
+                const breakdown = calculateInstallmentBreakdown("3_payments");
+                return breakdown ? (
+                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                        onClick={() => handlePaymentOption("3_payments")}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold">3 Payments</h4>
+                          <p className="text-sm text-muted-foreground">
+                            ${breakdown.deposit} now + ${breakdown.installment} × {breakdown.count} monthly
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" disabled={paymentLoading}>
+                          {paymentLoading ? "Loading..." : "Choose Plan"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null;
+              })()}
+
+              {/* 4 Payments Plan */}
+              {(() => {
+                const breakdown = calculateInstallmentBreakdown("4_payments");
+                return breakdown ? (
+                  <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                        onClick={() => handlePaymentOption("4_payments")}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold">4 Payments</h4>
+                          <p className="text-sm text-muted-foreground">
+                            ${breakdown.deposit} now + ${breakdown.installment} × {breakdown.count} monthly
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" disabled={paymentLoading}>
+                          {paymentLoading ? "Loading..." : "Choose Plan"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null;
+              })()}
             </div>
-            
-            <div>
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={bookingForm.email}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Enter your email address"
-                required
-                disabled
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="address">Address *</Label>
-              <Textarea
-                id="address"
-                value={bookingForm.address}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, address: e.target.value }))}
-                placeholder="Enter your full address"
-                rows={3}
-                required
-              />
+
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold mb-2">How it works:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Pay your deposit now to secure your spot</li>
+                <li>• Remaining payments are automatically charged monthly</li>
+                <li>• All payments are processed securely through Stripe</li>
+                <li>• Full trip confirmation once all payments are complete</li>
+              </ul>
             </div>
           </div>
           
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => setShowBookingDialog(false)}
-              disabled={bookingLoading}
+              onClick={() => setShowPaymentOptions(false)}
+              disabled={paymentLoading}
             >
               Cancel
-            </Button>
-            <Button 
-              onClick={handleBookingSubmit}
-              disabled={bookingLoading || !bookingForm.full_name || !bookingForm.phone || !bookingForm.email || !bookingForm.address}
-            >
-              {bookingLoading 
-                ? "Processing..." 
-                : bookingForm.payNow 
-                  ? `Pay Now ${trip?.price}` 
-                  : "Reserve My Spot"
-              }
             </Button>
           </DialogFooter>
         </DialogContent>

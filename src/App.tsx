@@ -19,6 +19,8 @@ import AdminTrips from "./pages/AdminTrips";
 import SenseiDashboard from "./pages/SenseiDashboard";
 import TripDetail from "./pages/TripDetail";
 import CustomerDashboard from "./pages/CustomerDashboard";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/sensei-profile" element={<SenseiProfile />} />
             <Route path="/senseis/:senseiId" element={<SenseiPublicProfile />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
