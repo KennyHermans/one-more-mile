@@ -33,9 +33,13 @@ serve(async (req) => {
     logStep("Request data received", { tripId, planType, fullPayment });
 
     // Retrieve authenticated user
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
+    
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    const { data, error: authError } = await supabaseClient.auth.getUser(token);
+    if (authError) throw new Error(`Authentication error: ${authError.message}`);
+    
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
@@ -54,12 +58,19 @@ serve(async (req) => {
     const priceString = trip.price.replace(/[^0-9.]/g, '');
     const totalAmountDollars = parseFloat(priceString);
     const totalAmountCents = Math.round(totalAmountDollars * 100);
-    logStep("Price calculation", { totalAmountDollars, totalAmountCents });
+    
+    // Determine currency from price string
+    const currency = trip.price.includes('€') ? 'eur' : 'usd';
+    logStep("Price calculation", { totalAmountDollars, totalAmountCents, currency });
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not configured");
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
+    logStep("Stripe initialized");
 
     // Check if a Stripe customer record exists for this user
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -82,7 +93,7 @@ serve(async (req) => {
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: currency,
               product_data: { 
                 name: `${trip.title} - Full Payment`,
                 description: `Complete payment for ${trip.destination} trip`
@@ -106,7 +117,9 @@ serve(async (req) => {
       let depositAmount, installmentAmount, installmentCount;
       
       if (planType === "deposit_1000") {
-        depositAmount = 100000; // €1000 in cents
+        // Use €1000 or $1000 depending on trip currency
+        const depositAmountValue = currency === 'eur' ? 1000 : 1000;
+        depositAmount = depositAmountValue * 100; // Convert to cents
         installmentAmount = totalAmountCents - depositAmount;
         installmentCount = 1;
       } else {
@@ -127,7 +140,7 @@ serve(async (req) => {
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: currency,
               product_data: { 
                 name: `${trip.title} - Deposit Payment`,
                 description: `Deposit for ${trip.destination} trip (${planType.replace('_', ' ')} plan)`
