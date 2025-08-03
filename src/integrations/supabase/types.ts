@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_resolved: boolean
+          message: string
+          metadata: Json | null
+          priority: string
+          resolved_at: string | null
+          resolved_by: string | null
+          sensei_id: string | null
+          title: string
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          message: string
+          metadata?: Json | null
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sensei_id?: string | null
+          title: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          message?: string
+          metadata?: Json | null
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sensei_id?: string | null
+          title?: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_alerts_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_alerts_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_announcements: {
         Row: {
           content: string
@@ -265,6 +328,66 @@ export type Database = {
           },
           {
             foreignKeyName: "backup_sensei_applications_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backup_sensei_requests: {
+        Row: {
+          created_at: string
+          id: string
+          match_score: number
+          request_type: string
+          requested_at: string
+          responded_at: string | null
+          response_deadline: string
+          response_reason: string | null
+          sensei_id: string
+          status: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_score?: number
+          request_type?: string
+          requested_at?: string
+          responded_at?: string | null
+          response_deadline: string
+          response_reason?: string | null
+          sensei_id: string
+          status?: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_score?: number
+          request_type?: string
+          requested_at?: string
+          responded_at?: string | null
+          response_deadline?: string
+          response_reason?: string | null
+          sensei_id?: string
+          status?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_sensei_requests_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backup_sensei_requests_trip_id_fkey"
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
@@ -1343,6 +1466,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          backup_assignment_deadline: string | null
           backup_sensei_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -1368,6 +1492,7 @@ export type Database = {
           rating: number | null
           replacement_needed: boolean | null
           requirements: string[] | null
+          requires_backup_sensei: boolean
           sensei_id: string | null
           sensei_name: string
           theme: string
@@ -1376,6 +1501,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1401,6 +1527,7 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
+          requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name: string
           theme: string
@@ -1409,6 +1536,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1434,6 +1562,7 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
+          requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name?: string
           theme?: string
@@ -1528,6 +1657,15 @@ export type Database = {
           new_values?: Json
         }
         Returns: undefined
+      }
+      request_backup_senseis: {
+        Args: { p_trip_id: string; p_max_requests?: number }
+        Returns: {
+          request_id: string
+          sensei_id: string
+          sensei_name: string
+          match_score: number
+        }[]
       }
       send_welcome_message_to_participant: {
         Args: { trip_booking_id: string; user_id: string; trip_id: string }
