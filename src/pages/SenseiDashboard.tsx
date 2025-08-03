@@ -998,8 +998,8 @@ const SenseiDashboard = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <Tabs defaultValue="overview" className="space-y-6" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
@@ -1007,6 +1007,7 @@ const SenseiDashboard = () => {
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="todos">Todos</TabsTrigger>
+            <TabsTrigger value="proposals">Proposals</TabsTrigger>
             <TabsTrigger value="availability">Settings</TabsTrigger>
           </TabsList>
 
@@ -1066,15 +1067,27 @@ const SenseiDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveTab("proposals")}
+                  >
                     <Plus className="h-6 w-6" />
                     <span>Create Trip Proposal</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveTab("messages")}
+                  >
                     <MessageCircle className="h-6 w-6" />
                     <span>Message Participants</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setActiveTab("availability")}
+                  >
                     <CalendarIcon className="h-6 w-6" />
                     <span>Update Availability</span>
                   </Button>
