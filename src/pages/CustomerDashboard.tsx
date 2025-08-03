@@ -17,7 +17,7 @@ import { CommunicationHub } from "@/components/ui/communication-hub";
 import { OnboardingWizard } from "@/components/ui/onboarding-wizard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
 import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
-import { GuidedTour, shouldShowTour } from "@/components/ui/guided-tour";
+import { GuidedTour } from "@/components/ui/guided-tour";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { CustomerDashboardLayout } from "@/components/ui/customer-dashboard-layout";
@@ -147,8 +147,9 @@ const CustomerDashboard = () => {
       if (!profile) {
         setShowOnboarding(true);
       } else {
-        // Show tour for first-time users (if they haven't seen it)
-        if (shouldShowTour()) {
+        // Show tour for first-time users
+        const hasSeenTour = localStorage.getItem('hasSeenTour');
+        if (!hasSeenTour) {
           setShowTour(true);
         }
       }
@@ -288,7 +289,8 @@ const CustomerDashboard = () => {
       setShowOnboarding(false);
       
       // Show tour after onboarding
-      if (shouldShowTour()) {
+      const hasSeenTour = localStorage.getItem('hasSeenTour');
+      if (!hasSeenTour) {
         setTimeout(() => setShowTour(true), 1000);
       }
     }
@@ -296,6 +298,7 @@ const CustomerDashboard = () => {
 
   const handleTourComplete = () => {
     setShowTour(false);
+    localStorage.setItem('hasSeenTour', 'true');
   };
 
   const updateProfile = async () => {
@@ -607,7 +610,7 @@ const CustomerDashboard = () => {
         );
 
       case "notifications":
-        return user && <SmartNotifications userId={user.id} />;
+        return <SmartNotifications />;
 
       case "messages":
         return user && <CommunicationHub userId={user.id} />;
@@ -1079,9 +1082,9 @@ const CustomerDashboard = () => {
 
       {/* Guided Tour */}
       <GuidedTour
-        isOpen={showTour}
-        onClose={() => setShowTour(false)}
+        autoStart={showTour}
         onComplete={handleTourComplete}
+        onSkip={() => setShowTour(false)}
       />
     </CustomerDashboardLayout>
   );

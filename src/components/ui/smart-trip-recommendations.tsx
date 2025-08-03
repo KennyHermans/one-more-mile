@@ -30,23 +30,7 @@ export const SmartTripRecommendations = () => {
   const generateSmartRecommendations = async () => {
     setIsLoading(true);
     try {
-      // Fetch user's trip history and preferences
-      const { data: userTrips } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('customer_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      // Fetch trending destinations
-      const { data: trendingTrips } = await supabase
-        .from('trips')
-        .select('destination, count(*)')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-        .order('count', { ascending: false })
-        .limit(5);
-
-      // Generate AI-powered recommendations
+      // Generate AI-powered recommendations with mock data
       const mockRecommendations: SmartRecommendation[] = [
         {
           id: '1',
