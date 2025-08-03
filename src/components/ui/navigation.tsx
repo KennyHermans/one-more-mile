@@ -12,7 +12,7 @@ export function Navigation() {
   const navigate = useNavigate();
 
   // Check if current user is admin
-  const isAdmin = user?.email === 'kenny_hermans93@hotmail.com' || user?.email === 'kenny.hermans1993@gmail.com';
+  const isAdmin = user?.email === 'kenny_hermans93@hotmail.com';
 
   // Update current role when profile status changes
   useEffect(() => {
