@@ -22,6 +22,7 @@ import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificate
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
+import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 
 // Enhanced Loading Components
 import { 
