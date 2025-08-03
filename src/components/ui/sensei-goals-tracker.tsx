@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   Edit3, 
@@ -24,6 +24,8 @@ import {
   Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Goal {
   id: string;
@@ -46,49 +48,9 @@ interface Milestone {
 }
 
 export function SenseiGoalsTracker() {
-  const [goals, setGoals] = useState<Goal[]>([
-    {
-      id: '1',
-      title: 'Lead 30 Trips This Year',
-      description: 'Complete 30 successful trips across different destinations',
-      category: 'trips',
-      target: 30,
-      current: 24,
-      deadline: new Date('2024-12-31'),
-      priority: 'high',
-      status: 'active'
-    },
-    {
-      id: '2',
-      title: 'Achieve 4.9 Rating',
-      description: 'Maintain consistently high customer satisfaction',
-      category: 'rating',
-      target: 4.9,
-      current: 4.7,
-      deadline: new Date('2024-08-31'),
-      priority: 'medium',
-      status: 'active'
-    },
-    {
-      id: '3',
-      title: 'Generate $100K Revenue',
-      description: 'Reach revenue milestone through quality experiences',
-      category: 'revenue',
-      target: 100000,
-      current: 89450,
-      deadline: new Date('2024-12-31'),
-      priority: 'high',
-      status: 'active'
-    }
-  ]);
-
-  const [milestones, setMilestones] = useState<Milestone[]>([
-    { id: '1', goalId: '1', title: 'Complete 10 trips', completed: true, completedDate: new Date('2024-03-15') },
-    { id: '2', goalId: '1', title: 'Complete 20 trips', completed: true, completedDate: new Date('2024-06-10') },
-    { id: '3', goalId: '1', title: 'Complete 25 trips', completed: false },
-    { id: '4', goalId: '1', title: 'Complete 30 trips', completed: false },
-  ]);
-
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [loading, setLoading] = useState(true);
   const [createGoalOpen, setCreateGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [goalForm, setGoalForm] = useState({
@@ -99,6 +61,78 @@ export function SenseiGoalsTracker() {
     deadline: new Date(),
     priority: 'medium' as Goal['priority']
   });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchGoalsAndMilestones();
+  }, []);
+
+  const fetchGoalsAndMilestones = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get sensei profile
+      const { data: senseiProfile } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!senseiProfile) return;
+
+      // Fetch goals
+      const { data: goalsData, error: goalsError } = await supabase
+        .from('sensei_goals')
+        .select('*')
+        .eq('sensei_id', senseiProfile.id)
+        .order('created_at', { ascending: false });
+
+      if (goalsError) throw goalsError;
+
+      // Fetch milestones
+      const { data: milestonesData, error: milestonesError } = await supabase
+        .from('sensei_milestones')
+        .select('*')
+        .in('goal_id', goalsData?.map(g => g.id) || [])
+        .order('created_at', { ascending: true });
+
+      if (milestonesError) throw milestonesError;
+
+      // Transform data to match interface
+      const transformedGoals: Goal[] = goalsData?.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description || '',
+        category: goal.category as Goal['category'],
+        target: Number(goal.target),
+        current: Number(goal.current_value || 0),
+        deadline: new Date(goal.deadline || new Date()),
+        priority: goal.priority as Goal['priority'],
+        status: goal.status as Goal['status']
+      })) || [];
+
+      const transformedMilestones: Milestone[] = milestonesData?.map(milestone => ({
+        id: milestone.id,
+        goalId: milestone.goal_id,
+        title: milestone.title,
+        completed: milestone.completed || false,
+        completedDate: milestone.completed_date ? new Date(milestone.completed_date) : undefined
+      })) || [];
+
+      setGoals(transformedGoals);
+      setMilestones(transformedMilestones);
+    } catch (error) {
+      console.error('Error fetching goals and milestones:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load goals and milestones.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getCategoryIcon = (category: Goal['category']) => {
     switch (category) {
@@ -137,52 +171,163 @@ export function SenseiGoalsTracker() {
     return diffDays;
   };
 
-  const handleCreateGoal = () => {
-    const newGoal: Goal = {
-      id: Date.now().toString(),
-      ...goalForm,
-      current: 0,
-      status: 'active'
-    };
-    setGoals([...goals, newGoal]);
-    setCreateGoalOpen(false);
-    setGoalForm({
-      title: '',
-      description: '',
-      category: 'trips',
-      target: 0,
-      deadline: new Date(),
-      priority: 'medium'
-    });
+  const handleCreateGoal = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: senseiProfile } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!senseiProfile) return;
+
+      const { error } = await supabase
+        .from('sensei_goals')
+        .insert({
+          sensei_id: senseiProfile.id,
+          title: goalForm.title,
+          description: goalForm.description,
+          category: goalForm.category,
+          target: goalForm.target,
+          deadline: goalForm.deadline.toISOString().split('T')[0],
+          priority: goalForm.priority
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Goal created successfully.",
+      });
+
+      setCreateGoalOpen(false);
+      setGoalForm({
+        title: '',
+        description: '',
+        category: 'trips',
+        target: 0,
+        deadline: new Date(),
+        priority: 'medium'
+      });
+
+      fetchGoalsAndMilestones();
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create goal.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateGoal = () => {
+  const handleUpdateGoal = async () => {
     if (!editingGoal) return;
     
-    setGoals(goals.map(goal => 
-      goal.id === editingGoal.id 
-        ? { ...goal, ...goalForm }
-        : goal
-    ));
-    setEditingGoal(null);
+    try {
+      const { error } = await supabase
+        .from('sensei_goals')
+        .update({
+          title: goalForm.title,
+          description: goalForm.description,
+          target: goalForm.target,
+          deadline: goalForm.deadline.toISOString().split('T')[0],
+          priority: goalForm.priority
+        })
+        .eq('id', editingGoal.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Goal updated successfully.",
+      });
+
+      setEditingGoal(null);
+      fetchGoalsAndMilestones();
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update goal.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteGoal = (goalId: string) => {
-    setGoals(goals.filter(goal => goal.id !== goalId));
-    setMilestones(milestones.filter(milestone => milestone.goalId !== goalId));
+  const handleDeleteGoal = async (goalId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sensei_goals')
+        .delete()
+        .eq('id', goalId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Goal deleted successfully.",
+      });
+
+      fetchGoalsAndMilestones();
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete goal.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const toggleMilestone = (milestoneId: string) => {
-    setMilestones(milestones.map(milestone =>
-      milestone.id === milestoneId
-        ? { 
-            ...milestone, 
-            completed: !milestone.completed,
-            completedDate: !milestone.completed ? new Date() : undefined
-          }
-        : milestone
-    ));
+  const toggleMilestone = async (milestoneId: string) => {
+    try {
+      const milestone = milestones.find(m => m.id === milestoneId);
+      if (!milestone) return;
+
+      const { error } = await supabase
+        .from('sensei_milestones')
+        .update({
+          completed: !milestone.completed,
+          completed_date: !milestone.completed ? new Date().toISOString() : null
+        })
+        .eq('id', milestoneId);
+
+      if (error) throw error;
+
+      fetchGoalsAndMilestones();
+    } catch (error) {
+      console.error('Error updating milestone:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update milestone.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Goals & Milestones</h2>
+            <p className="text-muted-foreground">Track your progress and achieve your sensei objectives</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-48 bg-muted rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
