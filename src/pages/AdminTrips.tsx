@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { 
@@ -14,7 +16,7 @@ import {
   Trash2, 
   Star,
   MapPin,
-  Calendar,
+  Calendar as CalendarIcon,
   Users,
   Loader2,
   ChevronDown,
@@ -24,6 +26,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
+import { format, addDays } from "date-fns";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 
 // Helper function to get Mapbox token
 const getMapboxToken = async (): Promise<string | null> => {
@@ -233,6 +238,8 @@ const AdminTrips = () => {
     requirements: [] as string[]
   });
 
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -383,6 +390,7 @@ const AdminTrips = () => {
       excluded_items: [],
       requirements: []
     });
+    setDateRange(undefined);
     setEditingTrip(null);
   };
 
@@ -409,6 +417,33 @@ const AdminTrips = () => {
       excluded_items: trip.excluded_items || [],
       requirements: trip.requirements || []
     });
+
+    // Try to parse existing dates to set the date range
+    try {
+      const dateText = trip.dates;
+      // This is a simple parser - could be enhanced for more formats
+      if (dateText.includes(' - ')) {
+        // Handle "August 15 - September 12, 2025" format
+        const parts = dateText.split(' - ');
+        if (parts.length === 2) {
+          const year = new Date().getFullYear(); // Default to current year
+          const fromPart = parts[0].trim();
+          const toPart = parts[1].trim();
+          
+          // Try to parse the dates
+          const fromDate = new Date(`${fromPart}, ${year}`);
+          const toDate = new Date(toPart);
+          
+          if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
+            setDateRange({ from: fromDate, to: toDate });
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Could not parse existing date format:', error);
+      setDateRange(undefined);
+    }
+
     setEditingTrip(trip);
     setIsDialogOpen(true);
   };
@@ -686,18 +721,67 @@ const AdminTrips = () => {
                   <div>
                     <label className="block text-sm font-medium mb-2">Dates *</label>
                     <div className="space-y-2">
-                      <Input
-                        name="dates"
-                        value={formData.dates}
-                        onChange={handleInputChange}
-                        placeholder="August 15 - September 12, 2025"
-                        required
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !dateRange?.from && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "MMMM dd")} - {format(dateRange.to, "MMMM dd, yyyy")}
+                                </>
+                              ) : (
+                                format(dateRange.from, "MMMM dd, yyyy")
+                              )
+                            ) : (
+                              <span>Pick date range</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={(range) => {
+                              setDateRange(range);
+                              if (range?.from && range?.to) {
+                                const fromFormatted = format(range.from, "MMMM dd");
+                                const toFormatted = format(range.to, "MMMM dd, yyyy");
+                                const sameMonth = range.from.getMonth() === range.to.getMonth() && 
+                                                range.from.getFullYear() === range.to.getFullYear();
+                                
+                                const dateString = sameMonth 
+                                  ? `${fromFormatted}-${format(range.to, "dd, yyyy")}`
+                                  : `${fromFormatted} - ${toFormatted}`;
+                                
+                                setFormData(prev => ({ ...prev, dates: dateString }));
+                              } else if (range?.from) {
+                                const dateString = format(range.from, "MMMM dd, yyyy");
+                                setFormData(prev => ({ ...prev, dates: dateString }));
+                              }
+                            }}
+                            numberOfMonths={2}
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <p><strong>Format examples:</strong></p>
-                        <p>• Same month: "March 15-22, 2025"</p>
-                        <p>• Different months: "August 15 - September 12, 2025"</p>
-                        <p>• Single day: "December 25, 2025"</p>
+                        <p><strong>Or type manually:</strong></p>
+                        <Input
+                          name="dates"
+                          value={formData.dates}
+                          onChange={handleInputChange}
+                          placeholder="August 15 - September 12, 2025"
+                          required
+                        />
                       </div>
                     </div>
                   </div>
