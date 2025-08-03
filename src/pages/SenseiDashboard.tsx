@@ -193,17 +193,42 @@ interface ProgramDay {
 
 // Helper function to ensure program is always an array
 const ensureProgramIsArray = (program: any): ProgramDay[] => {
-  if (Array.isArray(program)) return program;
+  if (Array.isArray(program)) {
+    // Ensure each day has activities as an array
+    return program.map(day => ({
+      ...day,
+      activities: ensureActivitiesIsArray(day.activities)
+    }));
+  }
   if (typeof program === 'string') {
     try {
       const parsed = JSON.parse(program);
-      return Array.isArray(parsed) ? parsed : [];
+      if (Array.isArray(parsed)) {
+        return parsed.map(day => ({
+          ...day,
+          activities: ensureActivitiesIsArray(day.activities)
+        }));
+      }
+      return [];
     } catch {
       return [];
     }
   }
   if (program && typeof program === 'object') {
-    return [program];
+    return [{
+      ...program,
+      activities: ensureActivitiesIsArray(program.activities)
+    }];
+  }
+  return [];
+};
+
+// Helper function to ensure activities is always an array
+const ensureActivitiesIsArray = (activities: any): string[] => {
+  if (Array.isArray(activities)) return activities;
+  if (typeof activities === 'string') {
+    // Split by newlines and filter out empty strings
+    return activities.split('\n').filter(activity => activity.trim() !== '');
   }
   return [];
 };

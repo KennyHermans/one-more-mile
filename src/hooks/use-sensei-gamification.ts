@@ -203,8 +203,10 @@ export const useSenseiGamification = (senseiId?: string) => {
 
   // Add a refresh effect when component mounts/becomes visible
   useEffect(() => {
+    if (!senseiId) return;
+    
     const handleVisibilityChange = () => {
-      if (!document.hidden && senseiId) {
+      if (!document.hidden) {
         fetchLevelData();
       }
     };
