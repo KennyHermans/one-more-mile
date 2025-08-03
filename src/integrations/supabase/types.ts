@@ -1296,24 +1296,24 @@ export type Database = {
       }
     }
     Views: {
-      customer_travel_stats: {
-        Row: {
-          avg_rating_given: number | null
-          preferred_themes: string[] | null
-          reviews_written: number | null
-          total_spent: number | null
-          trips_completed: number | null
-          trips_pending: number | null
-          trips_wishlisted: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_payment_deadline: {
         Args: { trip_start_date: string }
         Returns: string
+      }
+      get_customer_travel_stats: {
+        Args: { _user_id: string }
+        Returns: {
+          trips_completed: number
+          trips_pending: number
+          total_spent: number
+          trips_wishlisted: number
+          avg_rating_given: number
+          reviews_written: number
+          preferred_themes: string[]
+        }[]
       }
       get_sensei_trip_status: {
         Args: Record<PropertyKey, never>
