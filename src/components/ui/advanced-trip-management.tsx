@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ import {
   Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripMilestone {
   id: string;
@@ -91,96 +92,107 @@ export function AdvancedTripManagement() {
   const [showConflicts, setShowConflicts] = useState(false);
   const [showPricingSuggestions, setShowPricingSuggestions] = useState(false);
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const { toast } = useToast();
 
-  // Mock data
-  const trips: Trip[] = [
-    {
-      id: "1",
-      title: "Mount Fuji Spiritual Journey",
-      destination: "Mount Fuji, Japan",
-      dates: "March 15-22, 2024",
-      sensei: "Kenji Yamamoto",
-      participants: 8,
-      maxParticipants: 12,
-      price: 2800,
-      status: "active",
-      bookingTrend: [2, 4, 6, 8, 8, 8],
-      seasonality: "high",
-      milestones: [
-        {
-          id: "m1",
-          title: "Final payment deadline",
-          description: "Collect remaining payments from participants",
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          status: "pending"
-        },
-        {
-          id: "m2", 
-          title: "Equipment check",
-          description: "Verify all hiking equipment is ready",
-          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          status: "pending"
-        }
-      ]
-    },
-    {
-      id: "2",
-      title: "Kyoto Cultural Immersion",
-      destination: "Kyoto, Japan", 
-      dates: "March 20-27, 2024",
-      sensei: "Kenji Yamamoto", // Same sensei - will create conflict
-      participants: 6,
-      maxParticipants: 10,
-      price: 2200,
-      status: "active",
-      bookingTrend: [1, 3, 5, 6, 6, 6],
-      seasonality: "medium",
-      milestones: [
-        {
-          id: "m3",
-          title: "Temple reservations",
-          description: "Confirm temple visit bookings",
-          dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-          status: "completed"
-        }
-      ]
-    }
-  ];
+  useEffect(() => {
+    fetchTrips();
+  }, []);
 
-  const conflicts: TripConflict[] = [
-    {
-      id: "c1",
-      type: "sensei_double_booking",
-      severity: "high",
-      message: "Kenji Yamamoto is assigned to overlapping trips",
-      affectedTrips: ["1", "2"],
-      suggestedAction: "Reassign sensei or adjust dates"
-    },
-    {
-      id: "c2",
-      type: "date_overlap", 
-      severity: "medium",
-      message: "Trip dates overlap with high-demand period",
-      affectedTrips: ["1"],
-      suggestedAction: "Consider premium pricing"
-    }
-  ];
+  const fetchTrips = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const pricingSuggestions: Record<string, PricingSuggestion> = {
-    "1": {
-      currentPrice: 2800,
-      suggestedPrice: 3200,
-      confidence: 85,
-      reasoning: "High demand period with limited availability",
-      factors: [
-        { name: "Seasonal demand", impact: +15, description: "Peak cherry blossom season" },
-        { name: "Sensei popularity", impact: +8, description: "Highly rated sensei" },
-        { name: "Limited spots", impact: +12, description: "Only 4 spots remaining" }
-      ]
+      if (error) throw error;
+
+      const transformedTrips: Trip[] = (data || []).map(trip => ({
+        id: trip.id,
+        title: trip.title,
+        destination: trip.destination,
+        dates: trip.dates,
+        sensei: trip.sensei_name,
+        participants: trip.current_participants || 0,
+        maxParticipants: trip.max_participants || 12,
+        price: parseFloat(trip.price?.replace(/[^\d.]/g, '') || '0'),
+        status: trip.is_active ? 'active' : 'draft',
+        bookingTrend: [0, 1, 2, trip.current_participants || 0],
+        seasonality: 'medium' as const,
+        milestones: [
+          {
+            id: `${trip.id}_m1`,
+            title: "Final payment deadline",
+            description: "Collect remaining payments from participants",
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            status: 'pending' as const
+          },
+          {
+            id: `${trip.id}_m2`, 
+            title: "Pre-trip preparation",
+            description: "Verify equipment and logistics",
+            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            status: 'pending' as const
+          }
+        ]
+      }));
+
+      setTrips(transformedTrips);
+    } catch (error) {
+      console.error('Error fetching trips:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load trips",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Mock data for conflicts and pricing suggestions
+  const conflicts: TripConflict[] = trips.reduce((acc, trip, index) => {
+    // Check for date overlaps and sensei conflicts
+    const otherTrips = trips.filter((_, i) => i !== index);
+    const overlaps = otherTrips.filter(other => 
+      other.sensei === trip.sensei && other.status === 'active'
+    );
+
+    if (overlaps.length > 0) {
+      acc.push({
+        id: `conflict_${trip.id}`,
+        type: "sensei_double_booking",
+        severity: "high",
+        message: `${trip.sensei} is assigned to multiple active trips`,
+        affectedTrips: [trip.id, ...overlaps.map(t => t.id)],
+        suggestedAction: "Reassign sensei or adjust dates"
+      });
+    }
+
+    return acc;
+  }, [] as TripConflict[]);
+
+  const pricingSuggestions: Record<string, PricingSuggestion> = {};
+  
+  // Generate pricing suggestions for trips with low occupancy
+  trips.forEach(trip => {
+    const occupancyRate = trip.participants / trip.maxParticipants;
+    if (occupancyRate < 0.7) {
+      pricingSuggestions[trip.id] = {
+        currentPrice: trip.price,
+        suggestedPrice: Math.round(trip.price * 0.85),
+        confidence: 75,
+        reasoning: "Low occupancy - consider promotional pricing",
+        factors: [
+          { name: "Occupancy rate", impact: -15, description: `Only ${Math.round(occupancyRate * 100)}% filled` },
+          { name: "Time to departure", impact: -10, description: "Booking window is narrowing" }
+        ]
+      };
+    }
+  });
 
   // Filter trips
   const filteredTrips = useMemo(() => {
@@ -255,6 +267,32 @@ export function AdvancedTripManagement() {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Advanced Trip Management</h2>
+            <p className="text-muted-foreground">Loading trips...</p>
+          </div>
+        </div>
+        <div className="grid gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                  <div className="h-20 bg-muted rounded"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
