@@ -802,6 +802,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_matching_insights: {
+        Row: {
+          created_at: string
+          high_match_trips: number | null
+          id: string
+          last_calculated: string
+          low_match_trips: number | null
+          medium_match_trips: number | null
+          missing_skills: string[] | null
+          recommended_certifications: string[] | null
+          sensei_id: string
+          total_trips_available: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          high_match_trips?: number | null
+          id?: string
+          last_calculated?: string
+          low_match_trips?: number | null
+          medium_match_trips?: number | null
+          missing_skills?: string[] | null
+          recommended_certifications?: string[] | null
+          sensei_id: string
+          total_trips_available?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          high_match_trips?: number | null
+          id?: string
+          last_calculated?: string
+          low_match_trips?: number | null
+          medium_match_trips?: number | null
+          missing_skills?: string[] | null
+          recommended_certifications?: string[] | null
+          sensei_id?: string
+          total_trips_available?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sensei_milestones: {
         Row: {
           completed: boolean | null
@@ -967,6 +1009,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      skill_verification_requests: {
+        Row: {
+          created_at: string
+          evidence_description: string | null
+          evidence_url: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sensei_id: string
+          skill_id: string
+          status: string
+          updated_at: string
+          verification_type: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_description?: string | null
+          evidence_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sensei_id: string
+          skill_id: string
+          status?: string
+          updated_at?: string
+          verification_type?: string
+        }
+        Update: {
+          created_at?: string
+          evidence_description?: string | null
+          evidence_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sensei_id?: string
+          skill_id?: string
+          status?: string
+          updated_at?: string
+          verification_type?: string
+        }
+        Relationships: []
       }
       trip_bookings: {
         Row: {
@@ -1382,6 +1466,28 @@ export type Database = {
       calculate_payment_deadline: {
         Args: { trip_start_date: string }
         Returns: string
+      }
+      calculate_sensei_insights: {
+        Args: { p_sensei_id: string }
+        Returns: undefined
+      }
+      calculate_sensei_match_score_enhanced: {
+        Args: {
+          p_sensei_id: string
+          p_trip_theme: string
+          p_trip_months?: string[]
+          p_trip_id?: string
+        }
+        Returns: {
+          match_score: number
+          weighted_score: number
+          specialty_matches: string[]
+          certificate_matches: string[]
+          skill_matches: string[]
+          missing_requirements: string[]
+          requirements_met_percentage: number
+          proficiency_bonus: number
+        }[]
       }
       get_customer_travel_stats: {
         Args: { _user_id: string }

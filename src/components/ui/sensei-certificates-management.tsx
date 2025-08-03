@@ -10,6 +10,8 @@ import { Textarea } from "./textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SenseiMatchingInsights } from "./sensei-matching-insights";
+import { EnhancedSkillVerification } from "./enhanced-skill-verification";
 import { 
   FileText, 
   Plus, 
@@ -21,7 +23,8 @@ import {
   CheckCircle,
   Clock,
   Trash2,
-  Eye
+  Eye,
+  TrendingUp
 } from "lucide-react";
 
 interface Certificate {
@@ -285,9 +288,13 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
   return (
     <div className="space-y-6">
       <Tabs defaultValue="certificates" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="certificates">Certificates</TabsTrigger>
           <TabsTrigger value="skills">Skills & Knowledge</TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Trip Matching
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="certificates" className="space-y-4">
@@ -553,33 +560,19 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
               </Card>
             ) : (
               skills.map((skill) => (
-                <Card key={skill.id}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold">{skill.skill_name}</h4>
-                        <p className="text-sm text-gray-600">{skill.skill_category.replace(/_/g, ' ').toUpperCase()}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{skill.proficiency_level}</Badge>
-                        {skill.is_verified && (
-                          <Badge className="bg-green-100 text-green-800">Verified</Badge>
-                        )}
-                      </div>
-                    </div>
-                    {skill.years_experience && (
-                      <p className="text-sm text-gray-600">
-                        {skill.years_experience} years experience
-                      </p>
-                    )}
-                    {skill.description && (
-                      <p className="text-sm text-gray-700 mt-2">{skill.description}</p>
-                    )}
-                  </CardContent>
-                </Card>
+                <EnhancedSkillVerification
+                  key={skill.id}
+                  skill={skill}
+                  senseiId={senseiId}
+                  onVerificationSubmitted={fetchCertificatesAndSkills}
+                />
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-6">
+          <SenseiMatchingInsights senseiId={senseiId} />
         </TabsContent>
       </Tabs>
     </div>
