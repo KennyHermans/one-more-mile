@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview";
@@ -198,6 +198,23 @@ const AdminDashboard = () => {
     specific_sensei_ids: [] as string[]
   });
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<{from: Date | undefined; to: Date | undefined}>({ from: undefined, to: undefined });
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    onConfirm: () => {}
+  });
   const { toast } = useToast();
 
   // Stats
@@ -214,6 +231,47 @@ const AdminDashboard = () => {
     tripProposals: tripProposals.length,
     cancellations: tripCancellations.length
   };
+
+  // Filtered data with useMemo for performance
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      const matchesSearch = searchQuery === "" || 
+        app.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+      
+      const matchesLocation = locationFilter === "all" || 
+        app.location.toLowerCase().includes(locationFilter.toLowerCase());
+      
+      const matchesDate = !dateRange.from || 
+        new Date(app.created_at) >= dateRange.from;
+      
+      return matchesSearch && matchesStatus && matchesLocation && matchesDate;
+    });
+  }, [applications, searchQuery, statusFilter, locationFilter, dateRange]);
+
+  // Get unique locations for filter options
+  const locationOptions = useMemo(() => {
+    const locations = [...new Set(applications.map(app => app.location))];
+    return [
+      { value: "all", label: "All Locations" },
+      ...locations.map(location => ({ 
+        value: location, 
+        label: location,
+        count: applications.filter(app => app.location === location).length
+      }))
+    ];
+  }, [applications]);
+
+  // Status options with counts
+  const statusOptions = useMemo(() => [
+    { value: "all", label: "All Statuses", count: applications.length },
+    { value: "pending", label: "Pending", count: applications.filter(app => app.status === 'pending').length },
+    { value: "approved", label: "Approved", count: applications.filter(app => app.status === 'approved').length },
+    { value: "rejected", label: "Rejected", count: applications.filter(app => app.status === 'rejected').length }
+  ], [applications]);
 
   useEffect(() => {
     checkAuth();
