@@ -1091,143 +1091,447 @@ const SenseiDashboard = () => {
             <SenseiGoalsTracker />
           </TabsContent>
 
-            {/* My Trips Tab */}
-            {activeTab === "trips" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">My Trips</h2>
-                  <Badge variant="outline" className="text-sm">
-                    {trips.length} total trips
-                  </Badge>
-                </div>
+          {/* My Trips Tab */}
+          <TabsContent value="trips" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">My Trips</h2>
+              <Badge variant="outline" className="text-sm">
+                {trips.length} total trips
+              </Badge>
+            </div>
 
-                {trips.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 text-center">
-                      <p className="text-gray-600">No trips assigned yet.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4">
-                    {trips.map((trip) => (
-                      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-4">
-                                <div>
-                                  <h3 className="text-lg font-semibold">{trip.title}</h3>
-                                  <p className="text-gray-600 flex items-center">
-                                    <MapPin className="w-4 h-4 mr-1" />
-                                    {trip.destination}
-                                  </p>
-                                  <p className="text-gray-600 flex items-center">
-                                    <CalendarIcon className="w-4 h-4 mr-1" />
-                                    {trip.dates}
-                                  </p>
-                                </div>
-                                 <div className="flex items-center gap-2">
-                                   <Badge variant={trip.is_active ? "default" : "secondary"}>
-                                     {trip.is_active ? "Active" : "Inactive"}
-                                   </Badge>
-                                   <Button 
-                                     variant="outline" 
-                                     size="sm"
-                                      onClick={() => setActiveTab("trip-editor")}
-                                   >
-                                     <Edit2 className="w-4 h-4" />
-                                   </Button>
-                                    {trip.is_active && !trip.cancelled_by_sensei && (
-                                      <Button 
-                                        variant="destructive" 
-                                        size="sm"
-                                        onClick={() => {
-                                          setSelectedTripForCancel(trip);
-                                          setCancelTripOpen(true);
-                                        }}
-                                      >
-                                        Cancel my trip
-                                      </Button>
-                                    )}
-                                 </div>
-                              </div>
-                              
-                              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-600">Participants</p>
-                                  <p className="text-sm">{trip.current_participants}/{trip.max_participants}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-600">Status</p>
-                                  <p className="text-sm">{trip.is_active ? "Active" : "Inactive"}</p>
-                                </div>
-                              </div>
-
-                              {/* Paid Participants Section */}
-                              <div className="border-t pt-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-semibold flex items-center gap-2">
-                                    <Users className="w-4 h-4" />
-                                    Confirmed Participants ({tripParticipants[trip.id]?.length || 0})
-                                  </h4>
-                                  <Button
-                                    variant="outline"
+            {trips.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No trips assigned yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {trips.map((trip) => (
+                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{trip.title}</h3>
+                              <p className="text-gray-600 flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {trip.destination}
+                              </p>
+                              <p className="text-gray-600 flex items-center">
+                                <CalendarIcon className="w-4 h-4 mr-1" />
+                                {trip.dates}
+                              </p>
+                            </div>
+                             <div className="flex items-center gap-2">
+                               <Badge variant={trip.is_active ? "default" : "secondary"}>
+                                 {trip.is_active ? "Active" : "Inactive"}
+                               </Badge>
+                               <Button 
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={() => setEditingTrip({ ...trip })}
+                               >
+                                 <Edit2 className="w-4 h-4" />
+                               </Button>
+                                {trip.is_active && !trip.cancelled_by_sensei && (
+                                  <Button 
+                                    variant="destructive" 
                                     size="sm"
-                                    onClick={() => fetchPaidParticipants(trip.id)}
-                                    disabled={loadingParticipants[trip.id]}
+                                    onClick={() => {
+                                      setSelectedTripForCancel(trip);
+                                      setCancelTripOpen(true);
+                                    }}
                                   >
-                                    {loadingParticipants[trip.id] ? 'Loading...' : 'View Participants'}
+                                    Cancel my trip
                                   </Button>
-                                </div>
-                                
-                                {tripParticipants[trip.id] && (
-                                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                                    {tripParticipants[trip.id].length === 0 ? (
-                                      <p className="text-sm text-gray-500 italic">No confirmed participants yet</p>
-                                    ) : (
-                                      tripParticipants[trip.id].map((participant) => (
-                                        <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded text-sm border border-green-200">
-                                          <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                              <User className="w-4 h-4 text-green-600" />
-                                            </div>
-                                            <div>
-                                              <span className="font-medium text-green-800">{participant.customer_profiles.full_name}</span>
-                                              {participant.customer_profiles.phone && (
-                                                <div className="flex items-center gap-1 text-gray-600">
-                                                  <Phone className="w-3 h-3" />
-                                                  <span className="text-xs">{participant.customer_profiles.phone}</span>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Badge variant="default" className="bg-green-600 text-xs">
-                                              Paid
-                                            </Badge>
-                                            <CheckCircle className="w-4 h-4 text-green-600" />
-                                          </div>
-                                        </div>
-                                      ))
-                                    )}
-                                  </div>
                                 )}
-                                
-                                <div className="mt-2 text-xs text-gray-500">
-                                  * Only participants who have completed payment are shown
-                                </div>
-                              </div>
+                             </div>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Participants</p>
+                              <p className="text-sm">{trip.current_participants}/{trip.max_participants}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">Status</p>
+                              <p className="text-sm">{trip.is_active ? "Active" : "Inactive"}</p>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+
+                          {/* Paid Participants Section */}
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold flex items-center gap-2">
+                                <Users className="w-4 h-4" />
+                                Confirmed Participants ({tripParticipants[trip.id]?.length || 0})
+                              </h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchPaidParticipants(trip.id)}
+                                disabled={loadingParticipants[trip.id]}
+                              >
+                                {loadingParticipants[trip.id] ? 'Loading...' : 'View Participants'}
+                              </Button>
+                            </div>
+                            
+                            {tripParticipants[trip.id] && (
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {tripParticipants[trip.id].length === 0 ? (
+                                  <p className="text-sm text-gray-500 italic">No confirmed participants yet</p>
+                                ) : (
+                                  tripParticipants[trip.id].map((participant) => (
+                                    <div key={participant.id} className="flex items-center justify-between p-3 bg-green-50 rounded text-sm border border-green-200">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                          <User className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                          <span className="font-medium text-green-800">{participant.customer_profiles.full_name}</span>
+                                          {participant.customer_profiles.phone && (
+                                            <div className="flex items-center gap-1 text-gray-600">
+                                              <Phone className="w-3 h-3" />
+                                              <span className="text-xs">{participant.customer_profiles.phone}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="default" className="bg-green-600 text-xs">
+                                          Paid
+                                        </Badge>
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className="mt-2 text-xs text-gray-500">
+                              * Only participants who have completed payment are shown
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
+          </TabsContent>
 
-            {/* Continue with other tabs... */}
+          {/* Messages Tab */}
+          <TabsContent value="messages" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Messages</h2>
+              <Badge variant="outline" className="text-sm">
+                Communication with participants
+              </Badge>
+            </div>
+            
+            {trips.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No active trips to message participants.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {trips.filter(trip => trip.is_active).map((trip) => (
+                  <Card key={trip.id}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{trip.title}</CardTitle>
+                      <p className="text-sm text-gray-600">{trip.destination} • {trip.dates}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <TripMessagingEnhanced
+                        tripId={trip.id}
+                        tripTitle={trip.title}
+                        userType="sensei"
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Calendar Tab */}
+          <TabsContent value="calendar" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Calendar</h2>
+              <Badge variant="outline" className="text-sm">
+                Trip schedule & availability
+              </Badge>
+            </div>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <div style={{ height: '600px' }}>
+                  <Calendar
+                    localizer={localizer}
+                    events={calendarEvents}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%' }}
+                    eventPropGetter={(event) => ({
+                      style: {
+                        backgroundColor: event.resource?.color || '#3174ad',
+                        borderColor: event.resource?.color || '#3174ad',
+                      },
+                    })}
+                    views={['month', 'week', 'day']}
+                    defaultView="month"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Todos Tab */}
+          <TabsContent value="todos" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Tasks & Todos</h2>
+              <Badge variant="outline" className="text-sm">
+                {todos.filter(todo => !todo.completed).length} pending
+              </Badge>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Task</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2">
+                  <Input
+                    value={newTodo}
+                    onChange={(e) => setNewTodo(e.target.value)}
+                    placeholder="Enter a new task..."
+                    onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+                  />
+                  <Button onClick={addTodo}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {todos.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No tasks yet. Add your first task above!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {todos.map((todo) => (
+                  <Card key={todo.id}>
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={todo.completed}
+                            onChange={() => toggleTodo(todo.id)}
+                            className="w-4 h-4"
+                          />
+                          <span className={todo.completed ? "line-through text-gray-500" : ""}>
+                            {todo.task}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTodo(todo.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Trip Editor Tab */}
+          <TabsContent value="trip-editor" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Editor</h2>
+              <Badge variant="outline" className="text-sm">
+                Edit trip details & program
+              </Badge>
+            </div>
+
+            {trips.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-gray-600">No trips to edit.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {trips.map((trip) => (
+                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">{trip.title}</h3>
+                          <p className="text-gray-600">{trip.destination} • {trip.dates}</p>
+                        </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              className="w-full mt-4" 
+                              onClick={() => setEditingTrip({ ...trip })}
+                            >
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Edit Trip
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+                            </DialogHeader>
+                            
+                            {editingTrip && (
+                              <div className="space-y-6">
+                                {/* Basic Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="title">Title</Label>
+                                    <Input
+                                      id="title"
+                                      value={editingTrip.title}
+                                      onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
+                                      disabled={!canEdit(editingTrip.id, 'title')}
+                                    />
+                                    {!canEdit(editingTrip.id, 'title') && (
+                                      <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                    )}
+                                  </div>
+                                  
+                                  <div>
+                                    <Label htmlFor="destination">Destination</Label>
+                                    <Input
+                                      id="destination"
+                                      value={editingTrip.destination}
+                                      onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
+                                      disabled={!canEdit(editingTrip.id, 'destination')}
+                                    />
+                                    {!canEdit(editingTrip.id, 'destination') && (
+                                      <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="description">Description</Label>
+                                  <Textarea
+                                    id="description"
+                                    value={editingTrip.description}
+                                    onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
+                                    disabled={!canEdit(editingTrip.id, 'description')}
+                                    rows={4}
+                                  />
+                                  {!canEdit(editingTrip.id, 'description') && (
+                                    <p className="text-xs text-muted-foreground mt-1">No permission to edit</p>
+                                  )}
+                                </div>
+
+                                {/* Program */}
+                                {canEdit(editingTrip.id, 'program') && (
+                                  <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                      <Label>Daily Program</Label>
+                                      <Button onClick={addProgramDay} variant="outline" size="sm">
+                                        Add Day
+                                      </Button>
+                                    </div>
+                                    <div className="space-y-4">
+                                      {editingTrip.program?.map((day: ProgramDay, dayIndex: number) => (
+                                        <Card key={dayIndex}>
+                                          <CardContent className="pt-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                              <div>
+                                                <Label>Day {day.day}</Label>
+                                              </div>
+                                              <div>
+                                                <Label>Location</Label>
+                                                <Input
+                                                  value={day.location}
+                                                  onChange={(e) => updateProgramDay(dayIndex, 'location', e.target.value)}
+                                                />
+                                              </div>
+                                            </div>
+                                            
+                                            <div>
+                                              <div className="flex justify-between items-center mb-2">
+                                                <Label>Activities</Label>
+                                                <Button onClick={() => addActivity(dayIndex)} variant="outline" size="sm">
+                                                  Add Activity
+                                                </Button>
+                                              </div>
+                                              <div className="space-y-2">
+                                                {day.activities?.map((activity: string, activityIndex: number) => (
+                                                  <Input
+                                                    key={activityIndex}
+                                                    value={activity}
+                                                    onChange={(e) => updateActivity(dayIndex, activityIndex, e.target.value)}
+                                                    placeholder={`Activity ${activityIndex + 1}`}
+                                                  />
+                                                ))}
+                                              </div>
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Arrays */}
+                                {canEdit(editingTrip.id, 'included_amenities') && (
+                                  <div>
+                                    <Label>Included Amenities (comma-separated)</Label>
+                                    <Textarea
+                                      value={editingTrip.included_amenities?.join(', ') || ''}
+                                      onChange={(e) => setEditingTrip({
+                                        ...editingTrip, 
+                                        included_amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                                      })}
+                                      rows={3}
+                                    />
+                                  </div>
+                                )}
+
+                                <div className="flex justify-end space-x-2">
+                                  <Button variant="outline" onClick={() => setEditingTrip(null)}>
+                                    <X className="w-4 h-4 mr-2" />
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={handleSaveTrip}>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save Changes
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           {/* Backup Sensei Tab */}
           <TabsContent value="backup-sensei" className="space-y-6">
