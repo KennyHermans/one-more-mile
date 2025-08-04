@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./car
 import { CheckCircle, XCircle, Clock, Upload, FileText, Users, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 
 interface Skill {
   id: string;
@@ -64,7 +65,10 @@ export function EnhancedSkillVerification({
 
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading file:', error);
+      handleError(error, {
+        component: 'EnhancedSkillVerification',
+        action: 'uploadFile'
+      }, false);
       return null;
     }
   };
@@ -106,12 +110,10 @@ export function EnhancedSkillVerification({
       setEvidenceDescription('');
       setEvidenceFile(null);
     } catch (error) {
-      console.error('Error submitting verification request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit verification request",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'EnhancedSkillVerification',
+        action: 'submitRequest'
+      }, true, "Failed to submit verification request");
     } finally {
       setLoading(false);
     }

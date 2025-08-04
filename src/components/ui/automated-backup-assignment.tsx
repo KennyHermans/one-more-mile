@@ -7,6 +7,7 @@ import { Switch } from "./switch";
 import { Label } from "./label";
 import { Input } from "./input";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 import { 
   Bot, 
   Settings, 
@@ -119,7 +120,10 @@ export function AutomatedBackupAssignment() {
         activeTasks: active
       });
     } catch (error) {
-      console.error('Error fetching automation stats:', error);
+      handleError(error, {
+        component: 'AutomatedBackupAssignment',
+        action: 'fetchStats'
+      }, false);
     }
   };
 
@@ -157,12 +161,10 @@ export function AutomatedBackupAssignment() {
         description: "Automation settings have been updated successfully.",
       });
     } catch (error) {
-      console.error('Error saving settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save automation settings.",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AutomatedBackupAssignment',
+        action: 'saveSettings'
+      }, true, "Failed to save automation settings");
     } finally {
       setSaving(false);
     }
@@ -193,7 +195,11 @@ export function AutomatedBackupAssignment() {
             processedCount++;
           }
         } catch (error) {
-          console.error(`Error processing trip ${trip.id}:`, error);
+          handleError(error, {
+            component: 'AutomatedBackupAssignment',
+            action: 'processTrip',
+            tripId: trip.id
+          }, false);
         }
       }
 
@@ -204,12 +210,10 @@ export function AutomatedBackupAssignment() {
 
       fetchStats();
     } catch (error) {
-      console.error('Error during manual scan:', error);
-      toast({
-        title: "Error",
-        description: "Failed to complete manual scan.",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AutomatedBackupAssignment',
+        action: 'manualScan'
+      }, true, "Failed to complete manual scan");
     }
   };
 

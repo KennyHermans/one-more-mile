@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { SenseiPermissionsDialog } from "./sensei-permissions-dialog";
 import { BackupSenseiManagement } from "./backup-sensei-management";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 import { 
   Search, 
   Filter, 
@@ -81,12 +82,10 @@ export function AdminTripManagementOverview() {
     try {
       await Promise.all([fetchTrips(), fetchSenseis(), fetchPermissions()]);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load trip management data.",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'fetchData'
+      }, true, "Failed to load trip management data");
     } finally {
       setLoading(false);
     }
@@ -112,7 +111,10 @@ export function AdminTripManagementOverview() {
       
       setTrips(processedTrips);
     } catch (error) {
-      console.error('Error fetching trips:', error);
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'fetchTrips'
+      }, false);
     }
   };
 
@@ -127,7 +129,10 @@ export function AdminTripManagementOverview() {
       if (error) throw error;
       setSenseis(data || []);
     } catch (error) {
-      console.error('Error fetching senseis:', error);
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'fetchSenseis'
+      }, false);
     }
   };
 
@@ -170,7 +175,10 @@ export function AdminTripManagementOverview() {
         };
       }));
     } catch (error) {
-      console.error('Error fetching permissions:', error);
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'fetchPermissions'
+      }, false);
     }
   };
 
@@ -207,12 +215,11 @@ export function AdminTripManagementOverview() {
       
       fetchData();
     } catch (error) {
-      console.error('Error assigning sensei:', error);
-      toast({
-        title: "Error",
-        description: "Failed to assign sensei to trip",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'assignSensei',
+        tripId: tripId
+      }, true, "Failed to assign sensei to trip");
     }
   };
 

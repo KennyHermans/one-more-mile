@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { handleError } from '@/lib/error-handler';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -215,7 +216,11 @@ export function CommunicationHub({ userId, className }: CommunicationHubProps) {
         )
       );
     } catch (error: any) {
-      console.error('Error marking messages as read:', error);
+      handleError(error, {
+        component: 'CommunicationHub',
+        action: 'markAsRead',
+        tripId: tripId
+      }, false);
     }
   };
 

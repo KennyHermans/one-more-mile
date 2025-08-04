@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { handleError } from '@/lib/error-handler';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -124,12 +125,11 @@ export function AITripBuilder({ onTripGenerated, className }: AITripBuilderProps
       }
 
     } catch (error: any) {
-      console.error('AI generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate AI content. Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AITripBuilder',
+        action: 'generateContent',
+        metadata: { action, tripParams }
+      }, true, "Generation Failed");
     } finally {
       setIsGenerating(false);
       setCurrentAction('');

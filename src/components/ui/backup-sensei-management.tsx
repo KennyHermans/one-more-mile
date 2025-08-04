@@ -5,6 +5,7 @@ import { Badge } from "./badge";
 import { Button } from "./button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 import { 
   UserCheck, 
   UserPlus, 
@@ -91,7 +92,10 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
       if (error) throw error;
       setTrips(data || []);
     } catch (error) {
-      console.error('Error fetching trips:', error);
+      handleError(error, {
+        component: 'BackupSenseiManagement',
+        action: 'fetchTrips'
+      }, false);
     }
   };
 

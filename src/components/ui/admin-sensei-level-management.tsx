@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError } from "@/lib/error-handler";
 import { Crown, Settings, History, AlertTriangle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -57,12 +58,10 @@ export const AdminSenseiLevelManagement = () => {
       if (error) throw error;
       setSenseis(data || []);
     } catch (error) {
-      console.error('Error fetching senseis:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load sensei data",
-        variant: "destructive"
-      });
+      handleError(error, {
+        component: 'AdminSenseiLevelManagement',
+        action: 'fetchSenseis'
+      }, true, "Failed to load sensei data");
     } finally {
       setIsLoading(false);
     }
@@ -79,12 +78,11 @@ export const AdminSenseiLevelManagement = () => {
       if (error) throw error;
       setLevelHistory(data || []);
     } catch (error) {
-      console.error('Error fetching level history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load level history",
-        variant: "destructive"
-      });
+      handleError(error, {
+        component: 'AdminSenseiLevelManagement',
+        action: 'fetchLevelHistory',
+        userId: senseiId
+      }, true, "Failed to load level history");
     }
   };
 
@@ -123,12 +121,11 @@ export const AdminSenseiLevelManagement = () => {
       setReason('');
       setAdminOverride(false);
     } catch (error) {
-      console.error('Error updating sensei level:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update sensei level",
-        variant: "destructive"
-      });
+      handleError(error, {
+        component: 'AdminSenseiLevelManagement',
+        action: 'updateLevel',
+        userId: selectedSensei?.user_id
+      }, true, "Failed to update sensei level");
     } finally {
       setIsUpdating(false);
     }

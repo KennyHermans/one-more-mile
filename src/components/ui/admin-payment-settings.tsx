@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError } from "@/lib/error-handler";
 import { Loader2, Save, RotateCcw } from "lucide-react";
 
 interface PaymentSetting {
@@ -79,12 +80,10 @@ export function AdminPaymentSettings() {
 
       setSettings({ ...DEFAULT_SETTINGS, ...settingsMap });
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load payment settings",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminPaymentSettings',
+        action: 'fetchSettings'
+      }, true, "Failed to load payment settings");
     } finally {
       setLoading(false);
     }
@@ -177,12 +176,10 @@ export function AdminPaymentSettings() {
       });
 
     } catch (error) {
-      console.error('Error saving settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update payment settings",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminPaymentSettings',
+        action: 'saveSettings'
+      }, true, "Failed to update payment settings");
     } finally {
       setSaving(false);
     }

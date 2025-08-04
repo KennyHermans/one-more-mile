@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 import { Users, Shield, Map, MessageCircle, Settings } from "lucide-react";
 import { PlatformRole } from "@/hooks/use-admin-permissions";
 
@@ -76,12 +77,10 @@ export function AdminRoleManagement() {
       if (error) throw error;
       setAdminRoles(data || []);
     } catch (error) {
-      console.error('Error fetching admin roles:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch admin roles",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminRoleManagement',
+        action: 'fetchRoles'
+      }, true, "Failed to fetch admin roles");
     }
   };
 
@@ -128,18 +127,17 @@ export function AdminRoleManagement() {
       setSelectedRole("traveler_support");
       await fetchAdminRoles();
     } catch (error) {
-      console.error('Error assigning role:', error);
-      toast({
-        title: "Error",
-        description: "Failed to assign role",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminRoleManagement',
+        action: 'assignRole',
+        userId: userEmail
+      }, true, "Failed to assign role");
     } finally {
       setIsAssigning(false);
     }
   };
 
-  const revokeRole = async (roleId: string) => {
+  const revokeRole = async (roleId: string, userId: string) => {
     try {
       const { error } = await supabase
         .from('admin_roles')
@@ -155,12 +153,11 @@ export function AdminRoleManagement() {
 
       await fetchAdminRoles();
     } catch (error) {
-      console.error('Error revoking role:', error);
-      toast({
-        title: "Error",
-        description: "Failed to revoke role",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminRoleManagement',
+        action: 'revokeRole',
+        userId: userId
+      }, true, "Failed to revoke role");
     }
   };
 
@@ -284,7 +281,7 @@ export function AdminRoleManagement() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => revokeRole(role.id)}
+                            onClick={() => revokeRole(role.id, role.user_id)}
                           >
                             Revoke
                           </Button>

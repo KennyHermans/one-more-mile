@@ -8,6 +8,7 @@ import { Label } from "./label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { Checkbox } from "./checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/error-handler";
 import { 
   Download, 
   Calendar, 
@@ -136,12 +137,10 @@ export function ComprehensiveReporting() {
       }));
 
     } catch (error) {
-      console.error('Error initializing report templates:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load report templates",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'ComprehensiveReporting',
+        action: 'initializeTemplates'
+      }, true, "Failed to load report templates");
     } finally {
       setLoading(false);
     }

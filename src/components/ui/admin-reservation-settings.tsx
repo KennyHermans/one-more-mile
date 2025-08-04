@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError } from "@/lib/error-handler";
 
 export function AdminReservationSettings() {
   const [reservationDays, setReservationDays] = useState<number>(7);
@@ -31,12 +32,10 @@ export function AdminReservationSettings() {
         setReservationDays(parseInt(data.setting_value.toString()));
       }
     } catch (error) {
-      console.error('Error fetching reservation settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load reservation settings",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminReservationSettings',
+        action: 'fetchSettings'
+      }, true, "Failed to load reservation settings");
     } finally {
       setLoading(false);
     }
@@ -61,12 +60,10 @@ export function AdminReservationSettings() {
         description: `Reservation deadline set to ${reservationDays} days`,
       });
     } catch (error) {
-      console.error('Error updating reservation settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update settings",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'AdminReservationSettings',
+        action: 'updateSettings'
+      }, true, "Failed to update settings");
     } finally {
       setSaving(false);
     }
