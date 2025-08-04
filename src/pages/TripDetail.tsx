@@ -169,9 +169,22 @@ const TripDetail = () => {
 
     setPaymentLoading(true);
     try {
-      // Calculate payment deadline (3 months from now)
-      const paymentDeadline = new Date();
-      paymentDeadline.setMonth(paymentDeadline.getMonth() + 3);
+      // Fetch reservation deadline from payment settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('payment_settings')
+        .select('setting_value')
+        .eq('setting_name', 'reservation_deadline_days')
+        .single();
+
+      if (settingsError) {
+        console.error('Error fetching reservation settings:', settingsError);
+      }
+
+      const reservationDays = settingsData?.setting_value ? parseInt(settingsData.setting_value.toString()) : 7;
+      
+      // Calculate deadline based on configurable days
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + reservationDays);
 
       // Create booking without immediate payment
       const { data, error } = await supabase
@@ -180,18 +193,32 @@ const TripDetail = () => {
           trip_id: trip.id,
           user_id: user.id,
           booking_status: 'reserved',
+          booking_type: 'reservation',
           payment_status: 'pending',
-          payment_deadline: paymentDeadline.toISOString(),
-          total_amount: parseFloat(trip.price.replace(/[^0-9.]/g, ''))
+          payment_deadline: deadline.toISOString(),
+          reservation_deadline: deadline.toISOString(),
+          total_amount: parseFloat(trip.price.replace(/[^0-9.]/g, '')),
+          notes: `Reserved - Payment required within ${reservationDays} days`
         })
         .select()
         .single();
 
       if (error) throw error;
 
+      // Create notification for the user
+      await supabase
+        .from('customer_notifications')
+        .insert({
+          user_id: user.id,
+          type: 'reservation_confirmed',
+          title: 'Trip Reservation Confirmed',
+          message: `Your spot for "${trip.title}" has been reserved. You have ${reservationDays} days to complete your payment.`,
+          related_trip_id: trip.id
+        });
+
       toast({
         title: "Reservation confirmed!",
-        description: `Your spot is reserved until ${paymentDeadline.toLocaleDateString()}. Please complete payment before the deadline.`,
+        description: `Your spot is reserved for ${reservationDays} days. Complete payment or make a €1,000 deposit to secure your booking.`,
       });
 
       setShowPaymentOptions(false);

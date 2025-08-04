@@ -14,6 +14,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to get user by ID with retry
+async function getUserByIdWithRetry(supabase: any, userId: string, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      if (userError) throw userError;
+      return userData.user;
+    } catch (error) {
+      console.log(`Attempt ${attempt} failed for user ${userId}:`, error);
+      if (attempt === maxRetries) return null;
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+    }
+  }
+  return null;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("Payment reminders function triggered");
 
@@ -23,205 +39,265 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get payment settings from database
-    const { data: settings, error: settingsError } = await supabase
-      .from('payment_settings')
-      .select('setting_name, setting_value');
-
-    if (settingsError) {
-      console.error('Error fetching payment settings:', settingsError);
-      throw settingsError;
-    }
-
-    // Parse settings
-    const paymentDeadlineMonths = parseInt(settings?.find(s => s.setting_name === 'payment_deadline_months')?.setting_value || '3');
-    const reminderIntervalsDays = settings?.find(s => s.setting_name === 'reminder_intervals_days')?.setting_value || [7, 3, 1];
-    const reminderFrequencyHours = parseInt(settings?.find(s => s.setting_name === 'reminder_frequency_hours')?.setting_value || '24');
-    const gracePeriodHours = parseInt(settings?.find(s => s.setting_name === 'grace_period_hours')?.setting_value || '24');
-
-    console.log('Payment settings:', { paymentDeadlineMonths, reminderIntervalsDays, reminderFrequencyHours, gracePeriodHours });
-
-    const now = new Date();
-    const reminderFrequencyMs = reminderFrequencyHours * 60 * 60 * 1000;
-    const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
-
-    // Find unpaid bookings that need reminders
-    let upcomingDeadlines = [];
+    console.log('Fetching payment settings...');
     
-    for (const intervalDays of reminderIntervalsDays) {
-      const targetDate = new Date(now.getTime() + (intervalDays * 24 * 60 * 60 * 1000));
-      const { data: bookings, error } = await supabase
-        .from('trip_bookings')
-        .select(`
-          *,
-          trips!inner(title, destination, dates),
-          customer_profiles!inner(full_name, user_id)
-        `)
-        .eq('payment_status', 'pending')
-        .gte('payment_deadline', now.toISOString())
-        .lte('payment_deadline', targetDate.toISOString())
-        .or(`last_reminder_sent.is.null,last_reminder_sent.lt.${new Date(now.getTime() - reminderFrequencyMs).toISOString()}`);
+    // Get payment settings including reservation deadline
+    const { data: paymentSettings } = await supabase
+      .from('payment_settings')
+      .select('setting_name, setting_value')
+      .in('setting_name', ['reminder_days_before', 'reminder_frequency_days', 'grace_period_days', 'reservation_deadline_days']);
+    
+    const settings = paymentSettings?.reduce((acc: Record<string, number>, setting: any) => {
+      acc[setting.setting_name] = parseInt(setting.setting_value);
+      return acc;
+    }, {} as Record<string, number>) || {};
+    
+    const reminderDaysBefore = settings.reminder_days_before || 7;
+    const reminderFrequencyDays = settings.reminder_frequency_days || 3;
+    const gracePeriodDays = settings.grace_period_days || 2;
+    const reservationDeadlineDays = settings.reservation_deadline_days || 7;
 
-      if (!error && bookings) {
-        upcomingDeadlines = upcomingDeadlines.concat(bookings);
-      }
+    console.log('Querying pending bookings and reservations...');
+    
+    // Query pending bookings with upcoming deadlines
+    const reminderThreshold = new Date();
+    reminderThreshold.setDate(reminderThreshold.getDate() + reminderDaysBefore);
+    
+    const { data: pendingBookings, error: bookingsError } = await supabase
+      .from('trip_bookings')
+      .select(`
+        id,
+        user_id,
+        trip_id,
+        payment_deadline,
+        reservation_deadline,
+        booking_type,
+        last_reminder_sent,
+        reminder_count,
+        trips!inner(title, dates, price)
+      `)
+      .eq('payment_status', 'pending')
+      .or(`payment_deadline.lte.${reminderThreshold.toISOString()},reservation_deadline.lte.${reminderThreshold.toISOString()}`)
+      .or(`last_reminder_sent.is.null,last_reminder_sent.lt.${new Date(Date.now() - reminderFrequencyDays * 24 * 60 * 60 * 1000).toISOString()}`);
+    
+    if (bookingsError) {
+      console.error('Error fetching bookings:', bookingsError);
+      throw bookingsError;
     }
 
-    // Remove duplicates
-    upcomingDeadlines = upcomingDeadlines.filter((booking, index, self) => 
-      index === self.findIndex(b => b.id === booking.id)
-    );
+    console.log(`Found ${pendingBookings?.length || 0} bookings requiring reminders`);
 
-    console.log(`Found ${upcomingDeadlines.length} bookings with upcoming payment deadlines`);
-
-    // Send reminder emails
-    for (const booking of upcomingDeadlines || []) {
-      const daysUntilDeadline = Math.ceil(
-        (new Date(booking.payment_deadline).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      // Get user email from auth
-      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-        booking.customer_profiles.user_id
-      );
-
-      if (userError || !userData.user?.email) {
-        console.error('Error getting user email:', userError);
-        continue;
-      }
-
-      const userEmail = userData.user.email;
-
+    // Send reminders
+    for (const booking of pendingBookings || []) {
       try {
-        await resend.emails.send({
-          from: "One More Mile <onboarding@resend.dev>",
-          to: [userEmail],
-          subject: `Payment Reminder: ${daysUntilDeadline} days left for ${booking.trips.destination}`,
-          html: `
-            <h1>Payment Reminder</h1>
-            <p>Dear ${booking.customer_profiles.full_name},</p>
-            
-            <p>This is a reminder that your payment for the following trip is due in <strong>${daysUntilDeadline} days</strong>:</p>
-            
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>${booking.trips.title}</h3>
-              <p><strong>Destination:</strong> ${booking.trips.destination}</p>
-              <p><strong>Dates:</strong> ${booking.trips.dates}</p>
-              <p><strong>Payment Due:</strong> ${new Date(booking.payment_deadline).toLocaleDateString()}</p>
-              <p><strong>Amount:</strong> $${booking.total_amount}</p>
-            </div>
-            
-            <p><strong>Important:</strong> If payment is not received by the deadline, your reservation will be automatically cancelled.</p>
-            
-            <p>To complete your payment, please log in to your dashboard and click "Pay Now" for this booking.</p>
-            
-            <p>Best regards,<br>
-            The One More Mile Team</p>
-            
-            <hr>
-            <p style="color: #666; font-size: 12px;">
-              If you have any questions, contact us at adventures@onemoremile.com
-            </p>
-          `,
+        console.log(`Processing booking ${booking.id}...`);
+        
+        const user = await getUserByIdWithRetry(supabase, booking.user_id);
+        if (!user) {
+          console.log(`User not found for booking ${booking.id}, skipping...`);
+          continue;
+        }
+
+        const trip = booking.trips;
+        const isReservation = booking.booking_type === 'reservation';
+        const deadline = isReservation ? booking.reservation_deadline : booking.payment_deadline;
+        const daysUntilDeadline = Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        
+        console.log(`Sending ${isReservation ? 'reservation' : 'payment'} reminder for booking ${booking.id} to ${user.email}`);
+        
+        // Different email content for reservations vs regular bookings
+        const emailSubject = isReservation 
+          ? `Reservation Expiring Soon: ${trip.title}`
+          : `Payment Reminder: ${trip.title}`;
+          
+        const emailContent = isReservation
+          ? `
+            <h2>Reservation Expiring Soon</h2>
+            <p>Dear ${user.email.split('@')[0]},</p>
+            <p>Your reservation for <strong>${trip.title}</strong> expires in ${daysUntilDeadline} days.</p>
+            <p>To secure your spot, please complete your payment or make the required deposit of €1,000.</p>
+            <p><strong>Trip Details:</strong></p>
+            <ul>
+              <li>Trip: ${trip.title}</li>
+              <li>Dates: ${trip.dates}</li>
+              <li>Price: €${trip.price}</li>
+              <li>Reservation Expires: ${new Date(deadline).toLocaleDateString()}</li>
+            </ul>
+            <p>Don't lose your spot - complete your payment today!</p>
+            <p>Thank you!</p>
+          `
+          : `
+            <h2>Payment Reminder</h2>
+            <p>Dear ${user.email.split('@')[0]},</p>
+            <p>This is a friendly reminder that your payment for <strong>${trip.title}</strong> is due in ${daysUntilDeadline} days.</p>
+            <p><strong>Trip Details:</strong></p>
+            <ul>
+              <li>Trip: ${trip.title}</li>
+              <li>Dates: ${trip.dates}</li>
+              <li>Price: €${trip.price}</li>
+              <li>Payment Deadline: ${new Date(deadline).toLocaleDateString()}</li>
+            </ul>
+            <p>Please complete your payment to secure your booking.</p>
+            <p>Thank you!</p>
+          `;
+        
+        // Send email reminder
+        const emailData = await resend.emails.send({
+          from: 'One More Mile <noreply@resend.dev>',
+          to: [user.email],
+          subject: emailSubject,
+          html: emailContent,
         });
 
-        // Update reminder tracking
+        console.log(`Email sent successfully:`, emailData);
+
+        // Create in-app notification
+        await supabase
+          .from('customer_notifications')
+          .insert({
+            user_id: booking.user_id,
+            type: isReservation ? 'reservation_reminder' : 'payment_reminder',
+            title: isReservation ? 'Reservation Expiring Soon' : 'Payment Reminder',
+            message: isReservation 
+              ? `Your reservation for "${trip.title}" expires in ${daysUntilDeadline} days. Complete your payment to secure your spot.`
+              : `Your payment for "${trip.title}" is due in ${daysUntilDeadline} days.`,
+            related_trip_id: booking.trip_id
+          });
+
+        // Update booking with reminder info
         await supabase
           .from('trip_bookings')
           .update({
-            last_reminder_sent: now.toISOString(),
+            last_reminder_sent: new Date().toISOString(),
             reminder_count: (booking.reminder_count || 0) + 1
           })
           .eq('id', booking.id);
 
-        console.log(`Reminder sent to ${userEmail} for booking ${booking.id}`);
-      } catch (emailError) {
-        console.error(`Failed to send reminder to ${userEmail}:`, emailError);
+      } catch (error) {
+        console.error(`Error processing booking ${booking.id}:`, error);
       }
     }
 
-    // Cancel overdue bookings (considering grace period)
-    const cancellationCutoff = new Date(now.getTime() - gracePeriodMs);
-    const { data: overdueBookings, error: overdueError } = await supabase
+    // Cancel overdue bookings and expired reservations
+    console.log('Processing overdue bookings and expired reservations...');
+    const currentTime = new Date();
+    
+    const { data: expiredBookings, error: expiredError } = await supabase
       .from('trip_bookings')
       .select(`
-        *,
-        trips!inner(title, destination),
-        customer_profiles!inner(full_name, user_id)
+        id,
+        user_id,
+        trip_id,
+        payment_deadline,
+        reservation_deadline,
+        booking_type,
+        trips!inner(title, dates, price)
       `)
       .eq('payment_status', 'pending')
-      .lt('payment_deadline', cancellationCutoff.toISOString());
-
-    if (overdueError) {
-      console.error('Error fetching overdue bookings:', overdueError);
-      throw overdueError;
+      .or(`payment_deadline.lt.${currentTime.toISOString()},reservation_deadline.lt.${currentTime.toISOString()}`);
+    
+    if (expiredError) {
+      console.error('Error fetching expired bookings:', expiredError);
+      throw expiredError;
     }
-
-    console.log(`Found ${overdueBookings?.length || 0} overdue bookings to cancel`);
-
-    // Cancel overdue bookings and send cancellation emails
-    for (const booking of overdueBookings || []) {
-      // Get user email from auth
-      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-        booking.customer_profiles.user_id
-      );
-
-      if (userError || !userData.user?.email) {
-        console.error('Error getting user email:', userError);
-        continue;
-      }
-
-      const userEmail = userData.user.email;
-
+    
+    console.log(`Found ${expiredBookings?.length || 0} expired bookings/reservations to cancel`);
+    
+    // Cancel expired bookings and reservations
+    for (const booking of expiredBookings || []) {
       try {
-        // Cancel the booking
+        const isReservation = booking.booking_type === 'reservation';
+        const deadline = isReservation ? booking.reservation_deadline : booking.payment_deadline;
+        
+        // Skip if not actually expired (edge case)
+        if (new Date(deadline) > currentTime) continue;
+        
+        console.log(`Cancelling expired ${isReservation ? 'reservation' : 'booking'} ${booking.id}...`);
+        
+        const user = await getUserByIdWithRetry(supabase, booking.user_id);
+        if (!user) {
+          console.log(`User not found for booking ${booking.id}, skipping...`);
+          continue;
+        }
+
+        const trip = booking.trips;
+        
+        // Cancel the booking/reservation
         await supabase
           .from('trip_bookings')
           .update({
-            booking_status: 'cancelled',
-            notes: 'Automatically cancelled due to missed payment deadline'
+            payment_status: 'cancelled',
+            notes: isReservation 
+              ? 'Automatically cancelled - reservation expired'
+              : 'Automatically cancelled due to overdue payment'
           })
           .eq('id', booking.id);
 
+        console.log(`${isReservation ? 'Reservation' : 'Booking'} ${booking.id} cancelled successfully`);
+
+        // Create in-app notification
+        await supabase
+          .from('customer_notifications')
+          .insert({
+            user_id: booking.user_id,
+            type: isReservation ? 'reservation_expired' : 'booking_cancelled',
+            title: isReservation ? 'Reservation Expired' : 'Booking Cancelled',
+            message: isReservation 
+              ? `Your reservation for "${trip.title}" has expired. You can make a new reservation if spots are still available.`
+              : `Your booking for "${trip.title}" has been cancelled due to overdue payment.`,
+            related_trip_id: booking.trip_id
+          });
+
         // Send cancellation email
-        await resend.emails.send({
-          from: "One More Mile <onboarding@resend.dev>",
-          to: [userEmail],
-          subject: `Booking Cancelled: ${booking.trips.destination}`,
-          html: `
-            <h1>Booking Cancelled</h1>
-            <p>Dear ${booking.customer_profiles.full_name},</p>
-            
-            <p>We regret to inform you that your reservation has been cancelled due to non-payment by the deadline:</p>
-            
-            <div style="background: #fff2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
-              <h3>${booking.trips.title}</h3>
-              <p><strong>Destination:</strong> ${booking.trips.destination}</p>
-              <p><strong>Payment was due:</strong> ${new Date(booking.payment_deadline).toLocaleDateString()}</p>
-              <p><strong>Booking Status:</strong> Cancelled</p>
-            </div>
-            
-            <p>If you believe this cancellation was made in error, please contact us immediately at adventures@onemoremile.com</p>
-            
-            <p>We hope to serve you in the future.</p>
-            
-            <p>Best regards,<br>
-            The One More Mile Team</p>
-          `,
+        const emailData = await resend.emails.send({
+          from: 'One More Mile <noreply@resend.dev>',
+          to: [user.email],
+          subject: isReservation ? `Reservation Expired: ${trip.title}` : `Booking Cancelled: ${trip.title}`,
+          html: isReservation
+            ? `
+              <h2>Reservation Expired</h2>
+              <p>Dear ${user.email.split('@')[0]},</p>
+              <p>Your reservation for <strong>${trip.title}</strong> has expired as the payment was not completed within the required timeframe.</p>
+              <p><strong>Expired Reservation Details:</strong></p>
+              <ul>
+                <li>Trip: ${trip.title}</li>
+                <li>Dates: ${trip.dates}</li>
+                <li>Price: €${trip.price}</li>
+                <li>Reservation Deadline: ${new Date(deadline).toLocaleDateString()}</li>
+              </ul>
+              <p>You can make a new reservation if spots are still available for this trip.</p>
+              <p>Thank you for your interest in One More Mile.</p>
+            `
+            : `
+              <h2>Booking Cancelled</h2>
+              <p>Dear ${user.email.split('@')[0]},</p>
+              <p>We regret to inform you that your booking for <strong>${trip.title}</strong> has been automatically cancelled due to overdue payment.</p>
+              <p><strong>Cancelled Booking Details:</strong></p>
+              <ul>
+                <li>Trip: ${trip.title}</li>
+                <li>Dates: ${trip.dates}</li>
+                <li>Price: €${trip.price}</li>
+                <li>Payment Deadline: ${new Date(deadline).toLocaleDateString()}</li>
+              </ul>
+              <p>If you believe this is an error, please contact our support team.</p>
+              <p>You can still book this trip again if spots are available.</p>
+              <p>Thank you for your understanding.</p>
+            `,
         });
 
-        console.log(`Booking ${booking.id} cancelled and notification sent to ${userEmail}`);
+        console.log(`Cancellation email sent:`, emailData);
+
       } catch (error) {
-        console.error(`Failed to cancel booking ${booking.id}:`, error);
+        console.error(`Error cancelling booking ${booking.id}:`, error);
       }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        remindersSent: upcomingDeadlines?.length || 0,
-        bookingsCancelled: overdueBookings?.length || 0,
-        message: "Payment reminders processed successfully"
+        remindersSent: pendingBookings?.length || 0,
+        bookingsCancelled: expiredBookings?.length || 0,
+        message: "Payment reminders and reservation management processed successfully"
       }),
       {
         status: 200,
@@ -235,7 +311,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.error("Error in payment-reminders function:", error);
     return new Response(
       JSON.stringify({
-        error: "Failed to process payment reminders",
+        error: "Failed to process payment reminders and reservations",
         details: error.message
       }),
       {

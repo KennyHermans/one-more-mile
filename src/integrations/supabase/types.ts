@@ -1293,6 +1293,7 @@ export type Database = {
         Row: {
           booking_date: string
           booking_status: string
+          booking_type: string | null
           created_at: string
           id: string
           last_reminder_sent: string | null
@@ -1300,6 +1301,7 @@ export type Database = {
           payment_deadline: string | null
           payment_status: string
           reminder_count: number | null
+          reservation_deadline: string | null
           total_amount: number | null
           trip_id: string | null
           updated_at: string
@@ -1308,6 +1310,7 @@ export type Database = {
         Insert: {
           booking_date?: string
           booking_status?: string
+          booking_type?: string | null
           created_at?: string
           id?: string
           last_reminder_sent?: string | null
@@ -1315,6 +1318,7 @@ export type Database = {
           payment_deadline?: string | null
           payment_status?: string
           reminder_count?: number | null
+          reservation_deadline?: string | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
@@ -1323,6 +1327,7 @@ export type Database = {
         Update: {
           booking_date?: string
           booking_status?: string
+          booking_type?: string | null
           created_at?: string
           id?: string
           last_reminder_sent?: string | null
@@ -1330,6 +1335,7 @@ export type Database = {
           payment_deadline?: string | null
           payment_status?: string
           reminder_count?: number | null
+          reservation_deadline?: string | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
