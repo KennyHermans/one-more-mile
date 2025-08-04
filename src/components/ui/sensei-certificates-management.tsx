@@ -26,6 +26,7 @@ import {
   Eye,
   TrendingUp
 } from "lucide-react";
+import { logError, logInfo } from "@/lib/error-handler";
 
 interface Certificate {
   id: string;
@@ -129,7 +130,10 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
       setCertificates(certificatesResponse.data || []);
       setSkills(skillsResponse.data || []);
     } catch (error) {
-      console.error("Error fetching certificates and skills:", error);
+      logError(error as Error, {
+        component: 'SenseiCertificatesManagement',
+        action: 'fetchCertificatesAndSkills'
+      });
       toast({
         title: "Error",
         description: "Failed to load certificates and skills",
@@ -201,7 +205,10 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
       setIsAddingCertificate(false);
       fetchCertificatesAndSkills();
     } catch (error) {
-      console.error("Error adding certificate:", error);
+      logError(error as Error, {
+        component: 'SenseiCertificatesManagement',
+        action: 'addCertificate'
+      });
       toast({
         title: "Error",
         description: "Failed to add certificate",
@@ -242,7 +249,10 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
       setIsAddingSkill(false);
       fetchCertificatesAndSkills();
     } catch (error) {
-      console.error("Error adding skill:", error);
+      logError(error as Error, {
+        component: 'SenseiCertificatesManagement',
+        action: 'addSkill'
+      });
       toast({
         title: "Error",
         description: "Failed to add skill",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -143,7 +144,10 @@ export function AdvancedAnalyticsReporting() {
       setPredictiveData(predictiveAnalytics);
       setReportData(advancedReports);
     } catch (error) {
-      console.error('Error fetching advanced analytics:', error);
+      logError(error as Error, {
+        component: 'AdvancedAnalyticsReporting',
+        action: 'fetchAdvancedAnalytics'
+      });
     } finally {
       setLoading(false);
     }

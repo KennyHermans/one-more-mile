@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logError, logInfo } from "@/lib/error-handler";
 
 interface Goal {
   id: string;
@@ -123,7 +124,10 @@ export function SenseiGoalsTracker() {
       setGoals(transformedGoals);
       setMilestones(transformedMilestones);
     } catch (error) {
-      console.error('Error fetching goals and milestones:', error);
+      logError(error as Error, {
+        component: 'SenseiGoalsTracker',
+        action: 'fetchGoalsAndMilestones'
+      });
       toast({
         title: "Error",
         description: "Failed to load goals and milestones.",
@@ -215,7 +219,10 @@ export function SenseiGoalsTracker() {
 
       fetchGoalsAndMilestones();
     } catch (error) {
-      console.error('Error creating goal:', error);
+      logError(error as Error, {
+        component: 'SenseiGoalsTracker',
+        action: 'createGoal'
+      });
       toast({
         title: "Error",
         description: "Failed to create goal.",
@@ -249,7 +256,11 @@ export function SenseiGoalsTracker() {
       setEditingGoal(null);
       fetchGoalsAndMilestones();
     } catch (error) {
-      console.error('Error updating goal:', error);
+      logError(error as Error, {
+        component: 'SenseiGoalsTracker',
+        action: 'updateGoal',
+        metadata: { goalId: editingGoal?.id }
+      });
       toast({
         title: "Error",
         description: "Failed to update goal.",
@@ -274,7 +285,11 @@ export function SenseiGoalsTracker() {
 
       fetchGoalsAndMilestones();
     } catch (error) {
-      console.error('Error deleting goal:', error);
+      logError(error as Error, {
+        component: 'SenseiGoalsTracker',
+        action: 'deleteGoal',
+        metadata: { goalId }
+      });
       toast({
         title: "Error",
         description: "Failed to delete goal.",
@@ -300,7 +315,11 @@ export function SenseiGoalsTracker() {
 
       fetchGoalsAndMilestones();
     } catch (error) {
-      console.error('Error updating milestone:', error);
+      logError(error as Error, {
+        component: 'SenseiGoalsTracker',
+        action: 'toggleMilestone',
+        metadata: { milestoneId }
+      });
       toast({
         title: "Error",
         description: "Failed to update milestone.",

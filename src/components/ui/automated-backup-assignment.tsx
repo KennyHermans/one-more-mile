@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -79,7 +80,10 @@ export function AutomatedBackupAssignment() {
         setSettings(data.setting_value as unknown as AutomationSettings);
       }
     } catch (error) {
-      console.error('Error fetching automation settings:', error);
+      logError(error as Error, {
+        component: 'AutomatedBackupAssignment',
+        action: 'fetchSettings'
+      });
     } finally {
       setLoading(false);
     }

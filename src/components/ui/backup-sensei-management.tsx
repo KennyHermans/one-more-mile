@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -111,7 +112,10 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
       if (error) throw error;
       setTrips(data || []);
     } catch (error) {
-      console.error('Error fetching available trips:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'fetchAvailableTripsForBackup'
+      });
     }
   };
 
@@ -126,7 +130,10 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
       if (error) throw error;
       setAvailableSenseis(data || []);
     } catch (error) {
-      console.error('Error fetching senseis:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'fetchAvailableSenseis'
+      });
     }
   };
 
@@ -148,7 +155,10 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
       if (error) throw error;
       setBackupApplications(data || []);
     } catch (error) {
-      console.error('Error fetching backup applications:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'fetchBackupApplications'
+      });
     } finally {
       setLoading(false);
     }
@@ -176,7 +186,10 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
       if (error) throw error;
       setBackupApplications(data || []);
     } catch (error) {
-      console.error('Error fetching my backup applications:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'fetchMyBackupApplications'
+      });
     } finally {
       setLoading(false);
     }
@@ -198,7 +211,11 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
 
       fetchTripsForAdmin();
     } catch (error) {
-      console.error('Error assigning backup sensei:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'assignBackupSensei',
+        metadata: { tripId, senseiId }
+      });
       toast({
         title: "Error",
         description: "Failed to assign backup sensei.",
@@ -246,7 +263,11 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
 
       fetchMyBackupApplications();
     } catch (error) {
-      console.error('Error applying for backup:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'applyForBackup',
+        tripId
+      });
       toast({
         title: "Error",
         description: "Failed to submit application.",
@@ -279,7 +300,11 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
 
       fetchBackupApplications();
     } catch (error) {
-      console.error('Error updating application status:', error);
+      logError(error as Error, {
+        component: 'BackupSenseiManagement',
+        action: 'handleApplicationStatus',
+        metadata: { applicationId, status }
+      });
       toast({
         title: "Error",
         description: "Failed to update application status.",
