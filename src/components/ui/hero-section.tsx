@@ -19,28 +19,28 @@ export function HeroSection() {
         </div>
         
         {/* Main title content */}
-        <div className="relative z-10 container text-center text-white animate-fade-in px-4">
+        <div className="relative z-10 container text-center text-primary-foreground animate-fade-in px-4">
           <div className="max-w-5xl mx-auto space-y-8">
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
               One More Mile
               <br />
-              <span className="font-sans font-light text-lg md:text-xl lg:text-2xl text-white/90 block mt-3">
+              <span className="font-sans font-light text-lg md:text-xl lg:text-2xl text-primary-foreground/90 block mt-3">
                 Where every journey becomes a story
               </span>
             </h1>
             
-            <p className="font-sans text-base md:text-lg mb-10 max-w-3xl mx-auto text-white/80 leading-relaxed">
+            <p className="font-sans text-base md:text-lg mb-10 max-w-3xl mx-auto text-primary-foreground/80 leading-relaxed">
               Join expert Senseis on life-changing adventures that blend purpose with discovery. 
               From mountain summits to cultural depths, create memories that inspire for a lifetime.
             </p>
           
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button asChild className="font-sans font-medium text-sm px-6 py-3 bg-accent hover:bg-accent/90 text-white shadow-lg transition-all duration-300">
+              <Button asChild className="font-sans font-medium text-sm px-6 py-3 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg transition-all duration-300">
                 <Link to="/explore">
                   Start Your Adventure <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="font-sans font-medium text-sm px-6 py-3 border border-white/40 text-white bg-black/30 hover:bg-black/50 transition-all duration-300 backdrop-blur-sm">
+              <Button asChild variant="outline" className="font-sans font-medium text-sm px-6 py-3 border border-primary-foreground/40 text-primary-foreground bg-overlay-dark/30 hover:bg-overlay-dark/50 transition-all duration-300 backdrop-blur-sm">
                 <Link to="/become-sensei">Become a Sensei</Link>
               </Button>
             </div>

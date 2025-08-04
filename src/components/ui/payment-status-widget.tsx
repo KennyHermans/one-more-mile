@@ -32,10 +32,10 @@ export function PaymentStatusWidget({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "paid": return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "paid": return <CheckCircle className="h-4 w-4 text-success" />;
       case "overdue": return <AlertTriangle className="h-4 w-4 text-destructive" />;
-      case "partial": return <Clock className="h-4 w-4 text-orange-500" />;
-      default: return <CreditCard className="h-4 w-4 text-blue-500" />;
+      case "partial": return <Clock className="h-4 w-4 text-warning" />;
+      default: return <CreditCard className="h-4 w-4 text-info" />;
     }
   };
 
@@ -44,10 +44,10 @@ export function PaymentStatusWidget({
       return <Badge variant="destructive">Overdue</Badge>;
     }
     if (status === "paid") {
-      return <Badge className="bg-green-500 text-white">Paid</Badge>;
+      return <Badge className="bg-success text-success-foreground">Paid</Badge>;
     }
     if (daysUntilDue && daysUntilDue <= 7) {
-      return <Badge className="bg-orange-500 text-white">Due Soon</Badge>;
+      return <Badge className="bg-warning text-warning-foreground">Due Soon</Badge>;
     }
     return <Badge variant="outline">{status === "partial" ? "Partial" : "Pending"}</Badge>;
   };

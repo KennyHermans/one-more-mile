@@ -65,6 +65,16 @@ All colors MUST be HSL.
     /* Natural transitions */
     --transition-natural: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
+    /* Semantic UI tokens */
+    --overlay-dark: 0 0% 0%;
+    --overlay-light: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -118,6 +128,16 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Dark mode semantic tokens */
+    --overlay-dark: 0 0% 0%;
+    --overlay-light: 0 0% 100%;
+    --success: 142 69% 58%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
   }
 }
 

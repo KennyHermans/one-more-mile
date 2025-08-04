@@ -142,7 +142,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
           content: 'Click to start the booking process. You\'ll be guided through payment options and trip customization.',
           action: {
             label: 'Try Booking',
-            onClick: () => console.log('Demo booking initiated')
+            onClick: () => {}
           }
         }
       ]
@@ -290,7 +290,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-40" />
+      <div className="fixed inset-0 bg-overlay-dark z-40" />
       
       {/* Tour Modal */}
       <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-w-[90vw] shadow-xl">

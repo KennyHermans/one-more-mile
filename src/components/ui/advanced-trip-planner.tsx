@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, createElement } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PermissionAwareAiTripBuilder } from '@/components/ui/permission-aware-ai-trip-builder';
@@ -683,7 +683,7 @@ export function AdvancedTripPlanner({
                             <div className="text-sm font-medium text-muted-foreground">
                               {activity.time}
                             </div>
-                            {React.createElement(activityIcons[activity.activity_type] || Mountain, {
+                            {createElement(activityIcons[activity.activity_type] || Mountain, {
                               className: "h-4 w-4 text-muted-foreground"
                             })}
                           </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminCheck } from '@/hooks/use-admin-check';
 import { useProfileManagement } from '@/hooks/use-profile-management';

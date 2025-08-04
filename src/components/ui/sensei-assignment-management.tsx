@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function SenseiAssignmentManagement() {
-  console.log("SenseiAssignmentManagement component loaded");
+  // Component loaded
 
   const handleTriggerBackupAssignment = async () => {
     try {

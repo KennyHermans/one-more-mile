@@ -200,14 +200,14 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
               />
               <Badge 
                 variant="secondary" 
-                className="absolute top-4 left-4 bg-white/90"
+                className="absolute top-4 left-4 bg-card/90"
               >
                 {item.trips?.theme}
               </Badge>
               <Button
                 size="sm"
                 variant="ghost"
-                className="absolute top-4 right-4 bg-white/90 hover:bg-white text-red-500"
+                className="absolute top-4 right-4 bg-card/90 hover:bg-card text-destructive"
                 onClick={() => removeFromWishlist(item.id)}
               >
                 <Trash2 className="h-4 w-4" />

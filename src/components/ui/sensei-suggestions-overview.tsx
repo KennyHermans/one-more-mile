@@ -54,7 +54,7 @@ interface SenseiSuggestion {
 }
 
 export function SenseiSuggestionsOverview() {
-  console.log("SenseiSuggestionsOverview component loaded");
+  // Component loaded
   const [tripsNeedingSenseis, setTripsNeedingSenseis] = useState<TripWithRequirements[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTrip, setSelectedTrip] = useState<TripWithRequirements | null>(null);
@@ -211,11 +211,11 @@ export function SenseiSuggestionsOverview() {
           <div className="mb-4">
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-destructive rounded-full"></div>
                 <span>No Sensei ({tripsNeedingSenseis.filter(t => !t.sensei_id).length})</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-warning rounded-full"></div>
                 <span>No Backup ({tripsNeedingSenseis.filter(t => !t.backup_sensei_id).length})</span>
               </div>
             </div>
@@ -223,13 +223,13 @@ export function SenseiSuggestionsOverview() {
 
           {tripsNeedingSenseis.length === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <CheckCircle className="h-12 w-12 text-success mx-auto mb-2" />
               <p className="text-gray-600">All trips have assigned senseis!</p>
             </div>
           ) : (
             <div className="grid gap-4">
               {tripsNeedingSenseis.map((trip) => (
-                <Card key={trip.id} className="border-l-4 border-l-orange-500">
+                <Card key={trip.id} className="border-l-4 border-l-warning">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">

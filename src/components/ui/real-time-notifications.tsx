@@ -84,7 +84,7 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
           table: 'admin_alerts'
         },
         (payload) => {
-          console.log('New alert received:', payload);
+          // New alert received
           const newAlert = payload.new;
           
           const notification: Notification = {
@@ -124,7 +124,7 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
           table: 'admin_alerts'
         },
         (payload) => {
-          console.log('Alert updated:', payload);
+          // Alert updated
           const updatedAlert = payload.new;
           
           if (updatedAlert.is_resolved) {
@@ -140,7 +140,7 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
           table: 'backup_sensei_requests'
         },
         (payload) => {
-          console.log('New backup request:', payload);
+          // New backup request
           const request = payload.new;
           
           useToastHook({
@@ -208,10 +208,10 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'critical': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'high': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      case 'medium': return <Bell className="h-4 w-4 text-yellow-500" />;
-      default: return <Bell className="h-4 w-4 text-blue-500" />;
+      case 'critical': return <AlertTriangle className="h-4 w-4 text-destructive" />;
+      case 'high': return <AlertTriangle className="h-4 w-4 text-warning" />;
+      case 'medium': return <Bell className="h-4 w-4 text-warning" />;
+      default: return <Bell className="h-4 w-4 text-info" />;
     }
   };
 

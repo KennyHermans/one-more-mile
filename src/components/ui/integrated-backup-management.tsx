@@ -72,12 +72,10 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('IntegratedBackupManagement mounted, isAdmin:', isAdmin);
     fetchData();
   }, [isAdmin]);
 
   const fetchData = async () => {
-    console.log('fetchData called, isAdmin:', isAdmin);
     try {
       setLoading(true);
       
@@ -141,11 +139,8 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
   const fetchSenseiData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      console.log('No authenticated user found');
       return;
     }
-
-    console.log('Fetching data for user:', user.id);
 
     // Get sensei profile
     const { data: senseiProfile, error: profileError } = await supabase
@@ -160,11 +155,8 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
     }
 
     if (!senseiProfile) {
-      console.log('No sensei profile found for user:', user.id);
       return;
     }
-
-    console.log('Found sensei profile:', senseiProfile.id);
 
     // Fetch backup requests for this sensei
     const { data: requestsData, error: requestsError } = await supabase
@@ -184,7 +176,6 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       throw requestsError;
     }
 
-    console.log('Found backup requests:', requestsData?.length || 0);
     setRequests(requestsData || []);
 
     // Fetch available trips for backup applications
@@ -200,7 +191,6 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       throw tripsError;
     }
 
-    console.log('Found available trips for backup:', tripsData?.length || 0);
     setAvailableTrips(transformToTripArray(tripsData || []));
 
     // Fetch this sensei's backup applications
@@ -218,7 +208,6 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       throw applicationsError;
     }
 
-    console.log('Found backup applications:', applicationsData?.length || 0);
     setApplications(applicationsData || []);
   };
 

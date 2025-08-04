@@ -31,7 +31,7 @@ export function DatabaseOptimization({ onComplete }: DatabaseOptimizationProps) 
           .limit(1);
           
         if (!error) {
-          console.log(`Table ${table} is accessible for realtime`);
+          // Table realtime check
         }
       }
 
@@ -39,7 +39,7 @@ export function DatabaseOptimization({ onComplete }: DatabaseOptimizationProps) 
       const channel = supabase
         .channel('test-realtime')
         .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-          console.log('Realtime test successful:', payload);
+          // Realtime test successful
         })
         .subscribe();
 

@@ -58,7 +58,7 @@ export const ContextualHelp: React.FC<ContextualHelpProps> = ({
       content: 'Your dashboard shows your trips, notifications, and quick actions. Use the sidebar to navigate between different sections.',
       action: {
         label: 'Take Tour',
-        onClick: () => console.log('Starting dashboard tour')
+        onClick: () => {}
       }
     },
     {
@@ -102,7 +102,7 @@ export const ContextualHelp: React.FC<ContextualHelpProps> = ({
       content: 'Monitor bookings, revenue, sensei performance, and customer satisfaction metrics in real-time.',
       action: {
         label: 'View Examples',
-        onClick: () => console.log('Showing analytics examples')
+        onClick: () => {}
       }
     },
     {

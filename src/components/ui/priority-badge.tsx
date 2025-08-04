@@ -12,8 +12,8 @@ interface PriorityBadgeProps {
 export function PriorityBadge({ priority, count, className }: PriorityBadgeProps) {
   const variants = {
     urgent: "bg-destructive text-destructive-foreground hover:bg-destructive/80",
-    high: "bg-orange-500 text-white hover:bg-orange-600",
-    medium: "bg-blue-500 text-white hover:bg-blue-600", 
+    high: "bg-warning text-warning-foreground hover:bg-warning/90",
+    medium: "bg-info text-info-foreground hover:bg-info/90",
     low: "bg-muted text-muted-foreground hover:bg-muted/80"
   };
 
