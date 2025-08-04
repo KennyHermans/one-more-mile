@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
+import { Trip, TripFormData, ProgramDay } from '@/types/trip';
 import { Label } from "@/components/ui/label";
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -162,12 +163,6 @@ interface TripPermissions {
   program: boolean;
 }
 
-interface ProgramDay {
-  day: number;
-  location: string;
-  activities: string[];
-  coordinates?: [number, number];
-}
 
 // Helper function to ensure program is always an array
 const ensureProgramIsArray = (program: any): ProgramDay[] => {
@@ -214,7 +209,7 @@ const ensureActivitiesIsArray = (activities: any): string[] => {
 const SenseiDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
-  const [trips, setTrips] = useState<StandardTrip[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [tripParticipants, setTripParticipants] = useState<{[tripId: string]: TripParticipant[]}>({});
   const [loadingParticipants, setLoadingParticipants] = useState<{[tripId: string]: boolean}>({});
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -233,7 +228,7 @@ const SenseiDashboard = () => {
   const [loadingApplications, setLoadingApplications] = useState(false);
   
   const [permissions, setPermissions] = useState<{ [key: string]: TripPermissions }>({});
-  const [editingTrip, setEditingTrip] = useState<StandardTrip | null>(null);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [adminAnnouncements, setAdminAnnouncements] = useState<any[]>([]);
@@ -770,7 +765,7 @@ const SenseiDashboard = () => {
           price: editingTrip.price,
           dates: editingTrip.dates,
           group_size: editingTrip.group_size,
-          program: editingTrip.program,
+          program: editingTrip.program as any,
           included_amenities: editingTrip.included_amenities,
           excluded_items: editingTrip.excluded_items,
           requirements: editingTrip.requirements,
@@ -785,10 +780,10 @@ const SenseiDashboard = () => {
       if (originalTrip) {
         const fieldsToCheck = ['title', 'destination', 'description', 'price', 'dates', 'group_size', 'program', 'included_amenities', 'excluded_items', 'requirements', 'theme'];
         fieldsToCheck.forEach(field => {
-          if (JSON.stringify(originalTrip[field as keyof Trip]) !== JSON.stringify(editingTrip[field as keyof Trip])) {
+          if (JSON.stringify((originalTrip as any)[field]) !== JSON.stringify((editingTrip as any)[field])) {
             changes[field] = {
-              from: originalTrip[field as keyof Trip],
-              to: editingTrip[field as keyof Trip]
+              from: (originalTrip as any)[field],
+              to: (editingTrip as any)[field]
             };
           }
         });
@@ -834,6 +829,8 @@ const SenseiDashboard = () => {
     const currentProgram = ensureProgramIsArray(editingTrip.program);
     const newDay: ProgramDay = {
       day: currentProgram.length + 1,
+      title: "",
+      description: "",
       location: "",
       activities: [""]
     };
@@ -1942,19 +1939,33 @@ const SenseiDashboard = () => {
                                     <div className="space-y-4">
                                       {editingTrip.program?.map((day: ProgramDay, dayIndex: number) => (
                                         <Card key={dayIndex}>
-                                          <CardContent className="pt-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                              <div>
-                                                <Label>Day {day.day}</Label>
-                                              </div>
-                                              <div>
-                                                <Label>Location</Label>
-                                                <Input
-                                                  value={day.location}
-                                                  onChange={(e) => updateProgramDay(dayIndex, 'location', e.target.value)}
-                                                />
-                                              </div>
-                                            </div>
+                                           <CardContent className="pt-4">
+                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                               <div>
+                                                 <Label>Day {day.day} - Title</Label>
+                                                 <Input
+                                                   value={day.title}
+                                                   onChange={(e) => updateProgramDay(dayIndex, 'title', e.target.value)}
+                                                   placeholder="Day title"
+                                                 />
+                                               </div>
+                                               <div>
+                                                 <Label>Location</Label>
+                                                 <Input
+                                                   value={day.location || ''}
+                                                   onChange={(e) => updateProgramDay(dayIndex, 'location', e.target.value)}
+                                                   placeholder="Location"
+                                                 />
+                                               </div>
+                                             </div>
+                                             <div className="mb-4">
+                                               <Label>Description</Label>
+                                               <Textarea
+                                                 value={day.description}
+                                                 onChange={(e) => updateProgramDay(dayIndex, 'description', e.target.value)}
+                                                 placeholder="Description of the day"
+                                               />
+                                             </div>
                                             
                                             <div>
                                               <div className="flex justify-between items-center mb-2">

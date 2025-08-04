@@ -11,6 +11,8 @@ export interface ProgramDay {
   title: string;
   description: string;
   activities: string[];
+  location?: string;
+  coordinates?: { lat: number; lng: number };
 }
 
 // Complete Trip interface aligned with database schema
