@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bell, AlertTriangle, Info, CheckCircle, X, Eye, Settings } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Alert {
   id: string;
@@ -29,85 +31,73 @@ export function SmartAlerts({ onAlertAction }: SmartAlertsProps) {
   const [filter, setFilter] = useState<'all' | 'unread' | 'critical'>('all');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Mock alerts - in real app these would come from various sources
   useEffect(() => {
-    const mockAlerts: Alert[] = [
-      {
-        id: '1',
-        type: 'critical',
-        title: 'Payment Overdue',
-        description: '3 customers have payments overdue by more than 7 days',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        isRead: false,
-        actions: [
-          { label: 'Send Reminders', action: () => {}, variant: 'default' },
-          { label: 'View Details', action: () => {}, variant: 'outline' }
-        ],
-        data: { count: 3, totalAmount: 12500 }
-      },
-      {
-        id: '2', 
-        type: 'warning',
-        title: 'Trip Cancellation',
-        description: 'Sensei Akira Tanaka cancelled Japan Cherry Blossom trip',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        isRead: false,
-        actions: [
-          { label: 'Find Replacement', action: () => {}, variant: 'default' },
-          { label: 'Contact Customers', action: () => {}, variant: 'outline' }
-        ],
-        data: { tripId: 'trip-123', senseiId: 'sensei-456', participants: 8 }
-      },
-      {
-        id: '3',
-        type: 'warning', 
-        title: 'Low Booking Rate',
-        description: 'Morocco Desert Trek has only 2 bookings with 10 days until departure',
-        timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-        isRead: false,
-        actions: [
-          { label: 'Boost Marketing', action: () => {}, variant: 'default' },
-          { label: 'Adjust Pricing', action: () => {}, variant: 'outline' }
-        ],
-        data: { tripId: 'trip-789', currentBookings: 2, maxParticipants: 12 }
-      },
-      {
-        id: '4',
-        type: 'info',
-        title: 'New Sensei Application',
-        description: '2 new sensei applications pending review',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
-        isRead: true,
-        actions: [
-          { label: 'Review Applications', action: () => {}, variant: 'default' }
-        ],
-        data: { count: 2 }
-      },
-      {
-        id: '5',
-        type: 'success',
-        title: 'Trip Fully Booked',
-        description: 'Nepal Everest Base Camp reached maximum capacity',
-        timestamp: new Date(Date.now() - 90 * 60 * 1000), // 1.5 hours ago
-        isRead: true,
-        data: { tripId: 'trip-abc', participants: 16 }
-      },
-      {
-        id: '6',
-        type: 'critical',
-        title: 'System Performance Alert',
-        description: 'Database query response time increased by 40% in the last hour',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-        isRead: false,
-        actions: [
-          { label: 'Check System', action: () => {}, variant: 'destructive' },
-          { label: 'View Logs', action: () => {}, variant: 'outline' }
-        ]
-      }
-    ];
-
-    setAlerts(mockAlerts);
+    loadRealAlerts();
   }, []);
+
+  const loadRealAlerts = async () => {
+    try {
+      const { data: adminAlerts, error } = await supabase
+        .from('admin_alerts')
+        .select('*')
+        .eq('is_resolved', false)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const transformedAlerts: Alert[] = (adminAlerts || []).map(alert => ({
+        id: alert.id,
+        type: alert.priority === 'critical' ? 'critical' : 
+              alert.priority === 'high' ? 'warning' : 
+              alert.priority === 'medium' ? 'info' : 'info',
+        title: alert.title,
+        description: alert.message,
+        timestamp: new Date(alert.created_at),
+        isRead: alert.resolved_by !== null,
+        actions: [{
+          label: 'Resolve',
+          action: () => resolveAlert(alert.id),
+          variant: 'default' as const
+        }],
+        data: alert.metadata
+      }));
+
+      setAlerts(transformedAlerts);
+    } catch (error) {
+      toast({
+        title: "Error loading alerts",
+        description: "Failed to fetch system alerts",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const resolveAlert = async (alertId: string) => {
+    try {
+      const { error } = await supabase
+        .from('admin_alerts')
+        .update({ 
+          is_resolved: true, 
+          resolved_at: new Date().toISOString() 
+        })
+        .eq('id', alertId);
+
+      if (error) throw error;
+
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+      toast({
+        title: "Alert resolved",
+        description: "The alert has been marked as resolved"
+      });
+    } catch (error) {
+      toast({
+        title: "Error resolving alert",
+        description: "Failed to resolve the alert",
+        variant: "destructive"
+      });
+    }
+  };
 
   const getAlertIcon = (type: Alert['type']) => {
     switch (type) {
@@ -355,8 +345,10 @@ export function NotificationCenter() {
       {showAlerts && (
         <SmartAlerts 
           onAlertAction={(alertId, action) => {
-            console.log(`Alert ${alertId} action: ${action}`);
-            // Handle specific alert actions here
+            toast({
+              title: "Action performed",
+              description: `${action} action completed for alert`
+            });
           }}
         />
       )}

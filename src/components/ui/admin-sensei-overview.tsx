@@ -32,7 +32,7 @@ interface SenseiSuggestion {
 }
 
 import { Trip } from '@/types/trip';
-import { createMockTrip } from '@/types/trip-utils';
+import { createMinimalTrip } from '@/types/trip-utils';
 
 export function AdminSenseiOverview() {
   const [senseis, setSenseis] = useState<SenseiStatus[]>([]);
@@ -52,7 +52,7 @@ export function AdminSenseiOverview() {
       if (error) throw error;
       setSenseis(data || []);
     } catch (error) {
-      console.error('Error fetching sensei status:', error);
+      // Handle error silently or with toast notification
       toast.error('Failed to load sensei overview');
     } finally {
       setLoading(false);
@@ -70,7 +70,7 @@ export function AdminSenseiOverview() {
       if (error) throw error;
       
       // Transform the data to proper Trip objects
-      const transformedTrips = (data || []).map(trip => createMockTrip({
+      const transformedTrips = (data || []).map(trip => createMinimalTrip({
         id: trip.id,
         title: trip.title,
         theme: trip.theme,
@@ -80,12 +80,16 @@ export function AdminSenseiOverview() {
         description: trip.description || '',
         price: trip.price || '0',
         group_size: trip.group_size || '',
-        sensei_name: trip.sensei_name || ''
+        sensei_name: trip.sensei_name || '',
+        trip_status: trip.trip_status,
+        is_active: trip.is_active,
+        rating: trip.rating,
+        image_url: trip.image_url
       }));
       
       setTrips(transformedTrips);
     } catch (error) {
-      console.error('Error fetching trips:', error);
+      // Handle error silently or with toast notification
     }
   };
 
@@ -107,7 +111,7 @@ export function AdminSenseiOverview() {
       if (error) throw error;
       setSuggestions(data || []);
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      // Handle error silently or with toast notification
       toast.error('Failed to load suggestions');
     }
   };
@@ -127,7 +131,7 @@ export function AdminSenseiOverview() {
       fetchSenseiStatus();
       fetchTrips();
     } catch (error) {
-      console.error('Error assigning sensei:', error);
+      // Handle error silently or with toast notification
       toast.error('Failed to assign sensei to trip');
     }
   };

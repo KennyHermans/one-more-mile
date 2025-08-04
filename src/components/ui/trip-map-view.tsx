@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 
 import { TripListItem } from '@/types/trip';
 
-// Mock map implementation - in production, you'd use Mapbox or Google Maps
 interface TripWithCoordinates extends TripListItem {
   coordinates?: [number, number]; // [lat, lng]
 }
@@ -17,8 +16,8 @@ interface TripMapViewProps {
   className?: string;
 }
 
-// Mock coordinates for demo purposes
-const mockCoordinates: Record<string, [number, number]> = {
+// Destination coordinates - in production, get from trip data or geocoding service
+const destinationCoordinates: Record<string, [number, number]> = {
   "nepal": [28.3949, 84.1240],
   "italy": [41.8719, 12.5674],
   "switzerland": [46.8182, 8.2275],
@@ -27,6 +26,18 @@ const mockCoordinates: Record<string, [number, number]> = {
   "thailand": [15.8700, 100.9925],
   "morocco": [31.7917, -7.0926],
   "costa rica": [9.7489, -83.7534],
+  "tibet": [29.6520, 91.1320],
+  "iceland": [64.9631, -19.0208],
+  "norway": [60.4720, 8.4689],
+  "chile": [-35.6751, -71.5430],
+  "india": [20.5937, 78.9629],
+  "vietnam": [14.0583, 108.2772],
+  "cambodia": [12.5657, 104.9910],
+  "laos": [19.8563, 102.4955],
+  "myanmar": [21.9162, 95.9560],
+  "bhutan": [27.5142, 90.4336],
+  "sri lanka": [7.8731, 80.7718],
+  "mongolia": [46.8625, 103.8467]
 };
 
 export function TripMapView({ trips, className }: TripMapViewProps) {
@@ -37,7 +48,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
   // Add coordinates to trips based on destination
   const tripsWithCoordinates: TripWithCoordinates[] = trips.map(trip => ({
     ...trip,
-    coordinates: mockCoordinates[trip.destination.toLowerCase()] || [0, 0] as [number, number]
+    coordinates: destinationCoordinates[trip.destination.toLowerCase()] || [0, 0] as [number, number]
   }));
 
   const MapMarker = ({ trip, isSelected }: { trip: TripWithCoordinates; isSelected: boolean }) => (

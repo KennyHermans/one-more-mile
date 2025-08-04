@@ -60,29 +60,4 @@ export const transformToTripArray = (data: any[]): Trip[] => {
   });
 };
 
-// Creates mock trip data for testing/development
-export const createMockTrip = (overrides: Partial<Trip> = {}): Trip => {
-  return createMinimalTrip({
-    id: '1',
-    title: 'Meditation Retreat',
-    theme: 'Wellness',
-    dates: 'June 15-22, 2024',
-    sensei_id: '1',
-    destination: 'Bali',
-    description: 'A peaceful meditation retreat in Bali',
-    start_date: '2024-06-15',
-    end_date: '2024-06-22',
-    duration_days: 7,
-    price: '$1,299',
-    group_size: '8-12 people',
-    max_participants: 12,
-    current_participants: 5,
-    sensei_name: 'Maria Zen',
-    image_url: '/placeholder.svg',
-    trip_status: 'approved',
-    is_active: true,
-    rating: 4.8,
-    difficulty_level: 'Easy',
-    ...overrides
-  });
-};
+// Note: createMockTrip was removed - use createMinimalTrip instead

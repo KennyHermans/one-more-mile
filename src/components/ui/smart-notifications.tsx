@@ -77,74 +77,60 @@ export const SmartNotifications = () => {
 
   const loadNotifications = async () => {
     try {
-      // Generate smart notifications with AI insights
-      const mockNotifications: SmartNotification[] = [
-        {
-          id: '1',
-          type: 'urgent',
-          category: 'booking',
-          title: 'Trip Confirmation Required',
-          message: 'Your Kyoto Photography Tour starts in 2 days. Please confirm your arrival details.',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          read: false,
-          priority: 95,
-          actionable: true,
-          aiInsight: 'Based on weather forecast, consider bringing extra lens protection for rain.',
-          relatedData: { tripId: 'trip-123', destination: 'Kyoto' }
-        },
-        {
-          id: '2',
-          type: 'important',
-          category: 'payment',
-          title: 'Payment Due Soon',
-          message: 'Your next installment of $400 is due in 3 days.',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          read: false,
-          priority: 85,
-          actionable: true,
-          aiInsight: 'Set up auto-pay to avoid late fees and get 2% cashback.',
-        },
-        {
-          id: '3',
-          type: 'info',
-          category: 'recommendation',
-          title: 'Perfect Trip Match Found',
-          message: 'Based on your interests, we found 3 new hiking trips in the Alps.',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-          read: true,
-          priority: 70,
-          actionable: true,
-          aiInsight: 'These trips match 94% with your hiking experience and preferred difficulty level.',
-        },
-        {
-          id: '4',
-          type: 'promotional',
-          category: 'system',
-          title: 'Early Bird Special',
-          message: '25% off Spring photography tours - Limited time!',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
-          read: true,
-          priority: 60,
-          actionable: true,
-          aiInsight: 'Similar users saved an average of $300 on these offers.',
-        }
-      ];
+      if (!user) return;
 
-      setNotifications(mockNotifications);
+      const { data: notifications, error } = await supabase
+        .from('customer_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const transformedNotifications: SmartNotification[] = (notifications || []).map(notif => ({
+        id: notif.id,
+        type: notif.type === 'urgent' ? 'urgent' : 
+              notif.type === 'important' ? 'important' : 
+              notif.type === 'promotional' ? 'promotional' : 'info',
+        category: notif.type as any,
+        title: notif.title,
+        message: notif.message,
+        timestamp: new Date(notif.created_at),
+        read: notif.is_read,
+        priority: notif.type === 'urgent' ? 95 : 
+                 notif.type === 'important' ? 85 : 
+                 notif.type === 'promotional' ? 60 : 70,
+        actionable: true,
+        aiInsight: undefined,
+        relatedData: { tripId: notif.related_trip_id }
+      }));
+
+      setNotifications(transformedNotifications);
     } catch (error) {
-      console.error('Error loading notifications:', error);
+      toast({
+        title: "Error loading notifications",
+        description: "Failed to fetch notifications",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const loadSettings = async () => {
-    // Mock settings for now - database implementation would need notification settings table
-    console.log('Loading notification settings for user:', user?.id);
+    // Settings could be stored in user preferences or separate table
+    // For now using localStorage as fallback
+    const stored = localStorage.getItem(`notification-settings-${user?.id}`);
+    if (stored) {
+      setSettings(JSON.parse(stored));
+    }
   };
 
   const saveSettings = async (newSettings: NotificationSettings) => {
     setSettings(newSettings);
+    // Save to localStorage for now
+    localStorage.setItem(`notification-settings-${user?.id}`, JSON.stringify(newSettings));
     toast({
       title: 'Settings Saved',
       description: 'Your notification preferences have been updated.',
@@ -158,7 +144,6 @@ export const SmartNotifications = () => {
         { event: '*', schema: 'public', table: 'notifications' },
         (payload) => {
           // Handle real-time notification updates
-          console.log('Real-time notification:', payload);
           loadNotifications();
         }
       )
@@ -170,13 +155,46 @@ export const SmartNotifications = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-    );
+    try {
+      const { error } = await supabase
+        .from('customer_notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive"
+      });
+    }
   };
 
   const markAllAsRead = async () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('customer_notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive"
+      });
+    }
   };
 
   const getNotificationIcon = (category: string) => {

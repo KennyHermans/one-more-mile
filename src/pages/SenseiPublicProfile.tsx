@@ -23,7 +23,7 @@ interface SenseiProfile {
 }
 
 import { Trip } from '@/types/trip';
-import { createMockTrip } from '@/types/trip-utils';
+import { createMinimalTrip } from '@/types/trip-utils';
 
 const SenseiPublicProfile = () => {
   const { senseiId } = useParams<{ senseiId: string }>();
@@ -64,7 +64,7 @@ const SenseiPublicProfile = () => {
 
       setSensei(data);
     } catch (error) {
-      console.error('Error fetching sensei profile:', error);
+      // Handle error silently - toast already shown
       toast({
         title: "Error",
         description: "Failed to load sensei profile.",
@@ -86,7 +86,7 @@ const SenseiPublicProfile = () => {
 
       if (error) throw error;
       // Transform partial trip data to full Trip objects
-      const transformedTrips = (data || []).map(trip => createMockTrip({
+      const transformedTrips = (data || []).map(trip => createMinimalTrip({
         id: trip.id,
         title: trip.title,
         destination: trip.destination,
@@ -95,7 +95,7 @@ const SenseiPublicProfile = () => {
       }));
       setTrips(transformedTrips);
     } catch (error) {
-      console.error('Error fetching sensei trips:', error);
+      // Handle error silently or with toast notification
     } finally {
       setLoading(false);
     }
