@@ -26,14 +26,11 @@ import {
   XCircle
 } from "lucide-react";
 
-import { Trip, transformToTripArray } from '@/types/trip';
+import { Trip } from '@/types/trip';
 import { transformToTripArray } from '@/types/trip-utils';
 
-interface TripOverviewExtended {
-  sensei_name: string;
-  is_active: boolean;
-  current_participants: number;
-  max_participants: number;
+interface TripOverviewExtended extends Trip {
+  // Additional properties for overview
 }
 
 interface SenseiProfile {
@@ -104,7 +101,8 @@ export function AdminTripManagementOverview() {
 
       if (error) throw error;
       
-      const processedTrips = (data || []).map(trip => ({
+      const transformedTrips = transformToTripArray(data || []);
+      const processedTrips = transformedTrips.map(trip => ({
         ...trip,
         creator_type: trip.created_by_sensei ? 'sensei' as const : 'admin' as const,
         creator_name: trip.created_by_sensei ? trip.sensei_name : 'One More Mile',

@@ -63,12 +63,27 @@ export function AdminSenseiOverview() {
     try {
       const { data, error } = await supabase
         .from('trips')
-        .select('id, title, theme, dates, sensei_id')
+        .select('*')
         .eq('is_active', true)
         .eq('trip_status', 'approved');
       
       if (error) throw error;
-      setTrips(data || []);
+      
+      // Transform the data to proper Trip objects
+      const transformedTrips = (data || []).map(trip => createMockTrip({
+        id: trip.id,
+        title: trip.title,
+        theme: trip.theme,
+        dates: trip.dates,
+        sensei_id: trip.sensei_id,
+        destination: trip.destination || '',
+        description: trip.description || '',
+        price: trip.price || '0',
+        group_size: trip.group_size || '',
+        sensei_name: trip.sensei_name || ''
+      }));
+      
+      setTrips(transformedTrips);
     } catch (error) {
       console.error('Error fetching trips:', error);
     }

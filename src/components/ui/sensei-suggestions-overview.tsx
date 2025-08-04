@@ -23,10 +23,9 @@ import {
 } from "lucide-react";
 
 import { Trip } from '@/types/trip';
+import { transformToTripArray } from '@/types/trip-utils';
 
 interface TripWithRequirements extends Trip {
-  current_participants: number;
-  backup_sensei_id?: string;
   trip_requirements?: TripRequirement[];
 }
 
@@ -93,7 +92,8 @@ export function SenseiSuggestionsOverview() {
 
       if (tripsError) throw tripsError;
 
-      setTripsNeedingSenseis(trips || []);
+      // Transform the trips data using our utility function
+      setTripsNeedingSenseis(transformToTripArray(trips || []) as TripWithRequirements[]);
     } catch (error) {
       console.error("Error fetching trips needing senseis:", error);
       toast({

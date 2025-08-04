@@ -40,7 +40,7 @@ interface BackupRequest {
   };
 }
 
-import { Trip, transformToTripArray } from '@/types/trip';
+import { Trip } from '@/types/trip';
 import { transformToTripArray } from '@/types/trip-utils';
 
 interface BackupApplication {
@@ -123,7 +123,7 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
       .eq('is_active', true);
 
     if (tripsError) throw tripsError;
-    setAvailableTrips(tripsData || []);
+    setAvailableTrips(transformToTripArray(tripsData || []));
 
     // Fetch all backup applications
     const { data: applicationsData, error: applicationsError } = await supabase
@@ -201,7 +201,7 @@ export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackup
     }
 
     console.log('Found available trips for backup:', tripsData?.length || 0);
-    setAvailableTrips(tripsData || []);
+    setAvailableTrips(transformToTripArray(tripsData || []));
 
     // Fetch this sensei's backup applications
     const { data: applicationsData, error: applicationsError } = await supabase

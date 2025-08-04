@@ -70,6 +70,7 @@ interface PricingSuggestion {
 }
 
 import { Trip } from '@/types/trip';
+import { transformToTripArray } from '@/types/trip-utils';
 
 interface ExtendedTrip extends Trip {
   milestones: TripMilestone[];
@@ -103,16 +104,8 @@ export function AdvancedTripManagement() {
 
       if (error) throw error;
 
-      const transformedTrips: ExtendedTrip[] = (data || []).map(trip => ({
-        id: trip.id,
-        title: trip.title,
-        destination: trip.destination,
-        dates: trip.dates,
-        sensei: trip.sensei_name,
-        participants: trip.current_participants || 0,
-        maxParticipants: trip.max_participants || 12,
-        price: parseFloat(trip.price?.replace(/[^\d.]/g, '') || '0'),
-        status: trip.is_active ? 'active' : 'draft',
+      const transformedTrips: ExtendedTrip[] = transformToTripArray(data || []).map(trip => ({
+        ...trip,
         bookingTrend: [0, 1, 2, trip.current_participants || 0],
         seasonality: 'medium' as const,
         milestones: [
@@ -151,7 +144,7 @@ export function AdvancedTripManagement() {
     // Check for date overlaps and sensei conflicts
     const otherTrips = trips.filter((_, i) => i !== index);
     const overlaps = otherTrips.filter(other => 
-      other.sensei === trip.sensei && other.status === 'active'
+      other.sensei_name === trip.sensei_name && other.trip_status === 'approved'
     );
 
     if (overlaps.length > 0) {
@@ -159,7 +152,7 @@ export function AdvancedTripManagement() {
         id: `conflict_${trip.id}`,
         type: "sensei_double_booking",
         severity: "high",
-        message: `${trip.sensei} is assigned to multiple active trips`,
+        message: `${trip.sensei_name} is assigned to multiple active trips`,
         affectedTrips: [trip.id, ...overlaps.map(t => t.id)],
         suggestedAction: "Reassign sensei or adjust dates"
       });
@@ -172,11 +165,12 @@ export function AdvancedTripManagement() {
   
   // Generate pricing suggestions for trips with low occupancy
   trips.forEach(trip => {
-    const occupancyRate = trip.participants / trip.maxParticipants;
+    const occupancyRate = trip.current_participants / trip.max_participants;
     if (occupancyRate < 0.7) {
+      const priceNumber = parseFloat(trip.price?.replace(/[^\d.]/g, '') || '0');
       pricingSuggestions[trip.id] = {
-        currentPrice: trip.price,
-        suggestedPrice: Math.round(trip.price * 0.85),
+        currentPrice: priceNumber,
+        suggestedPrice: Math.round(priceNumber * 0.85),
         confidence: 75,
         reasoning: "Low occupancy - consider promotional pricing",
         factors: [
@@ -193,9 +187,9 @@ export function AdvancedTripManagement() {
       const matchesSearch = searchQuery === "" || 
         trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         trip.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trip.sensei.toLowerCase().includes(searchQuery.toLowerCase());
+        trip.sensei_name.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesStatus = statusFilter === "all" || trip.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || trip.trip_status === statusFilter;
       
       return matchesSearch && matchesStatus;
     });
@@ -368,8 +362,8 @@ export function AdvancedTripManagement() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold">{trip.title}</h3>
-                        <Badge className={getStatusColor(trip.status)}>
-                          {trip.status}
+                        <Badge className={getStatusColor(trip.trip_status)}>
+                          {trip.trip_status}
                         </Badge>
                         {conflicts.some(c => c.affectedTrips.includes(trip.id)) && (
                           <Badge variant="destructive">
@@ -389,7 +383,7 @@ export function AdvancedTripManagement() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="h-4 w-4" />
-                          {trip.participants}/{trip.maxParticipants} participants
+                          {trip.current_participants}/{trip.max_participants} participants
                         </div>
                       </div>
                     </div>
@@ -422,18 +416,18 @@ export function AdvancedTripManagement() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">Booking Progress</span>
                         <span className="text-sm text-muted-foreground">
-                          {Math.round((trip.participants / trip.maxParticipants) * 100)}%
+                          {Math.round((trip.current_participants / trip.max_participants) * 100)}%
                         </span>
                       </div>
                       <Progress 
-                        value={(trip.participants / trip.maxParticipants) * 100} 
+                        value={(trip.current_participants / trip.max_participants) * 100} 
                         className="h-2"
                       />
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-lg font-semibold">€{trip.price}</span>
+                        <span className="text-lg font-semibold">{trip.price}</span>
                         {pricingSuggestions[trip.id] && (
                           <Badge variant="outline" className="ml-2">
                             <TrendingUp className="h-3 w-3 mr-1" />

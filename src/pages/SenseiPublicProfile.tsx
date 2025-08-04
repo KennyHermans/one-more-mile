@@ -23,6 +23,7 @@ interface SenseiProfile {
 }
 
 import { Trip } from '@/types/trip';
+import { createMockTrip } from '@/types/trip-utils';
 
 const SenseiPublicProfile = () => {
   const { senseiId } = useParams<{ senseiId: string }>();
@@ -84,7 +85,15 @@ const SenseiPublicProfile = () => {
         .limit(6);
 
       if (error) throw error;
-      setTrips(data || []);
+      // Transform partial trip data to full Trip objects
+      const transformedTrips = (data || []).map(trip => createMockTrip({
+        id: trip.id,
+        title: trip.title,
+        destination: trip.destination,
+        rating: trip.rating,
+        image_url: trip.image_url
+      }));
+      setTrips(transformedTrips);
     } catch (error) {
       console.error('Error fetching sensei trips:', error);
     } finally {
