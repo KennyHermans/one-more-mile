@@ -22,13 +22,7 @@ interface SenseiProfile {
   is_active: boolean;
 }
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  rating: number;
-  image_url: string;
-}
+import { Trip } from '@/types/trip';
 
 const SenseiPublicProfile = () => {
   const { senseiId } = useParams<{ senseiId: string }>();

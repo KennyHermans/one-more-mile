@@ -22,16 +22,9 @@ import {
   AlertTriangle
 } from "lucide-react";
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  theme: string;
-  dates: string;
-  trip_status: string;
-  sensei_id?: string;
-  sensei_name: string;
-  max_participants: number;
+import { Trip } from '@/types/trip';
+
+interface TripWithRequirements extends Trip {
   current_participants: number;
   backup_sensei_id?: string;
   trip_requirements?: TripRequirement[];
@@ -63,9 +56,9 @@ interface SenseiSuggestion {
 
 export function SenseiSuggestionsOverview() {
   console.log("SenseiSuggestionsOverview component loaded");
-  const [tripsNeedingSenseis, setTripsNeedingSenseis] = useState<Trip[]>([]);
+  const [tripsNeedingSenseis, setTripsNeedingSenseis] = useState<TripWithRequirements[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<TripWithRequirements | null>(null);
   const [suggestions, setSuggestions] = useState<SenseiSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionsDialogOpen, setSuggestionsDialogOpen] = useState(false);
@@ -113,7 +106,7 @@ export function SenseiSuggestionsOverview() {
     }
   };
 
-  const fetchSenseiSuggestions = async (trip: Trip) => {
+  const fetchSenseiSuggestions = async (trip: TripWithRequirements) => {
     try {
       setLoadingSuggestions(true);
       setSelectedTrip(trip);

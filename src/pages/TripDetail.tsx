@@ -40,28 +40,7 @@ interface ProgramDay {
   activities: string;
 }
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  sensei_name: string;
-  sensei_id: string | null;
-  image_url: string;
-  theme: string;
-  rating: number;
-  duration_days: number;
-  difficulty_level: string;
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-  max_participants: number;
-  current_participants: number;
-  program: ProgramDay[];
-}
+import { Trip } from '@/types/trip';
 
 interface SenseiProfile {
   id: string;

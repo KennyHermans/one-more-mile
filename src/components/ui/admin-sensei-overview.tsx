@@ -31,13 +31,8 @@ interface SenseiSuggestion {
   is_available: boolean;
 }
 
-interface Trip {
-  id: string;
-  title: string;
-  theme: string;
-  dates: string;
-  sensei_id?: string;
-}
+import { Trip } from '@/types/trip';
+import { createMockTrip } from '@/types/trip-utils';
 
 export function AdminSenseiOverview() {
   const [senseis, setSenseis] = useState<SenseiStatus[]>([]);

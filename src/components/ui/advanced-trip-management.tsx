@@ -69,16 +69,9 @@ interface PricingSuggestion {
   factors: Array<{ name: string; impact: number; description: string }>;
 }
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  dates: string;
-  sensei: string;
-  participants: number;
-  maxParticipants: number;
-  price: number;
-  status: 'draft' | 'active' | 'completed' | 'cancelled';
+import { Trip } from '@/types/trip';
+
+interface ExtendedTrip extends Trip {
   milestones: TripMilestone[];
   bookingTrend: number[];
   seasonality: 'high' | 'medium' | 'low';
@@ -88,11 +81,11 @@ export function AdvancedTripManagement() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<ExtendedTrip | null>(null);
   const [showConflicts, setShowConflicts] = useState(false);
   const [showPricingSuggestions, setShowPricingSuggestions] = useState(false);
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<ExtendedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   
   const { toast } = useToast();
@@ -110,7 +103,7 @@ export function AdvancedTripManagement() {
 
       if (error) throw error;
 
-      const transformedTrips: Trip[] = (data || []).map(trip => ({
+      const transformedTrips: ExtendedTrip[] = (data || []).map(trip => ({
         id: trip.id,
         title: trip.title,
         destination: trip.destination,
@@ -236,7 +229,7 @@ export function AdvancedTripManagement() {
     }
   };
 
-  const cloneTrip = (trip: Trip) => {
+  const cloneTrip = (trip: ExtendedTrip) => {
     const clonedTrip = {
       ...trip,
       id: Date.now().toString(),

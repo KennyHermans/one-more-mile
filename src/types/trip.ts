@@ -185,7 +185,7 @@ export const transformDbTrip = (dbTrip: DbTrip): Trip => {
     let programData: ProgramDay[] | null = null;
     if (dbTrip.program) {
       if (Array.isArray(dbTrip.program)) {
-        programData = dbTrip.program as ProgramDay[];
+        programData = dbTrip.program as unknown as ProgramDay[];
       } else if (typeof dbTrip.program === 'string') {
         try {
           const parsed = JSON.parse(dbTrip.program);

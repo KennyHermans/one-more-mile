@@ -26,16 +26,9 @@ import {
   XCircle
 } from "lucide-react";
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  theme: string;
-  dates: string;
-  trip_status: string;
-  created_by_sensei: boolean;
-  created_by_user_id?: string;
-  sensei_id?: string;
+import { Trip } from '@/types/trip';
+
+interface TripOverviewExtended extends Trip {
   sensei_name: string;
   is_active: boolean;
   current_participants: number;
@@ -59,7 +52,7 @@ interface TripPermission {
   sensei_name?: string;
 }
 
-interface TripOverviewItem extends Trip {
+interface TripOverviewItem extends TripOverviewExtended {
   assigned_sensei?: SenseiProfile;
   permissions: TripPermission[];
   permission_count: number;

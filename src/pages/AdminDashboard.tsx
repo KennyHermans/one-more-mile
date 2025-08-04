@@ -107,36 +107,7 @@ interface TripBooking {
   };
 }
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  sensei_name: string;
-  sensei_id: string | null;
-  image_url: string;
-  theme: string;
-  rating: number;
-  duration_days: number;
-  difficulty_level: string;
-  max_participants: number;
-  current_participants: number;
-  is_active: boolean;
-  program: any[];
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-  trip_status?: string;
-  created_by_sensei?: boolean;
-  created_by_user_id?: string;
-  cancelled_by_sensei?: boolean;
-  cancellation_reason?: string;
-  cancelled_at?: string;
-  replacement_needed?: boolean;
-}
+import { Trip, transformDbTrip } from '@/types/trip';
 
 interface AdminAnnouncement {
   id: string;
@@ -377,14 +348,7 @@ const AdminDashboard = () => {
 
       if (error) throw error;
       
-      const transformedData = (data || []).map(trip => ({
-        ...trip,
-        program: typeof trip.program === 'string' 
-          ? JSON.parse(trip.program) 
-          : Array.isArray(trip.program) 
-            ? trip.program 
-            : []
-      })) as Trip[];
+      const transformedData = (data || []).map(trip => transformDbTrip(trip));
       
       setTrips(transformedData);
       setTripProposals(transformedData.filter(trip => trip.created_by_sensei && trip.trip_status !== 'approved'));

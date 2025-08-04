@@ -162,37 +162,8 @@ const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, placehol
   );
 };
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  sensei_name: string;
-  sensei_id: string | null;
-  image_url: string;
-  theme: string;
-  rating: number;
-  duration_days: number;
-  difficulty_level: string;
-  max_participants: number;
-  current_participants: number;
-  is_active: boolean;
-  program: ProgramDay[];
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-}
+import { Trip, transformDbTrip, ProgramDay } from '@/types/trip';
 
-interface ProgramDay {
-  day: number;
-  location: string;
-  activities: string;
-  latitude?: string;
-  longitude?: string;
-}
 
 interface SenseiProfile {
   id: string;
@@ -288,14 +259,7 @@ const AdminTrips = () => {
       if (error) throw error;
       
       // Transform the data to ensure program is properly typed
-      const transformedData = (data || []).map(trip => ({
-        ...trip,
-        program: typeof trip.program === 'string' 
-          ? JSON.parse(trip.program) 
-          : Array.isArray(trip.program) 
-            ? trip.program as unknown as ProgramDay[] 
-            : []
-      })) as Trip[];
+      const transformedData = (data || []).map(trip => transformDbTrip(trip));
       
       setTrips(transformedData);
     } catch (error: any) {
