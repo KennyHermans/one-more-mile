@@ -26,9 +26,10 @@ import {
   XCircle
 } from "lucide-react";
 
-import { Trip } from '@/types/trip';
+import { Trip, transformToTripArray } from '@/types/trip';
+import { transformToTripArray } from '@/types/trip-utils';
 
-interface TripOverviewExtended extends Trip {
+interface TripOverviewExtended {
   sensei_name: string;
   is_active: boolean;
   current_participants: number;

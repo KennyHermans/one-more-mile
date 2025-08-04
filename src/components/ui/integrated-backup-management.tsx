@@ -40,12 +40,8 @@ interface BackupRequest {
   };
 }
 
-import { Trip } from '@/types/trip';
-
-interface BackupTrip extends Trip {
-  requires_backup_sensei: boolean;
-  backup_sensei_id?: string;
-}
+import { Trip, transformToTripArray } from '@/types/trip';
+import { transformToTripArray } from '@/types/trip-utils';
 
 interface BackupApplication {
   id: string;
@@ -67,7 +63,7 @@ interface IntegratedBackupManagementProps {
 
 export function IntegratedBackupManagement({ isAdmin = false }: IntegratedBackupManagementProps) {
   const [requests, setRequests] = useState<BackupRequest[]>([]);
-  const [availableTrips, setAvailableTrips] = useState<BackupTrip[]>([]);
+  const [availableTrips, setAvailableTrips] = useState<Trip[]>([]);
   const [applications, setApplications] = useState<BackupApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<BackupRequest | null>(null);
