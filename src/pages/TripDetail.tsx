@@ -680,6 +680,17 @@ const TripDetail = () => {
                       {trip.current_participants >= trip.max_participants ? 'Fully Booked' : 'Book This Trip'}
                     </Button>
 
+                    <Button 
+                      variant="outline"
+                      className="w-full font-sans font-medium border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white" 
+                      size="lg"
+                      onClick={handleReserveNowPayLater}
+                      disabled={trip.current_participants >= trip.max_participants || paymentLoading}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Reserve Now, Pay Later
+                    </Button>
+
                     {/* Payment Options - Show when user clicks Book This Trip */}
                     {showPaymentOptions && (
                       <div className="space-y-3 pt-4 border-t">
@@ -739,31 +750,6 @@ const TripDetail = () => {
                             </Card>
                           ) : null;
                         })()}
-
-                        {/* Reserve Now, Pay Later Option */}
-                        <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                              onClick={() => handleReserveNowPayLater()}>
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center">
-                                  <Calendar className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold text-sm">Reserve Now, Pay Later</h3>
-                                  <p className="text-xs text-muted-foreground">3 months to pay</p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-bold text-orange-500">Reserve</div>
-                                <div className="text-xs text-muted-foreground">No payment now</div>
-                              </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              ✓ Reserve instantly ✓ 3 months to pay ✓ Deadline applies
-                            </p>
-                          </CardContent>
-                        </Card>
                       </div>
                     )}
                   </div>
