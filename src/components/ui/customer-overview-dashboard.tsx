@@ -5,6 +5,7 @@ import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-i
 import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, CheckSquare, Star, TrendingUp } from "lucide-react";
+import { TripBooking } from '@/types/trip';
 
 interface CustomerProfile {
   id: string;
@@ -16,23 +17,6 @@ interface CustomerProfile {
   medical_conditions: string;
 }
 
-interface TripBooking {
-  id: string;
-  trip_id: string;
-  booking_status: string;
-  payment_status: string;
-  booking_date: string;
-  total_amount: number;
-  payment_deadline?: string;
-  trips: {
-    title: string;
-    destination: string;
-    dates: string;
-    image_url: string;
-    sensei_name: string;
-    sensei_id: string;
-  };
-}
 
 interface Document {
   id: string;

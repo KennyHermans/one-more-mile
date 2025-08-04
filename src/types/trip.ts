@@ -65,6 +65,7 @@ export interface TripListItem {
   price: string;
   theme: string;
   sensei_name: string;
+  sensei_id: string | null;
   image_url: string;
   difficulty_level: string;
   current_participants: number | null;
@@ -196,6 +197,7 @@ export const toTripListItem = (trip: Trip): TripListItem => ({
   price: trip.price,
   theme: trip.theme,
   sensei_name: trip.sensei_name,
+  sensei_id: trip.sensei_id,
   image_url: trip.image_url,
   difficulty_level: trip.difficulty_level,
   current_participants: trip.current_participants,

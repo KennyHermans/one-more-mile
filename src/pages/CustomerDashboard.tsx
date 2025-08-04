@@ -172,12 +172,22 @@ const CustomerDashboard = () => {
       .select(`
         *,
         trip:trips (
+          id,
           title,
           destination,
           dates,
-          image_url,
+          start_date,
+          end_date,
+          price,
+          theme,
           sensei_name,
-          sensei_id
+          sensei_id,
+          image_url,
+          difficulty_level,
+          current_participants,
+          max_participants,
+          rating,
+          trip_status
         )
       `)
       .eq('user_id', userId);
@@ -573,9 +583,9 @@ const CustomerDashboard = () => {
                           <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-semibold">{booking.trips.title}</h4>
+                                <h4 className="font-semibold">{booking.trip.title}</h4>
                                 <p className="text-sm text-muted-foreground">
-                                  {booking.trips.destination} • Sensei: {booking.trips.sensei_name}
+                                  {booking.trip.destination} • Sensei: {booking.trip.sensei_name}
                                 </p>
                               </div>
                               <Badge variant="default">Paid</Badge>
@@ -584,7 +594,7 @@ const CustomerDashboard = () => {
                           <CardContent>
                             <TripMessagingEnhanced
                               tripId={booking.trip_id}
-                              tripTitle={booking.trips.title}
+                              tripTitle={booking.trip.title}
                               userType="customer"
                             />
                           </CardContent>
@@ -719,16 +729,16 @@ const CustomerDashboard = () => {
                           <Card key={booking.id} className="overflow-hidden">
                             <div className="flex">
                               <img 
-                                src={booking.trips.image_url} 
-                                alt={booking.trips.title}
+                                src={booking.trip.image_url} 
+                                alt={booking.trip.title}
                                 className="w-24 h-24 object-cover"
                               />
                               <CardContent className="flex-1 p-4">
                                 <div className="flex justify-between items-center">
                                   <div>
-                                    <h4 className="font-semibold">{booking.trips.title}</h4>
-                                    <p className="text-sm text-muted-foreground">{booking.trips.destination}</p>
-                                    <p className="text-sm">Sensei: {booking.trips.sensei_name}</p>
+                                    <h4 className="font-semibold">{booking.trip.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{booking.trip.destination}</p>
+                                    <p className="text-sm">Sensei: {booking.trip.sensei_name}</p>
                                   </div>
                                   <Button 
                                     onClick={() => handleReviewTrip(booking)}
