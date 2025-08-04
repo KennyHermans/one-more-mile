@@ -623,10 +623,11 @@ const AdminTrips = () => {
 
   // Program management functions
   const addProgramDay = () => {
-    const newDay = {
+    const newDay: ProgramDay = {
       day: formData.program.length + 1,
-      location: "",
-      activities: ""
+      title: `Day ${formData.program.length + 1}`,
+      description: "",
+      activities: [],
     };
     setFormData(prev => ({
       ...prev,
@@ -642,12 +643,12 @@ const AdminTrips = () => {
     }));
   };
 
-  const updateProgramDay = (dayIndex: number, field: keyof ProgramDay, value: string) => {
+  const updateProgramDay = (dayIndex: number, field: keyof ProgramDay, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       program: prev.program.map((day, index) => 
         index === dayIndex 
-          ? { ...day, [field]: field === 'day' ? parseInt(value) || 1 : value }
+          ? { ...day, [field]: field === 'day' ? parseInt(value as string) || 1 : value }
           : day
       )
     }));
@@ -796,12 +797,18 @@ const AdminTrips = () => {
                                   
                                   programDays.push({
                                     day: i + 1,
-                                    location: formData.destination || "To be determined",
-                                    activities: i === 0 
-                                      ? "Arrival and check-in\nWelcome briefing\nOrientation" 
+                                    title: `Day ${i + 1}`,
+                                    description: i === 0 
+                                      ? "Arrival and orientation day" 
                                       : i === diffDays - 1 
-                                      ? "Final activities\nDeparture preparation\nCheck-out"
-                                      : `Day ${i + 1} activities\nGuided exploration\nFree time`
+                                      ? "Departure and farewell"
+                                      : `Exploration and activities for day ${i + 1}`,
+                                    activities: [i === 0 
+                                      ? "Arrival and check-in" 
+                                      : i === diffDays - 1 
+                                      ? "Final activities and departure"
+                                      : `Day ${i + 1} activities`],
+                                    location: formData.destination || "To be determined"
                                   });
                                 }
                                 
@@ -817,10 +824,12 @@ const AdminTrips = () => {
                                 const dateString = format(range.from, "MMMM dd, yyyy");
                                 // Single day trip
                                 const singleDayProgram: ProgramDay[] = [{
-                                  day: 1,
-                                  location: formData.destination || "To be determined",
-                                  activities: "Arrival\nMain activity\nDeparture"
-                                }];
+                                   day: 1,
+                                   title: "Day 1",
+                                   description: "Single day experience",
+                                   activities: ["Arrival", "Main activity", "Departure"],
+                                   location: formData.destination || "To be determined"
+                                 }];
                                 
                                 setFormData(prev => ({ 
                                   ...prev, 
@@ -996,19 +1005,17 @@ const AdminTrips = () => {
                             <div className="space-y-2">
                               <label className="block text-xs font-medium mb-1">Location</label>
                               <LocationInput
-                                value={day.location}
+                                value={day.location || ""}
                                 onChange={(location, coordinates) => {
                                   updateProgramDay(index, 'location', location);
-                                  if (coordinates) {
-                                    updateProgramDay(index, 'latitude', coordinates[1].toString());
-                                    updateProgramDay(index, 'longitude', coordinates[0].toString());
-                                  }
+                                  // Note: latitude/longitude are not part of standard ProgramDay
+                                  // but can be stored in location string if needed
                                 }}
                                 placeholder="Search for any location worldwide..."
                               />
-                              {day.latitude && day.longitude && (
+                              {day.location && (
                                 <p className="text-xs text-green-600">
-                                  📍 Coordinates set: {parseFloat(day.latitude).toFixed(4)}, {parseFloat(day.longitude).toFixed(4)}
+                                  📍 Location set: {day.location}
                                 </p>
                               )}
                             </div>
@@ -1017,8 +1024,8 @@ const AdminTrips = () => {
                               <Textarea
                                 placeholder="Describe the day's activities"
                                 rows={3}
-                                value={day.activities}
-                                onChange={(e) => updateProgramDay(index, 'activities', e.target.value)}
+                                value={Array.isArray(day.activities) ? day.activities.join('\n') : day.activities || ""}
+                                onChange={(e) => updateProgramDay(index, 'activities', e.target.value.split('\n'))}
                               />
                             </div>
                           </div>

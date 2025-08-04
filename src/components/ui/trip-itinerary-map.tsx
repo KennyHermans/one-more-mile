@@ -5,13 +5,7 @@ import { Button } from './button';
 import { MapPin, RotateCcw, Play, Pause } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ProgramDay {
-  day: number;
-  location: string;
-  activities: string;
-  latitude?: string;
-  longitude?: string;
-}
+import { ProgramDay } from '@/types/trip';
 
 interface TripItineraryMapProps {
   program: ProgramDay[];
@@ -117,10 +111,10 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
 
             let coordinates_found: [number, number] | null = null;
             
-            // First check if coordinates are provided directly
-            if (day.latitude && day.longitude) {
-              const lat = parseFloat(day.latitude);
-              const lng = parseFloat(day.longitude);
+            // Check if coordinates are provided via the coordinates field
+            if (day.coordinates) {
+              const lat = day.coordinates.lat;
+              const lng = day.coordinates.lng;
               if (!isNaN(lat) && !isNaN(lng)) {
                 coordinates_found = [lng, lat];
                 console.log(`Using provided coordinates for Day ${day.day} "${day.location}": [${lng}, ${lat}]`);
@@ -262,7 +256,7 @@ export function TripItineraryMap({ program, tripTitle, className = "" }: TripIti
                   Day ${day.day}: ${day.location}
                 </h3>
                 <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
-                  ${day.activities || 'No activities specified'}
+                  ${Array.isArray(day.activities) ? day.activities.join(', ') : day.activities || 'No activities specified'}
                 </p>
               </div>
             `;

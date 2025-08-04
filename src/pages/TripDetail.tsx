@@ -34,12 +34,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProgramDay {
-  day: number;
-  location: string;
-  activities: string;
-}
-
 import { Trip } from '@/types/trip';
 
 interface SenseiProfile {
@@ -655,7 +649,7 @@ const TripDetail = () => {
                         <p className="text-muted-foreground">Explore the route and key destinations of your adventure</p>
                       </div>
                       <TripItineraryMap 
-                        program={trip.program} 
+                        program={trip.program || []} 
                         tripTitle={trip.title}
                         className="w-full"
                       />
