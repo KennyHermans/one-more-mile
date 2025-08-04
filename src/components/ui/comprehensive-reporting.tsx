@@ -201,12 +201,10 @@ export function ComprehensiveReporting() {
       });
 
     } catch (error) {
-      console.error('Error generating report:', error);
-      toast({
-        title: "Generation Error",
-        description: "Failed to generate report",
-        variant: "destructive",
-      });
+      handleError(error, {
+        component: 'ComprehensiveReporting',
+        action: 'generateReport'
+      }, true, "Failed to generate report");
     } finally {
       setIsGenerating(false);
     }
