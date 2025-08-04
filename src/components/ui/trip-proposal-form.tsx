@@ -9,11 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ProgramDay {
-  day: number;
-  title: string;
-  activities: string[];
-}
+import { ProgramDay } from '@/types/trip';
 
 interface TripProposalFormProps {
   onSuccess?: () => void;
@@ -41,7 +37,7 @@ export function TripProposalForm({ onSuccess, onCancel, senseiId }: TripProposal
     excluded_items: [''],
   });
   const [program, setProgram] = useState<ProgramDay[]>([
-    { day: 1, title: '', activities: [''] }
+    { day: 1, title: '', description: '', activities: [''] }
   ]);
 
   const handleInputChange = (field: string, value: any) => {
@@ -65,10 +61,10 @@ export function TripProposalForm({ onSuccess, onCancel, senseiId }: TripProposal
   };
 
   const addProgramDay = () => {
-    setProgram(prev => [...prev, { day: prev.length + 1, title: '', activities: [''] }]);
+    setProgram(prev => [...prev, { day: prev.length + 1, title: '', description: '', activities: [''] }]);
   };
 
-  const updateProgramDay = (dayIndex: number, field: 'title', value: string) => {
+  const updateProgramDay = (dayIndex: number, field: 'title' | 'description', value: string) => {
     setProgram(prev => prev.map((day, i) => 
       i === dayIndex ? { ...day, [field]: value } : day
     ));
@@ -329,6 +325,14 @@ export function TripProposalForm({ onSuccess, onCancel, senseiId }: TripProposal
                     value={day.title}
                     onChange={(e) => updateProgramDay(dayIndex, 'title', e.target.value)}
                     placeholder="Enter day title"
+                  />
+                </div>
+                <div className="mb-2">
+                  <Label>Day {day.day} Description</Label>
+                  <Input
+                    value={day.description}
+                    onChange={(e) => updateProgramDay(dayIndex, 'description', e.target.value)}
+                    placeholder="Enter day description"
                   />
                 </div>
                 <Label>Activities</Label>
