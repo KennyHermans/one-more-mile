@@ -21,7 +21,8 @@ import {
   Users,
   Loader2,
   ChevronDown,
-  Settings
+  Settings,
+  Copy
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -527,6 +528,41 @@ const AdminTrips = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDuplicateTrip = (trip: Trip) => {
+    // Copy the trip data but clear dates and reset participant count
+    setFormData({
+      title: `${trip.title} (Copy)`,
+      destination: trip.destination,
+      description: trip.description,
+      price: trip.price,
+      dates: "", // Clear dates for the admin to set new ones
+      group_size: trip.group_size,
+      sensei_name: "", // Clear sensei for admin to assign new one
+      sensei_id: null, // Clear sensei for admin to assign new one
+      image_url: trip.image_url,
+      theme: trip.theme,
+      rating: trip.rating,
+      duration_days: trip.duration_days,
+      difficulty_level: trip.difficulty_level,
+      max_participants: trip.max_participants,
+      current_participants: 0, // Reset participant count
+      is_active: false, // Start as inactive until reviewed
+      program: trip.program || [],
+      included_amenities: trip.included_amenities || [],
+      excluded_items: trip.excluded_items || [],
+      requirements: trip.requirements || []
+    });
+
+    setDateRange(undefined); // Clear date range
+    setEditingTrip(null); // This is a new trip, not editing existing
+    setIsDialogOpen(true);
+
+    toast({
+      title: "Trip Duplicated",
+      description: "Trip data copied! Update the dates and sensei assignment.",
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1215,7 +1251,7 @@ const AdminTrips = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -1224,6 +1260,14 @@ const AdminTrips = () => {
                   >
                     <Edit2 className="mr-1 h-4 w-4" />
                     Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDuplicateTrip(trip)}
+                    title="Duplicate Trip"
+                  >
+                    <Copy className="h-4 w-4" />
                   </Button>
                   {trip.sensei_id && (
                     <Button 
