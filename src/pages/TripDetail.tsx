@@ -782,8 +782,8 @@ const TripDetail = () => {
                   </div>
 
                   <div className="mt-4 text-center">
-                    <Button variant="outline" className="w-full font-sans">
-                      Contact for Custom Date
+                    <Button asChild variant="outline" className="w-full font-sans">
+                      <Link to="/contact">Request info</Link>
                     </Button>
                   </div>
                 </CardContent>
