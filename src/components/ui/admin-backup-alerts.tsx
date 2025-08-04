@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -89,7 +90,10 @@ export function AdminBackupAlerts() {
       setAlerts(alertsData || []);
       setBackupRequests(requestsData || []);
     } catch (error) {
-      console.error('Error fetching backup alerts:', error);
+      logError(error as Error, {
+        component: 'AdminBackupAlerts',
+        action: 'fetchAlerts'
+      });
       toast({
         title: "Error",
         description: "Failed to load backup alerts",
@@ -120,7 +124,11 @@ export function AdminBackupAlerts() {
 
       fetchData();
     } catch (error) {
-      console.error('Error resolving alert:', error);
+      logError(error as Error, {
+        component: 'AdminBackupAlerts',
+        action: 'resolveAlert',
+        metadata: { alertId }
+      });
       toast({
         title: "Error",
         description: "Failed to resolve alert",
@@ -145,7 +153,11 @@ export function AdminBackupAlerts() {
 
       fetchData();
     } catch (error) {
-      console.error('Error requesting backup senseis:', error);
+      logError(error as Error, {
+        component: 'AdminBackupAlerts',
+        action: 'requestBackupSenseis',
+        tripId
+      });
       toast({
         title: "Error",
         description: "Failed to send backup requests",

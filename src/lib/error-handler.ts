@@ -6,6 +6,8 @@ interface ErrorContext {
   userId?: string;
   tripId?: string;
   metadata?: Record<string, any>;
+  userAgent?: string;
+  url?: string;
 }
 
 interface LogLevel {
@@ -22,43 +24,86 @@ const LOG_LEVEL: LogLevel = {
   DEBUG: 'debug'
 };
 
+// Enhanced logging with structured data for production monitoring
+interface LogEntry {
+  level: keyof LogLevel;
+  message: string;
+  context?: ErrorContext;
+  stack?: string;
+  timestamp: string;
+  sessionId?: string;
+  buildVersion?: string;
+}
+
 class ErrorHandler {
   private isDevelopment = import.meta.env.DEV;
+  private sessionId = this.generateSessionId();
+
+  private generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private createLogEntry(level: keyof LogLevel, message: string, context?: ErrorContext, stack?: string): LogEntry {
+    return {
+      level,
+      message,
+      context: {
+        ...context,
+        userAgent: navigator?.userAgent,
+        url: window?.location?.href,
+      },
+      stack,
+      timestamp: new Date().toISOString(),
+      sessionId: this.sessionId,
+      buildVersion: import.meta.env.VITE_APP_VERSION || 'unknown'
+    };
+  }
+
+  private sendToProduction(logEntry: LogEntry) {
+    // In production, send to monitoring service (Sentry, LogRocket, etc.)
+    if (!this.isDevelopment) {
+      // Placeholder for production logging service
+      // Example: sentry.captureMessage(logEntry.message, logEntry.level);
+    }
+  }
 
   logError(error: Error | string, context?: ErrorContext) {
     const errorMessage = error instanceof Error ? error.message : error;
     const errorStack = error instanceof Error ? error.stack : undefined;
     
+    const logEntry = this.createLogEntry('ERROR', errorMessage, context, errorStack);
+    
     if (this.isDevelopment) {
-      console.error('[ERROR]', {
-        message: errorMessage,
-        stack: errorStack,
-        context,
-        timestamp: new Date().toISOString()
-      });
+      console.error('[ERROR]', logEntry);
     }
-
-    // In production, you could send to error tracking service like Sentry
-    // this.sendToErrorService(error, context);
+    
+    this.sendToProduction(logEntry);
   }
 
   logWarning(message: string, context?: ErrorContext) {
+    const logEntry = this.createLogEntry('WARN', message, context);
+    
     if (this.isDevelopment) {
-      console.warn('[WARN]', {
-        message,
-        context,
-        timestamp: new Date().toISOString()
-      });
+      console.warn('[WARN]', logEntry);
     }
+    
+    this.sendToProduction(logEntry);
   }
 
   logInfo(message: string, context?: ErrorContext) {
+    const logEntry = this.createLogEntry('INFO', message, context);
+    
     if (this.isDevelopment) {
-      console.info('[INFO]', {
-        message,
-        context,
-        timestamp: new Date().toISOString()
-      });
+      console.info('[INFO]', logEntry);
+    }
+    
+    this.sendToProduction(logEntry);
+  }
+
+  logDebug(message: string, context?: ErrorContext) {
+    if (this.isDevelopment) {
+      const logEntry = this.createLogEntry('DEBUG', message, context);
+      console.debug('[DEBUG]', logEntry);
     }
   }
 
@@ -127,6 +172,9 @@ export const logWarning = (message: string, context?: ErrorContext) =>
 
 export const logInfo = (message: string, context?: ErrorContext) => 
   errorHandler.logInfo(message, context);
+
+export const logDebug = (message: string, context?: ErrorContext) => 
+  errorHandler.logDebug(message, context);
 
 export const handleError = (
   error: Error | string, 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -151,7 +152,10 @@ export function RealTimeAdminDashboard({ onStatsUpdate }: RealTimeStatsProps) {
       setStats(newStats);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logError(error as Error, {
+        component: 'RealTimeAdminDashboard',
+        action: 'fetchStats'
+      });
     } finally {
       setLoading(false);
     }
