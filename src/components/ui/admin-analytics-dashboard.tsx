@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import {
   BarChart3,
   TrendingUp,
@@ -30,27 +32,126 @@ interface AdminAnalyticsDashboardProps {
 }
 
 export function AdminAnalyticsDashboard({ stats }: AdminAnalyticsDashboardProps) {
-  // Mock analytics data - in real app, this would come from props or API
-  const analyticsData: AnalyticsData = {
-    totalRevenue: 125000,
-    monthlyGrowth: 12.5,
-    totalBookings: 342,
-    averageRating: 4.8,
-    topDestinations: [
-      { name: "Japan", count: 45 },
-      { name: "Thailand", count: 38 },
-      { name: "Nepal", count: 29 },
-      { name: "Peru", count: 24 },
-      { name: "Morocco", count: 18 }
-    ],
-    monthlyStats: [
-      { month: "Jan", applications: 12, trips: 8, revenue: 15000 },
-      { month: "Feb", applications: 18, trips: 12, revenue: 22000 },
-      { month: "Mar", applications: 15, trips: 15, revenue: 28000 },
-      { month: "Apr", applications: 22, trips: 18, revenue: 35000 },
-      { month: "May", applications: 20, trips: 20, revenue: 42000 },
-      { month: "Jun", applications: 25, trips: 22, revenue: 48000 }
-    ]
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+    totalRevenue: 0,
+    monthlyGrowth: 0,
+    totalBookings: 0,
+    averageRating: 0,
+    topDestinations: [],
+    monthlyStats: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRealAnalyticsData();
+  }, []);
+
+  const fetchRealAnalyticsData = async () => {
+    try {
+      // Fetch comprehensive data from database
+      const [bookingsQuery, tripsQuery, reviewsQuery, applicationsQuery] = await Promise.all([
+        supabase
+          .from('trip_bookings')
+          .select(`
+            *,
+            trips(destination, theme, created_at)
+          `)
+          .eq('payment_status', 'paid'),
+        
+        supabase
+          .from('trips')
+          .select('*')
+          .eq('is_active', true),
+        
+        supabase
+          .from('trip_reviews')
+          .select('rating, created_at'),
+        
+        supabase
+          .from('applications')
+          .select('created_at, status')
+      ]);
+
+      const bookings = bookingsQuery.data || [];
+      const trips = tripsQuery.data || [];
+      const reviews = reviewsQuery.data || [];
+      const applications = applicationsQuery.data || [];
+
+      // Calculate total revenue and bookings
+      const totalRevenue = bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
+      const totalBookings = bookings.length;
+
+      // Calculate average rating
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+        : 0;
+
+      // Calculate destinations with booking counts
+      const destinationCounts: { [key: string]: number } = {};
+      bookings.forEach(booking => {
+        const destination = booking.trips?.destination;
+        if (destination) {
+          destinationCounts[destination] = (destinationCounts[destination] || 0) + 1;
+        }
+      });
+
+      const topDestinations = Object.entries(destinationCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }));
+
+      // Calculate monthly stats for the last 6 months
+      const monthlyStats = [];
+      const now = new Date();
+      
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' });
+        
+        const monthBookings = bookings.filter(booking => {
+          const bookingDate = new Date(booking.booking_date);
+          return bookingDate >= monthDate && bookingDate < nextMonth;
+        });
+        
+        const monthTrips = trips.filter(trip => {
+          const tripDate = new Date(trip.created_at);
+          return tripDate >= monthDate && tripDate < nextMonth;
+        });
+        
+        const monthApplications = applications.filter(app => {
+          const appDate = new Date(app.created_at);
+          return appDate >= monthDate && appDate < nextMonth;
+        });
+        
+        monthlyStats.push({
+          month: monthName,
+          applications: monthApplications.length,
+          trips: monthTrips.length,
+          revenue: monthBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0)
+        });
+      }
+
+      // Calculate monthly growth (comparing current month to previous)
+      const currentMonthRevenue = monthlyStats[monthlyStats.length - 1]?.revenue || 0;
+      const previousMonthRevenue = monthlyStats[monthlyStats.length - 2]?.revenue || 0;
+      const monthlyGrowth = previousMonthRevenue > 0 
+        ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100 
+        : 0;
+
+      setAnalyticsData({
+        totalRevenue,
+        monthlyGrowth,
+        totalBookings,
+        averageRating,
+        topDestinations,
+        monthlyStats
+      });
+    } catch (error) {
+      throw new Error(`Failed to fetch analytics data: ${error}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const kpiCards = [

@@ -74,84 +74,188 @@ export function AdvancedAnalyticsDashboard({
     try {
       setLoading(true);
       
-      // Fetch real data from Supabase
-      const [tripsData, bookingsData, senseisData, reviewsData] = await Promise.all([
-        supabase.from('trips').select('*'),
-        supabase.from('trip_bookings').select('*'),
-        supabase.from('sensei_profiles').select('*'),
-        supabase.from('trip_reviews').select('*')
+      // Calculate date range based on timeRange selection
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      switch (timeRange) {
+        case '7d':
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case '30d':
+          startDate.setDate(endDate.getDate() - 30);
+          break;
+        case '90d':
+          startDate.setDate(endDate.getDate() - 90);
+          break;
+        case '1y':
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          break;
+      }
+
+      // Fetch comprehensive data with proper joins and filtering
+      const [tripsQuery, bookingsQuery, senseisQuery, reviewsQuery] = await Promise.all([
+        supabase
+          .from('trips')
+          .select(`
+            *,
+            sensei_profiles!trips_sensei_id_fkey(name, rating),
+            trip_bookings(payment_status, total_amount, booking_date)
+          `)
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString()),
+        
+        supabase
+          .from('trip_bookings')
+          .select(`
+            *,
+            trips(destination, theme, sensei_id)
+          `)
+          .gte('booking_date', startDate.toISOString())
+          .lte('booking_date', endDate.toISOString()),
+        
+        supabase
+          .from('sensei_profiles')
+          .select('*')
+          .eq('is_active', true),
+        
+        supabase
+          .from('trip_reviews')
+          .select(`
+            *,
+            trips(sensei_id),
+            sensei_profiles(name)
+          `)
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString())
       ]);
 
-      // Process the data
-      const trips = tripsData.data || [];
-      const bookings = bookingsData.data || [];
-      const senseis = senseisData.data || [];
-      const reviews = reviewsData.data || [];
+      if (tripsQuery.error) throw tripsQuery.error;
+      if (bookingsQuery.error) throw bookingsQuery.error;
+      if (senseisQuery.error) throw senseisQuery.error;
+      if (reviewsQuery.error) throw reviewsQuery.error;
 
-      const mockData: AnalyticsData = {
-        overview: {
-          totalBookings: bookings.length,
-          totalRevenue: bookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0),
-          activeTrips: trips.filter(trip => trip.is_active).length,
-          senseiCount: senseis.length,
-          averageRating: reviews.length > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0,
-          conversionRate: 23.5
-        },
-        trends: {
-          bookings: [
-            { date: '2024-01', value: 45 },
-            { date: '2024-02', value: 52 },
-            { date: '2024-03', value: 38 },
-            { date: '2024-04', value: 61 },
-            { date: '2024-05', value: 73 },
-            { date: '2024-06', value: 68 }
-          ],
-          revenue: [
-            { date: '2024-01', value: 18500 },
-            { date: '2024-02', value: 22100 },
-            { date: '2024-03', value: 19800 },
-            { date: '2024-04', value: 25300 },
-            { date: '2024-05', value: 28900 },
-            { date: '2024-06', value: 30400 }
-          ],
-          ratings: [
-            { date: '2024-01', value: 4.5 },
-            { date: '2024-02', value: 4.6 },
-            { date: '2024-03', value: 4.4 },
-            { date: '2024-04', value: 4.7 },
-            { date: '2024-05', value: 4.8 },
-            { date: '2024-06', value: 4.7 }
-          ]
-        },
-        demographics: [
-          { name: '18-25', value: 15, color: '#8884d8' },
-          { name: '26-35', value: 35, color: '#82ca9d' },
-          { name: '36-45', value: 30, color: '#ffc658' },
-          { name: '46-55', value: 15, color: '#ff7300' },
-          { name: '55+', value: 5, color: '#00ff88' }
-        ],
-        destinations: trips.slice(0, 5).map((trip, index) => {
-          // Calculate bookings for each destination from trip_bookings table
-          const bookingCount = Math.max(1, trip.current_participants || 0);
-          const baseRevenue = parseFloat(trip.price?.replace(/[^\d.]/g, '') || '1000');
-          
-          return {
-            name: trip.destination,
-            bookings: bookingCount,
-            revenue: bookingCount * baseRevenue
-          };
-        }),
-        performance: senseis.slice(0, 5).map(sensei => ({
-          sensei: sensei.name,
-          trips: sensei.trips_led || 0,
-          rating: sensei.rating || 0,
-          revenue: (sensei.trips_led || 0) * 2500 // Estimated revenue per trip
-        }))
+      const trips = tripsQuery.data || [];
+      const bookings = bookingsQuery.data || [];
+      const senseis = senseisQuery.data || [];
+      const reviews = reviewsQuery.data || [];
+
+      // Filter for specific sensei if provided
+      const filteredTrips = senseiId 
+        ? trips.filter(trip => trip.sensei_id === senseiId)
+        : trips;
+      
+      const filteredBookings = senseiId 
+        ? bookings.filter(booking => booking.trips?.sensei_id === senseiId)
+        : bookings;
+
+      // Calculate real overview metrics
+      const paidBookings = filteredBookings.filter(b => b.payment_status === 'paid');
+      const totalRevenue = paidBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+        : 0;
+      
+      // Calculate conversion rate (paid bookings / total bookings)
+      const conversionRate = filteredBookings.length > 0 
+        ? (paidBookings.length / filteredBookings.length) * 100 
+        : 0;
+
+      // Generate real time series data
+      const generateTimeSeries = (data: any[], getValue: (item: any) => number, getDate: (item: any) => string) => {
+        const monthlyData: { [key: string]: number } = {};
+        
+        data.forEach(item => {
+          const date = new Date(getDate(item));
+          const monthKey = date.toISOString().substring(0, 7); // YYYY-MM format
+          monthlyData[monthKey] = (monthlyData[monthKey] || 0) + getValue(item);
+        });
+
+        return Object.entries(monthlyData)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .slice(-6) // Last 6 months
+          .map(([date, value]) => ({ date, value }));
       };
 
-      setAnalytics(mockData);
+      // Calculate destinations with real booking data
+      const destinationStats: { [key: string]: { bookings: number; revenue: number } } = {};
+      
+      filteredTrips.forEach(trip => {
+        const tripBookings = trip.trip_bookings?.filter((b: any) => b.payment_status === 'paid') || [];
+        const revenue = tripBookings.reduce((sum: number, booking: any) => sum + (booking.total_amount || 0), 0);
+        
+        if (!destinationStats[trip.destination]) {
+          destinationStats[trip.destination] = { bookings: 0, revenue: 0 };
+        }
+        destinationStats[trip.destination].bookings += tripBookings.length;
+        destinationStats[trip.destination].revenue += revenue;
+      });
+
+      // Calculate sensei performance with real data
+      const senseiPerformance = senseis
+        .map(sensei => {
+          const senseiTrips = trips.filter(trip => trip.sensei_id === sensei.id);
+          const senseiBookings = bookings.filter(booking => 
+            senseiTrips.some(trip => trip.id === booking.trip_id) && 
+            booking.payment_status === 'paid'
+          );
+          const revenue = senseiBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
+          
+          return {
+            sensei: sensei.name,
+            trips: senseiTrips.length,
+            rating: sensei.rating || 0,
+            revenue
+          };
+        })
+        .filter(performance => performance.trips > 0)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      const realAnalyticsData: AnalyticsData = {
+        overview: {
+          totalBookings: filteredBookings.length,
+          totalRevenue,
+          activeTrips: filteredTrips.filter(trip => trip.is_active).length,
+          senseiCount: senseis.length,
+          averageRating,
+          conversionRate
+        },
+        trends: {
+          bookings: generateTimeSeries(
+            filteredBookings, 
+            () => 1, 
+            (booking) => booking.booking_date
+          ),
+          revenue: generateTimeSeries(
+            paidBookings, 
+            (booking) => booking.total_amount || 0, 
+            (booking) => booking.booking_date
+          ),
+          ratings: generateTimeSeries(
+            reviews, 
+            (review) => review.rating, 
+            (review) => review.created_at
+          ).map(point => ({ ...point, value: point.value / Math.max(1, reviews.filter(r => r.created_at.startsWith(point.date)).length) }))
+        },
+        demographics: [
+          { name: 'Adventure', value: trips.filter(t => t.theme?.toLowerCase().includes('adventure')).length, color: 'hsl(var(--primary))' },
+          { name: 'Cultural', value: trips.filter(t => t.theme?.toLowerCase().includes('cultural')).length, color: 'hsl(var(--secondary))' },
+          { name: 'Nature', value: trips.filter(t => t.theme?.toLowerCase().includes('nature')).length, color: 'hsl(var(--accent))' },
+          { name: 'Spiritual', value: trips.filter(t => t.theme?.toLowerCase().includes('spiritual')).length, color: 'hsl(var(--muted))' },
+          { name: 'Other', value: trips.filter(t => !['adventure', 'cultural', 'nature', 'spiritual'].some(theme => t.theme?.toLowerCase().includes(theme))).length, color: 'hsl(var(--destructive))' }
+        ],
+        destinations: Object.entries(destinationStats)
+          .sort(([,a], [,b]) => b.bookings - a.bookings)
+          .slice(0, 5)
+          .map(([name, stats]) => ({ name, ...stats })),
+        performance: senseiPerformance
+      };
+
+      setAnalytics(realAnalyticsData);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      // Use proper error handling instead of console.error
+      throw new Error(`Failed to fetch analytics data: ${error}`);
     } finally {
       setLoading(false);
     }
