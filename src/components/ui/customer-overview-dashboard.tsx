@@ -1,0 +1,188 @@
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
+import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
+import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
+import { Badge } from "@/components/ui/badge";
+import { Calendar as CalendarIcon, CheckSquare, Star, TrendingUp } from "lucide-react";
+
+interface CustomerProfile {
+  id: string;
+  full_name: string;
+  phone: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  dietary_restrictions: string;
+  medical_conditions: string;
+}
+
+interface TripBooking {
+  id: string;
+  trip_id: string;
+  booking_status: string;
+  payment_status: string;
+  booking_date: string;
+  total_amount: number;
+  payment_deadline?: string;
+  trips: {
+    title: string;
+    destination: string;
+    dates: string;
+    image_url: string;
+    sensei_name: string;
+    sensei_id: string;
+  };
+}
+
+interface Document {
+  id: string;
+  document_name: string;
+  document_type: string;
+  file_url: string;
+  uploaded_at: string;
+}
+
+interface CustomerOverviewDashboardProps {
+  userId: string;
+  profile: CustomerProfile | null;
+  bookings: TripBooking[];
+  documents: Document[];
+  userReviews: any[];
+}
+
+export function CustomerOverviewDashboard({ 
+  userId, 
+  profile, 
+  bookings, 
+  documents, 
+  userReviews 
+}: CustomerOverviewDashboardProps) {
+  // Calculate key metrics
+  const totalSpent = bookings
+    .filter(b => b.payment_status === 'paid')
+    .reduce((sum, b) => sum + b.total_amount, 0);
+  
+  const pendingPayments = bookings.filter(b => b.payment_status === 'pending').length;
+  const confirmedTrips = bookings.filter(b => b.payment_status === 'paid').length;
+  const reviewsPending = bookings.filter(b => 
+    b.payment_status === 'paid' && 
+    !userReviews.some(r => r.trip_id === b.trip_id)
+  ).length;
+
+  const isNewUser = !profile || bookings.length === 0;
+  const isProfileIncomplete = profile && (!profile.emergency_contact_name || !profile.emergency_contact_phone);
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="text-center py-6">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          Welcome back{profile ? `, ${profile.full_name}` : ''}!
+        </h1>
+        <p className="text-muted-foreground">
+          Here's what's happening with your travel journey
+        </p>
+      </div>
+
+      {/* Profile Completion & Onboarding for New Users */}
+      {isNewUser && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ProfileCompletionIndicator 
+            profile={profile} 
+            documents={documents}
+            className="order-1"
+          />
+          <GettingStartedChecklist
+            userId={userId}
+            userProfile={profile}
+            userBookings={bookings}
+            userDocuments={documents}
+            userReviews={userReviews}
+            className="order-2"
+          />
+        </div>
+      )}
+
+      {/* Profile Completion for Existing Users */}
+      {!isNewUser && isProfileIncomplete && (
+        <ProfileCompletionIndicator 
+          profile={profile} 
+          documents={documents}
+          className="mb-6"
+        />
+      )}
+
+      {/* Quick Stats Cards */}
+      {!isNewUser && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
+                  <p className="text-2xl font-bold">${totalSpent.toLocaleString()}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Confirmed Trips</p>
+                  <p className="text-2xl font-bold">{confirmedTrips}</p>
+                </div>
+                <CalendarIcon className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Payments</p>
+                  <p className="text-2xl font-bold">{pendingPayments}</p>
+                </div>
+                <CheckSquare className="h-8 w-8 text-orange-600" />
+              </div>
+              {pendingPayments > 0 && (
+                <Badge variant="destructive" className="mt-2">Action Required</Badge>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Reviews Pending</p>
+                  <p className="text-2xl font-bold">{reviewsPending}</p>
+                </div>
+                <Star className="h-8 w-8 text-yellow-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Personalized Dashboard */}
+      {!isNewUser && (
+        <PersonalizedDashboard userId={userId} />
+      )}
+
+      {/* Getting Started Checklist for Existing Users with Incomplete Actions */}
+      {!isNewUser && (userReviews.length === 0 || documents.length === 0) && (
+        <GettingStartedChecklist
+          userId={userId}
+          userProfile={profile}
+          userBookings={bookings}
+          userDocuments={documents}
+          userReviews={userReviews}
+        />
+      )}
+    </div>
+  );
+}
