@@ -37,6 +37,7 @@ import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-ma
 import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
+import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -1130,27 +1131,7 @@ const AdminDashboard = () => {
 
             {activeTab === "settings" && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Payment Settings</h2>
-                
-                <div className="grid gap-4">
-                  {paymentSettings.map((setting) => (
-                    <Card key={setting.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{setting.setting_name}</h3>
-                            <p className="text-muted-foreground">{setting.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-mono text-sm">
-                              {JSON.stringify(setting.setting_value)}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <AdminPaymentSettings />
               </div>
             )}
           </main>
