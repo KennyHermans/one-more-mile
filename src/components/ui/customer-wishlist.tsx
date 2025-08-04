@@ -45,8 +45,11 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
       const { data, error } = await supabase
         .from('customer_wishlists')
         .select(`
-          *,
-          trips (
+          id,
+          notes,
+          created_at,
+          trip_id,
+          trips:trip_id (
             id,
             title,
             destination,
@@ -60,12 +63,19 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setWishlistItems((data || []) as any);
+      if (error) {
+        console.error('Wishlist fetch error:', error);
+        throw error;
+      }
+      
+      // Filter out items where trip data is null (trip might have been deleted)
+      const validItems = (data || []).filter(item => item.trips !== null);
+      setWishlistItems(validItems as any);
     } catch (error: any) {
+      console.error('Error fetching wishlist:', error);
       toast({
         title: "Error loading wishlist",
-        description: error.message,
+        description: error.message || "Failed to load your wishlist items",
         variant: "destructive",
       });
     } finally {
