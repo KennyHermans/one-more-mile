@@ -42,35 +42,45 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
 
   const fetchWishlistItems = async () => {
     try {
-      const { data, error } = await supabase
+      // First fetch wishlist items
+      const { data: wishlistData, error: wishlistError } = await supabase
         .from('customer_wishlists')
-        .select(`
-          id,
-          notes,
-          created_at,
-          trip_id,
-          trips:trip_id (
-            id,
-            title,
-            destination,
-            theme,
-            price,
-            dates,
-            image_url,
-            group_size
-          )
-        `)
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Wishlist fetch error:', error);
-        throw error;
+      if (wishlistError) {
+        console.error('Wishlist fetch error:', wishlistError);
+        throw wishlistError;
       }
-      
-      // Filter out items where trip data is null (trip might have been deleted)
-      const validItems = (data || []).filter(item => item.trips !== null);
-      setWishlistItems(validItems as any);
+
+      if (!wishlistData || wishlistData.length === 0) {
+        setWishlistItems([]);
+        return;
+      }
+
+      // Then fetch trip details for each wishlist item
+      const tripIds = wishlistData.map(item => item.trip_id);
+      const { data: tripsData, error: tripsError } = await supabase
+        .from('trips')
+        .select('id, title, destination, theme, price, dates, image_url, group_size')
+        .in('id', tripIds);
+
+      if (tripsError) {
+        console.error('Trips fetch error:', tripsError);
+        throw tripsError;
+      }
+
+      // Combine the data
+      const combinedData = wishlistData.map(wishlistItem => {
+        const trip = tripsData?.find(trip => trip.id === wishlistItem.trip_id);
+        return {
+          ...wishlistItem,
+          trips: trip || null
+        };
+      }).filter(item => item.trips !== null); // Filter out items where trip was deleted
+
+      setWishlistItems(combinedData as any);
     } catch (error: any) {
       console.error('Error fetching wishlist:', error);
       toast({
