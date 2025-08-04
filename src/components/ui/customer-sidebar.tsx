@@ -17,7 +17,8 @@ import {
   MessageCircle,
   Star,
   User,
-  Home
+  Home,
+  Heart
 } from "lucide-react";
 import { PriorityBadge } from "@/components/ui/priority-badge";
 import {
@@ -51,6 +52,12 @@ const sidebarItems = [
     value: "reviews",
     icon: Star,
     description: "Trip ratings and feedback"
+  },
+  {
+    title: "Wishlist",
+    value: "wishlist",
+    icon: Heart,
+    description: "Your saved trips and favorites"
   },
   {
     title: "Profile",

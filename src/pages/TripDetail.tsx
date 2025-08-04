@@ -101,11 +101,91 @@ const TripDetail = () => {
     checkUser();
   }, []);
 
+  useEffect(() => {
+    if (user && trip) {
+      checkWishlistStatus();
+    }
+  }, [user, trip]);
+
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
     if (user?.email) {
       setBookingForm(prev => ({ ...prev, email: user.email }));
+    }
+  };
+
+  const checkWishlistStatus = async () => {
+    if (!user || !trip) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('customer_wishlists')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('trip_id', trip.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setIsWishlisted(!!data);
+    } catch (error: any) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to create an account to save trips to your wishlist.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!trip) return;
+
+    try {
+      if (isWishlisted) {
+        // Remove from wishlist
+        const { error } = await supabase
+          .from('customer_wishlists')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('trip_id', trip.id);
+
+        if (error) throw error;
+
+        setIsWishlisted(false);
+        toast({
+          title: "Removed from wishlist",
+          description: "Trip removed from your wishlist",
+        });
+      } else {
+        // Add to wishlist
+        const { error } = await supabase
+          .from('customer_wishlists')
+          .insert({
+            user_id: user.id,
+            trip_id: trip.id,
+            notes: null
+          });
+
+        if (error) throw error;
+
+        setIsWishlisted(true);
+        toast({
+          title: "Added to wishlist",
+          description: "Trip saved to your wishlist",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error updating wishlist",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -402,13 +482,7 @@ const TripDetail = () => {
             variant="secondary"
             size="sm"
             className={`bg-white/90 hover:bg-white ${isWishlisted ? 'text-red-500' : ''}`}
-            onClick={() => {
-              setIsWishlisted(!isWishlisted);
-              toast({
-                title: isWishlisted ? "Removed from wishlist" : "Added to wishlist",
-                description: isWishlisted ? "Trip removed from your wishlist" : "Trip saved to your wishlist",
-              });
-            }}
+            onClick={toggleWishlist}
           >
             <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </Button>

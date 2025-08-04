@@ -18,6 +18,7 @@ import { OnboardingWizard } from "@/components/ui/onboarding-wizard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
 import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
 import { GuidedTour } from "@/components/ui/guided-tour";
+import { CustomerWishlist } from "@/components/ui/customer-wishlist";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { CustomerDashboardLayout } from "@/components/ui/customer-dashboard-layout";
@@ -98,6 +99,7 @@ const CustomerDashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [wishlistCount, setWishlistCount] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -119,7 +121,8 @@ const CustomerDashboard = () => {
         fetchTodos(user.id),
         fetchDocuments(user.id),
         fetchUserReviews(user.id),
-        fetchAnnouncements(user.id)
+        fetchAnnouncements(user.id),
+        fetchWishlistCount(user.id)
       ]);
       
       // Check if user needs onboarding
@@ -274,6 +277,20 @@ const CustomerDashboard = () => {
       setAnnouncements(announcementsWithTrips as Announcement[]);
     } catch (error: any) {
       console.error('Error fetching announcements:', error);
+    }
+  };
+
+  const fetchWishlistCount = async (userId: string) => {
+    try {
+      const { count, error } = await supabase
+        .from('customer_wishlists')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      setWishlistCount(count || 0);
+    } catch (error: any) {
+      console.error('Error fetching wishlist count:', error);
     }
   };
 
@@ -855,6 +872,9 @@ const CustomerDashboard = () => {
           </div>
         );
 
+      case "wishlist":
+        return user ? <CustomerWishlist userId={user.id} /> : null;
+
       case "profile":
         return (
           <div className="space-y-6">
@@ -1045,7 +1065,8 @@ const CustomerDashboard = () => {
   const notificationCounts = {
     notifications: announcements.length,
     messages: 0, // This would come from actual message count
-    trips: bookings.filter(b => b.booking_status === "pending").length
+    trips: bookings.filter(b => b.booking_status === "pending").length,
+    wishlist: wishlistCount
   };
 
   return (
