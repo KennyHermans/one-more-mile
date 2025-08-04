@@ -14,25 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Trip, transformDbTrip } from '@/types/trip';
 
 const localizer = momentLocalizer(moment);
-
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  dates: string;
-  sensei_name: string;
-  price: string;
-  group_size: string;
-  current_participants: number;
-  max_participants: number;
-  trip_status: string;
-  theme: string;
-  difficulty_level: string;
-  rating: number;
-  is_active: boolean;
-}
 
 interface CalendarEvent {
   id: string;
@@ -62,7 +46,8 @@ const TripCalendar = () => {
         .order('dates', { ascending: true });
 
       if (error) throw error;
-      setTrips(data || []);
+      const transformedTrips = (data || []).map(transformDbTrip);
+      setTrips(transformedTrips);
     } catch (error) {
       console.error('Error fetching trips:', error);
       toast({

@@ -15,30 +15,7 @@ import { Link } from "react-router-dom";
 import { Search, Filter, MapPin, Calendar, Users, Star, Loader2, ArrowUpDown, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  sensei_name: string;
-  image_url: string;
-  theme: string;
-  rating: number;
-  difficulty_level: string;
-  duration_days: number;
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-  max_participants: number;
-  current_participants: number;
-  sensei_id?: string;
-  trip_status?: string;
-  is_active?: boolean;
-}
+import { Trip, TripListItem, toTripListItem, transformDbTrip } from '@/types/trip';
 
 interface FilterState {
   searchQuery: string;
@@ -103,7 +80,8 @@ const Explore = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTrips(data || []);
+      const transformedTrips = (data || []).map(transformDbTrip);
+      setTrips(transformedTrips);
     } catch (error: any) {
       console.error('Error fetching trips:', error);
       toast({

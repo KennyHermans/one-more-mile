@@ -67,35 +67,9 @@ import {
   Target
 } from "lucide-react";
 
-const localizer = momentLocalizer(moment);
+import { Trip as StandardTrip, TripListItem, transformDbTrip, ProgramDay as StandardProgramDay } from '@/types/trip';
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  program: any;
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-  image_url: string;
-  theme: string;
-  max_participants: number;
-  current_participants: number;
-  is_active: boolean;
-  sensei_id: string;
-  trip_status?: string;
-  created_by_sensei?: boolean;
-  created_by_user_id?: string;
-  duration_days?: number;
-  cancelled_by_sensei?: boolean;
-  cancellation_reason?: string;
-  cancelled_at?: string;
-  replacement_needed?: boolean;
-}
+const localizer = momentLocalizer(moment);
 
 interface SenseiProfile {
   id: string;
@@ -240,7 +214,7 @@ const ensureActivitiesIsArray = (activities: any): string[] => {
 const SenseiDashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [senseiProfile, setSenseiProfile] = useState<SenseiProfile | null>(null);
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<StandardTrip[]>([]);
   const [tripParticipants, setTripParticipants] = useState<{[tripId: string]: TripParticipant[]}>({});
   const [loadingParticipants, setLoadingParticipants] = useState<{[tripId: string]: boolean}>({});
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -259,7 +233,7 @@ const SenseiDashboard = () => {
   const [loadingApplications, setLoadingApplications] = useState(false);
   
   const [permissions, setPermissions] = useState<{ [key: string]: TripPermissions }>({});
-  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [editingTrip, setEditingTrip] = useState<StandardTrip | null>(null);
   
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [adminAnnouncements, setAdminAnnouncements] = useState<any[]>([]);
