@@ -68,7 +68,7 @@ import {
   Target
 } from "lucide-react";
 
-import { Trip as StandardTrip, TripListItem, transformDbTrip, ProgramDay as StandardProgramDay } from '@/types/trip';
+
 
 const localizer = momentLocalizer(moment);
 

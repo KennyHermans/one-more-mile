@@ -179,12 +179,53 @@ export const getTripAvailability = (trip: Trip | TripListItem) => {
 };
 
 // Transform database trip to Trip interface
-export const transformDbTrip = (dbTrip: DbTrip): Trip => ({
-  ...dbTrip,
-  is_active: dbTrip.is_active ?? true,
-  current_participants: dbTrip.current_participants ?? 0,
-  program: (dbTrip.program as unknown as ProgramDay[]) || null,
-});
+export const transformDbTrip = (dbTrip: DbTrip): Trip => {
+  try {
+    // Handle program field parsing with validation
+    let programData: ProgramDay[] | null = null;
+    if (dbTrip.program) {
+      if (Array.isArray(dbTrip.program)) {
+        programData = dbTrip.program as ProgramDay[];
+      } else if (typeof dbTrip.program === 'string') {
+        try {
+          const parsed = JSON.parse(dbTrip.program);
+          programData = Array.isArray(parsed) ? parsed : null;
+        } catch (parseError) {
+          console.warn('Failed to parse trip program JSON:', parseError);
+          programData = null;
+        }
+      }
+    }
+
+    // Handle date field conversions
+    const startDate = dbTrip.start_date ? new Date(dbTrip.start_date).toISOString().split('T')[0] : null;
+    const endDate = dbTrip.end_date ? new Date(dbTrip.end_date).toISOString().split('T')[0] : null;
+
+    return {
+      ...dbTrip,
+      is_active: dbTrip.is_active ?? true,
+      current_participants: dbTrip.current_participants ?? 0,
+      start_date: startDate,
+      end_date: endDate,
+      program: programData,
+      included_amenities: Array.isArray(dbTrip.included_amenities) ? dbTrip.included_amenities : [],
+      excluded_items: Array.isArray(dbTrip.excluded_items) ? dbTrip.excluded_items : [],
+      requirements: Array.isArray(dbTrip.requirements) ? dbTrip.requirements : [],
+    };
+  } catch (error) {
+    console.error('Error transforming database trip:', error);
+    // Return basic trip data if transformation fails
+    return {
+      ...dbTrip,
+      is_active: dbTrip.is_active ?? true,
+      current_participants: dbTrip.current_participants ?? 0,
+      program: null,
+      included_amenities: [],
+      excluded_items: [],
+      requirements: [],
+    };
+  }
+};
 
 // Transform Trip to TripListItem
 export const toTripListItem = (trip: Trip): TripListItem => ({
