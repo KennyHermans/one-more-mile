@@ -30,81 +30,95 @@ import {
 } from "lucide-react";
 
 const sidebarItems = [
+  // Main Dashboard
   {
     title: "Overview",
     value: "overview",
-    icon: Home
-  },
-  {
-    title: "Level & Progress",
-    value: "gamification",
-    icon: Crown
-  },
-  {
-    title: "Analytics",
-    value: "analytics", 
-    icon: BarChart3
-  },
-  {
-    title: "Goals",
-    value: "goals",
-    icon: Target
+    icon: Home,
+    group: "main"
   },
   {
     title: "My Trips",
     value: "trips",
-    icon: MapPin
-  },
-  {
-    title: "Backup Sensei",
-    value: "backup-sensei",
-    icon: Shield
-  },
-  {
-    title: "Applications",
-    value: "applications",
-    icon: FileText
-  },
-  {
-    title: "Trip Editor",
-    value: "trip-editor",
-    icon: Edit3
-  },
-  {
-    title: "Proposals",
-    value: "proposals",
-    icon: Send
-  },
-  {
-    title: "Certificates",
-    value: "certificates",
-    icon: FileCheck
-  },
-  {
-    title: "Announcements",
-    value: "announcements",
-    icon: Megaphone
-  },
-  {
-    title: "Messages",
-    value: "messages",
-    icon: MessageCircle
+    icon: MapPin,
+    group: "main"
   },
   {
     title: "Calendar",
     value: "calendar",
-    icon: Calendar
+    icon: Calendar,
+    group: "main"
+  },
+  
+  // Professional Development
+  {
+    title: "Level & Progress",
+    value: "gamification",
+    icon: Crown,
+    group: "professional"
   },
   {
-    title: "Todos",
-    value: "todos",
-    icon: CheckSquare
+    title: "Analytics",
+    value: "analytics", 
+    icon: BarChart3,
+    group: "professional"
   },
   {
-    title: "Settings",
+    title: "Goals",
+    value: "goals",
+    icon: Target,
+    group: "professional"
+  },
+  {
+    title: "Certificates",
+    value: "certificates",
+    icon: FileCheck,
+    group: "professional"
+  },
+  
+  // Communication
+  {
+    title: "Messages",
+    value: "messages",
+    icon: MessageCircle,
+    group: "communication"
+  },
+  {
+    title: "Announcements",
+    value: "announcements",
+    icon: Megaphone,
+    group: "communication"
+  },
+  
+  // Applications & Backup
+  {
+    title: "Applications",
+    value: "applications",
+    icon: FileText,
+    group: "admin"
+  },
+  {
+    title: "Backup Sensei",
+    value: "backup-sensei",
+    icon: Shield,
+    group: "admin"
+  },
+  
+  // Settings
+  {
+    title: "Availability",
     value: "availability",
-    icon: Settings
+    icon: Settings,
+    group: "settings"
   }
+];
+
+const sidebarGroups = [
+  { key: "main", label: "Dashboard" },
+  { key: "professional", label: "Professional" },
+  { key: "communication", label: "Communication" },
+  { key: "admin", label: "Applications" },
+  { key: "settings", label: "Settings" }
 ];
 
 interface SenseiSidebarProps {
@@ -127,28 +141,32 @@ export function SenseiSidebar({ activeTab, onTabChange }: SenseiSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    onClick={() => handleItemClick(item.value)}
-                    className={`cursor-pointer transition-colors ${
-                      isActive(item.value) 
-                        ? "bg-accent text-accent-foreground font-medium" 
-                        : "hover:bg-muted/50"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {sidebarGroups.map((group) => (
+          <SidebarGroup key={group.key}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sidebarItems
+                  .filter((item) => item.group === group.key)
+                  .map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        onClick={() => handleItemClick(item.value)}
+                        className={`cursor-pointer transition-colors ${
+                          isActive(item.value) 
+                            ? "bg-accent text-accent-foreground font-medium" 
+                            : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );

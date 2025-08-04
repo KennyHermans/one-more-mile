@@ -23,6 +23,8 @@ import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashb
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
+import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
+import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 
 // Enhanced Loading Components
@@ -1022,107 +1024,65 @@ const SenseiDashboard = () => {
     switch (activeTab) {
       case "overview":
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Active Trips</p>
-                      <p className="text-2xl font-bold">{activeTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Completed</p>
-                      <p className="text-2xl font-bold">{completedTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Upcoming</p>
-                      <p className="text-2xl font-bold">{upcomingTrips}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div className="ml-2">
-                      <p className="text-sm font-medium leading-none">Total Participants</p>
-                      <p className="text-2xl font-bold">{totalParticipants}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Trips</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {trips.slice(0, 3).map((trip) => (
-                    <div key={trip.id} className="flex items-center space-x-4 py-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{trip.title}</p>
-                        <p className="text-sm text-gray-500 truncate">{trip.destination}</p>
-                      </div>
-                      <Badge variant={trip.is_active ? "default" : "secondary"}>
-                        {trip.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button 
-                    onClick={() => setCreateTripOpen(true)} 
-                    className="w-full justify-start"
-                    disabled={!senseiProfile.can_create_trips}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New Trip
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActiveTab("calendar")} 
-                    className="w-full justify-start"
-                  >
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    View Calendar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActiveTab("messages")} 
-                    className="w-full justify-start"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Messages
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <SenseiOverviewDashboard
+            senseiProfile={{
+              id: senseiProfile.id,
+              name: senseiProfile.name,
+              bio: senseiProfile.bio,
+              location: senseiProfile.location,
+              rating: senseiProfile.rating,
+              trips_led: senseiProfile.trips_led,
+              sensei_level: senseiProfile.sensei_level || 'apprentice',
+              can_create_trips: senseiProfile.can_create_trips
+            }}
+            stats={{
+              activeTrips,
+              completedTrips,
+              upcomingTrips,
+              totalParticipants,
+              rating: senseiProfile.rating || 0
+            }}
+            quickActions={[
+              {
+                title: "Create Trip",
+                description: senseiProfile.can_create_trips ? "Design your next adventure" : "Request permission from admin",
+                icon: Plus,
+                action: senseiProfile.can_create_trips ? () => setCreateTripOpen(true) : requestTripCreationPermission,
+                variant: senseiProfile.can_create_trips ? "default" : "outline"
+              },
+              {
+                title: "View Calendar",
+                description: "Check your schedule and availability",
+                icon: CalendarIcon,
+                action: () => setActiveTab("calendar")
+              },
+              {
+                title: "Messages",
+                description: "Connect with travelers and admins",
+                icon: MessageCircle,
+                action: () => setActiveTab("messages")
+              },
+              {
+                title: "Analytics",
+                description: "Track your performance and growth",
+                icon: TrendingUp,
+                action: () => setActiveTab("analytics")
+              },
+              {
+                title: "My Trips",
+                description: "Manage all your adventures",
+                icon: MapPin,
+                action: () => setActiveTab("trips")
+              },
+              {
+                title: "Level Progress",
+                description: "See your sensei development",
+                icon: Target,
+                action: () => setActiveTab("gamification")
+              }
+            ]}
+            onTabChange={setActiveTab}
+          />
         );
 
       case "gamification":
@@ -1140,61 +1100,24 @@ const SenseiDashboard = () => {
 
       case "trips":
         return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">My Trips</h2>
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-sm">
-                  Total: {trips.length}
-                </Badge>
-                <Button 
-                  onClick={() => setCreateTripOpen(true)}
-                  disabled={!senseiProfile.can_create_trips}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Trip
-                </Button>
-              </div>
-            </div>
-
-            {trips.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center">
-                  <p className="text-gray-600">You haven't created any trips yet.</p>
-                  <Button 
-                    onClick={() => setCreateTripOpen(true)} 
-                    className="mt-4"
-                    disabled={!senseiProfile.can_create_trips}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Trip
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-6">
-                {trips.map((trip) => (
-                  <Card key={trip.id}>
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-semibold mb-2">{trip.title}</h3>
-                          <p className="text-gray-600 mb-2">{trip.destination}</p>
-                          <p className="text-sm text-gray-500">{trip.dates}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={trip.is_active ? "default" : "secondary"}>
-                            {trip.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                          {trip.trip_status && (
-                            <Badge variant="outline">{trip.trip_status}</Badge>
-                          )}
-                          {trip.cancelled_by_sensei && (
-                            <Badge variant="destructive">Cancelled</Badge>
-                          )}
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button 
+          <SenseiTripsManagement
+            trips={trips}
+            canCreateTrips={senseiProfile.can_create_trips}
+            onCreateTrip={() => setCreateTripOpen(true)}
+            onEditTrip={(trip) => setEditingTrip({
+              ...trip,
+              program: ensureProgramIsArray(trip.program)
+            })}
+            onViewTrip={(trip) => {
+              // Implement view trip functionality
+              console.log('View trip:', trip);
+            }}
+            onCancelTrip={(trip) => {
+              setSelectedTripForCancel(trip);
+              setCancelTripOpen(true);
+            }}
+          />
+        );
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => setEditingTrip({ 
