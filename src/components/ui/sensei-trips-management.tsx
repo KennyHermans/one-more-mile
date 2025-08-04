@@ -22,15 +22,22 @@ interface Trip {
   id: string;
   title: string;
   destination: string;
+  description: string;
+  price: string;
   dates: string;
   group_size: string;
-  current_participants: number;
-  max_participants: number;
-  trip_status: string;
-  is_active: boolean;
-  price: string;
+  program: any;
+  included_amenities: string[];
+  excluded_items: string[];
+  requirements: string[];
+  image_url: string;
   theme: string;
-  image_url?: string;
+  max_participants: number;
+  current_participants: number;
+  is_active: boolean;
+  sensei_id: string;
+  trip_status?: string;
+  created_by_sensei?: boolean;
 }
 
 interface SenseiTripsManagementProps {
