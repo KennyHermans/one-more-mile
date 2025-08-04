@@ -16,6 +16,7 @@ import {
   Sparkles, 
   MapPin, 
   Calendar,
+  CalendarIcon,
   Users,
   Target,
   DollarSign,
@@ -30,6 +31,10 @@ import {
   Brain,
   Zap
 } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface AITripBuilderProps {
   onTripGenerated?: (tripData: any) => void;
@@ -39,7 +44,9 @@ interface AITripBuilderProps {
 interface TripParams {
   destination: string;
   theme: string;
-  duration: number;
+  startDate: Date | null;
+  endDate: Date | null;
+  duration: number; // calculated from dates
   maxParticipants: number;
   difficulty: 'easy' | 'moderate' | 'challenging' | 'extreme';
   season: string;
@@ -56,6 +63,8 @@ export function AITripBuilder({ onTripGenerated, className }: AITripBuilderProps
   const [tripParams, setTripParams] = useState<TripParams>({
     destination: '',
     theme: '',
+    startDate: null,
+    endDate: null,
     duration: 7,
     maxParticipants: 12,
     difficulty: 'moderate',
@@ -70,10 +79,10 @@ export function AITripBuilder({ onTripGenerated, className }: AITripBuilderProps
   const { toast } = useToast();
 
   const generateContent = async (action: string) => {
-    if (!tripParams.destination || !tripParams.theme || !tripParams.season) {
+    if (!tripParams.destination || !tripParams.theme || !tripParams.season || !tripParams.startDate || !tripParams.endDate) {
       toast({
         title: "Missing Information",
-        description: "Please fill in destination, theme, and season before generating content.",
+        description: "Please fill in destination, theme, season, and trip dates before generating content.",
         variant: "destructive",
       });
       return;
@@ -137,6 +146,8 @@ export function AITripBuilder({ onTripGenerated, className }: AITripBuilderProps
       title: aiData.title || `${params.theme} Adventure in ${params.destination}`,
       destination: params.destination,
       description: aiData.description || `Explore ${params.destination} with this ${params.theme} journey`,
+      start_date: params.startDate,
+      end_date: params.endDate,
       duration_days: params.duration,
       max_participants: params.maxParticipants,
       difficulty_level: params.difficulty,
@@ -337,30 +348,92 @@ export function AITripBuilder({ onTripGenerated, className }: AITripBuilderProps
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="ai-duration">Duration (Days)</Label>
-                      <Input
-                        id="ai-duration"
-                        type="number"
-                        min="1"
-                        max="30"
-                        value={tripParams.duration}
-                        onChange={(e) => setTripParams(prev => ({ ...prev, duration: parseInt(e.target.value) || 1 }))}
-                      />
+                  <div>
+                    <Label>Trip Dates</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !tripParams.startDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {tripParams.startDate ? format(tripParams.startDate, "PPP") : "Start date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={tripParams.startDate || undefined}
+                            onSelect={(date) => {
+                              setTripParams(prev => {
+                                const newParams = { ...prev, startDate: date || null };
+                                if (date && prev.endDate) {
+                                  newParams.duration = Math.max(1, differenceInDays(prev.endDate, date) + 1);
+                                }
+                                return newParams;
+                              });
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !tripParams.endDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {tripParams.endDate ? format(tripParams.endDate, "PPP") : "End date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={tripParams.endDate || undefined}
+                            onSelect={(date) => {
+                              setTripParams(prev => {
+                                const newParams = { ...prev, endDate: date || null };
+                                if (date && prev.startDate) {
+                                  newParams.duration = Math.max(1, differenceInDays(date, prev.startDate) + 1);
+                                }
+                                return newParams;
+                              });
+                            }}
+                            disabled={(date) => date < new Date() || (tripParams.startDate && date <= tripParams.startDate)}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="ai-participants">Max Participants</Label>
-                      <Input
-                        id="ai-participants"
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={tripParams.maxParticipants}
-                        onChange={(e) => setTripParams(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 1 }))}
-                      />
-                    </div>
+                    {tripParams.startDate && tripParams.endDate && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Duration: {tripParams.duration} days
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="ai-participants">Max Participants</Label>
+                    <Input
+                      id="ai-participants"
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={tripParams.maxParticipants}
+                      onChange={(e) => setTripParams(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 1 }))}
+                    />
                   </div>
                   
                   <div>

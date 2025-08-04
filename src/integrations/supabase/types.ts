@@ -1600,6 +1600,7 @@ export type Database = {
           destination: string
           difficulty_level: string
           duration_days: number
+          end_date: string | null
           excluded_items: string[] | null
           group_size: string
           id: string
@@ -1615,6 +1616,7 @@ export type Database = {
           requires_backup_sensei: boolean
           sensei_id: string | null
           sensei_name: string
+          start_date: string | null
           theme: string
           title: string
           trip_status: string
@@ -1635,6 +1637,7 @@ export type Database = {
           destination: string
           difficulty_level?: string
           duration_days: number
+          end_date?: string | null
           excluded_items?: string[] | null
           group_size: string
           id?: string
@@ -1650,6 +1653,7 @@ export type Database = {
           requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name: string
+          start_date?: string | null
           theme: string
           title: string
           trip_status?: string
@@ -1670,6 +1674,7 @@ export type Database = {
           destination?: string
           difficulty_level?: string
           duration_days?: number
+          end_date?: string | null
           excluded_items?: string[] | null
           group_size?: string
           id?: string
@@ -1685,6 +1690,7 @@ export type Database = {
           requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name?: string
+          start_date?: string | null
           theme?: string
           title?: string
           trip_status?: string

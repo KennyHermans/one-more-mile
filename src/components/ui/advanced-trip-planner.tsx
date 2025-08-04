@@ -21,6 +21,7 @@ import {
   MapPin, 
   Clock, 
   Calendar,
+  CalendarIcon,
   Users,
   DollarSign,
   Camera,
@@ -43,6 +44,10 @@ import {
   Download,
   Upload
 } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface ItineraryDay {
   id: string;
@@ -77,7 +82,9 @@ interface TripPlan {
   title: string;
   destination: string;
   description: string;
-  duration_days: number;
+  start_date: Date | null;
+  end_date: Date | null;
+  duration_days: number; // calculated from dates
   max_participants: number;
   difficulty_level: 'easy' | 'moderate' | 'challenging' | 'extreme';
   theme: string;
@@ -116,6 +123,8 @@ export function AdvancedTripPlanner({
     title: '',
     destination: '',
     description: '',
+    start_date: null,
+    end_date: null,
     duration_days: 7,
     max_participants: 12,
     difficulty_level: 'moderate',
@@ -457,30 +466,92 @@ export function AdvancedTripPlanner({
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="duration">Duration (Days)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="1"
-                      max="30"
-                      value={tripPlan.duration_days}
-                      onChange={(e) => setTripPlan(prev => ({ ...prev, duration_days: parseInt(e.target.value) || 1 }))}
-                    />
+                <div>
+                  <Label>Trip Dates</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left font-normal",
+                            !tripPlan.start_date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {tripPlan.start_date ? format(tripPlan.start_date, "PPP") : "Start date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={tripPlan.start_date || undefined}
+                          onSelect={(date) => {
+                            setTripPlan(prev => {
+                              const newPlan = { ...prev, start_date: date || null };
+                              if (date && prev.end_date) {
+                                newPlan.duration_days = Math.max(1, differenceInDays(prev.end_date, date) + 1);
+                              }
+                              return newPlan;
+                            });
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left font-normal",
+                            !tripPlan.end_date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {tripPlan.end_date ? format(tripPlan.end_date, "PPP") : "End date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={tripPlan.end_date || undefined}
+                          onSelect={(date) => {
+                            setTripPlan(prev => {
+                              const newPlan = { ...prev, end_date: date || null };
+                              if (date && prev.start_date) {
+                                newPlan.duration_days = Math.max(1, differenceInDays(date, prev.start_date) + 1);
+                              }
+                              return newPlan;
+                            });
+                          }}
+                          disabled={(date) => date < new Date() || (tripPlan.start_date && date <= tripPlan.start_date)}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="participants">Max Participants</Label>
-                    <Input
-                      id="participants"
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={tripPlan.max_participants}
-                      onChange={(e) => setTripPlan(prev => ({ ...prev, max_participants: parseInt(e.target.value) || 1 }))}
-                    />
-                  </div>
+                  {tripPlan.start_date && tripPlan.end_date && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Duration: {tripPlan.duration_days} days
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="participants">Max Participants</Label>
+                  <Input
+                    id="participants"
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={tripPlan.max_participants}
+                    onChange={(e) => setTripPlan(prev => ({ ...prev, max_participants: parseInt(e.target.value) || 1 }))}
+                  />
                 </div>
 
                 <div>

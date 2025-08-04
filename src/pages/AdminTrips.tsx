@@ -28,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
-import { format, addDays } from "date-fns";
+import { format, addDays, differenceInDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
@@ -223,6 +223,8 @@ const AdminTrips = () => {
     description: "",
     price: "",
     dates: "",
+    start_date: null as Date | null,
+    end_date: null as Date | null,
     group_size: "",
     sensei_name: "",
     sensei_id: null as string | null,
@@ -376,6 +378,8 @@ const AdminTrips = () => {
       description: "",
       price: "",
       dates: "",
+      start_date: null,
+      end_date: null,
       group_size: "",
       sensei_name: "",
       sensei_id: null,
@@ -403,6 +407,8 @@ const AdminTrips = () => {
       description: trip.description,
       price: trip.price,
       dates: trip.dates,
+      start_date: null,
+      end_date: null,
       group_size: trip.group_size,
       sensei_name: trip.sensei_name,
       sensei_id: trip.sensei_id,
@@ -455,9 +461,21 @@ const AdminTrips = () => {
     setIsSubmitting(true);
 
     try {
+      // Generate dates string from date range for backwards compatibility
+      let datesString = formData.dates;
+      if (formData.start_date && formData.end_date) {
+        datesString = `${format(formData.start_date, "MMMM d")} - ${format(formData.end_date, "MMMM d, yyyy")}`;
+        const duration = differenceInDays(formData.end_date, formData.start_date) + 1;
+        formData.duration_days = duration;
+      }
+
       // Prepare data for database, converting program array to JSON for storage
+      const { start_date, end_date, ...dbFormData } = formData;
       const tripData = {
-        ...formData,
+        ...dbFormData,
+        dates: datesString,
+        start_date: formData.start_date ? formData.start_date.toISOString().split('T')[0] : null,
+        end_date: formData.end_date ? formData.end_date.toISOString().split('T')[0] : null,
         program: JSON.stringify(formData.program)
       };
 
@@ -538,6 +556,8 @@ const AdminTrips = () => {
       description: trip.description,
       price: trip.price,
       dates: "", // Clear dates for the admin to set new ones
+      start_date: null,
+      end_date: null,
       group_size: trip.group_size,
       sensei_name: "", // Clear sensei for admin to assign new one
       sensei_id: null, // Clear sensei for admin to assign new one
@@ -824,6 +844,8 @@ const AdminTrips = () => {
                                 setFormData(prev => ({ 
                                   ...prev, 
                                   dates: dateString,
+                                  start_date: range.from,
+                                  end_date: range.to,
                                   duration_days: diffDays,
                                   program: programDays
                                 }));
@@ -839,6 +861,8 @@ const AdminTrips = () => {
                                 setFormData(prev => ({ 
                                   ...prev, 
                                   dates: dateString,
+                                  start_date: range.from,
+                                  end_date: range.from,
                                   duration_days: 1,
                                   program: singleDayProgram
                                 }));
