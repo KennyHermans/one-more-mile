@@ -235,7 +235,7 @@ const TripDetail = () => {
       navigate('/auth');
       return;
     }
-    setShowPaymentOptions(true);
+    setShowPaymentOptions(!showPaymentOptions);
   };
 
   useEffect(() => {
@@ -679,6 +679,93 @@ const TripDetail = () => {
                       <CreditCard className="mr-2 h-4 w-4" />
                       {trip.current_participants >= trip.max_participants ? 'Fully Booked' : 'Book This Trip'}
                     </Button>
+
+                    {/* Payment Options - Show when user clicks Book This Trip */}
+                    {showPaymentOptions && (
+                      <div className="space-y-3 pt-4 border-t">
+                        <h4 className="font-semibold text-center text-sm">Choose Payment Option</h4>
+                        
+                        {/* Pay in Full Option */}
+                        <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors cursor-pointer"
+                              onClick={() => handlePaymentOption("", true)}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                  <CreditCard className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-sm">Pay in Full</h3>
+                                  <p className="text-xs text-muted-foreground">Complete payment now</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-primary">{trip.price}</div>
+                                <Badge variant="secondary" className="text-xs">Best Value</Badge>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              ✓ Instant confirmation ✓ No additional fees
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        {/* Deposit Option */}
+                        {(() => {
+                          const breakdown = calculateInstallmentBreakdown("deposit_1000");
+                          return breakdown ? (
+                            <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                                  onClick={() => handlePaymentOption("deposit_1000")}>
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center">
+                                      <Clock className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                      <h3 className="font-semibold text-sm">Pay with Deposit</h3>
+                                      <p className="text-xs text-muted-foreground">€1,000 now + rest later</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-sm font-bold">€1,000</div>
+                                    <div className="text-xs text-muted-foreground">then €{breakdown.installment}</div>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  ✓ Secure spot with €1,000 ✓ Pay balance after 1 month
+                                </p>
+                              </CardContent>
+                            </Card>
+                          ) : null;
+                        })()}
+
+                        {/* Reserve Now, Pay Later Option */}
+                        <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
+                              onClick={() => handleReserveNowPayLater()}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center">
+                                  <Calendar className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-sm">Reserve Now, Pay Later</h3>
+                                  <p className="text-xs text-muted-foreground">3 months to pay</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-bold text-orange-500">Reserve</div>
+                                <div className="text-xs text-muted-foreground">No payment now</div>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              ✓ Reserve instantly ✓ 3 months to pay ✓ Deadline applies
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 text-center">
@@ -726,119 +813,6 @@ const TripDetail = () => {
         </div>
       </section>
 
-      {/* Payment Options Dialog */}
-      <Dialog open={showPaymentOptions} onOpenChange={setShowPaymentOptions}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Choose Your Payment Plan</DialogTitle>
-            <DialogDescription>
-              Select how you'd like to pay for your {trip?.title} adventure ({trip?.price} total)
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-6 py-6">
-            {/* Full Payment Option */}
-            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors cursor-pointer"
-                  onClick={() => handlePaymentOption("", true)}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                      <CreditCard className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">Pay in Full</h3>
-                      <p className="text-sm text-muted-foreground">Complete payment now</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">{trip?.price}</div>
-                    <Badge variant="secondary" className="mt-1">Recommended</Badge>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  ✓ Instant booking confirmation ✓ Best value ✓ No additional fees
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Deposit Option */}
-            {(() => {
-              const breakdown = calculateInstallmentBreakdown("deposit_1000");
-              return breakdown ? (
-                <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                      onClick={() => handlePaymentOption("deposit_1000")}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center">
-                          <Clock className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">Pay with Deposit</h3>
-                          <p className="text-sm text-muted-foreground">€1,000 now + rest after 1 month</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold">€1,000</div>
-                        <div className="text-sm text-muted-foreground">then €{breakdown.installment}</div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      ✓ Secure your spot with €1,000 ✓ Pay remaining balance after 1 month ✓ Flexible payment schedule
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : null;
-            })()}
-
-            {/* Reserve Now, Pay Later Option */}
-            <Card className="border hover:border-primary/40 transition-colors cursor-pointer"
-                  onClick={() => handleReserveNowPayLater()}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center">
-                      <Calendar className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">Reserve Now, Pay Later</h3>
-                      <p className="text-sm text-muted-foreground">Secure your spot - pay within 3 months</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-orange-500">Reserve</div>
-                    <div className="text-sm text-muted-foreground">3 months to pay</div>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  ✓ Reserve your spot instantly ✓ 3 months to pay in full ✓ Lose reservation if not paid by deadline
-                </p>
-              </CardContent>
-            </Card>
-
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h4 className="font-semibold mb-2">How it works:</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Pay your deposit now to secure your spot</li>
-                <li>• Remaining payments are automatically charged monthly</li>
-                <li>• All payments are processed securely through Stripe</li>
-                <li>• Full trip confirmation once all payments are complete</li>
-              </ul>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowPaymentOptions(false)}
-              disabled={paymentLoading}
-            >
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
