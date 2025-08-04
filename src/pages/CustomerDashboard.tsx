@@ -19,6 +19,7 @@ import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-i
 import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
 import { GuidedTour } from "@/components/ui/guided-tour";
 import { CustomerWishlist } from "@/components/ui/customer-wishlist";
+import { EnhancedTripCard } from "@/components/ui/enhanced-trip-card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { CustomerDashboardLayout } from "@/components/ui/customer-dashboard-layout";
@@ -560,65 +561,49 @@ const CustomerDashboard = () => {
                 <CardDescription>Your booked trips and their details</CardDescription>
               </CardHeader>
               <CardContent>
-                {bookings.length === 0 ? (
+                 {bookings.length === 0 ? (
                   <p className="text-muted-foreground">No trips booked yet.</p>
                 ) : (
-                  <div className="grid gap-4">
-                    {bookings.map((booking) => (
-                      <Card key={booking.id} className="overflow-hidden">
-                        <div className="flex">
-                          <img 
-                            src={booking.trips.image_url} 
-                            alt={booking.trips.title}
-                            className="w-32 h-32 object-cover"
-                          />
-                          <CardContent className="flex-1 p-4">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg">{booking.trips.title}</h3>
-                                <p className="text-muted-foreground">{booking.trips.destination}</p>
-                                <p className="text-sm">{booking.trips.dates}</p>
-                                <p className="text-sm">Sensei: {booking.trips.sensei_name}</p>
-                              </div>
-                               <div className="text-right space-y-2">
-                                 <div className="flex flex-col items-end gap-2">
-                                   <Badge variant={booking.payment_status === 'paid' ? 'default' : 'secondary'}>
-                                     {booking.payment_status === 'paid' ? 'Paid' : 'Reserved'}
-                                   </Badge>
-                                   <p className="text-lg font-semibold">${booking.total_amount}</p>
-                                   {booking.payment_deadline && booking.payment_status === 'pending' && (
-                                     <p className="text-sm text-orange-600 font-medium">
-                                       Payment due: {new Date(booking.payment_deadline).toLocaleDateString()}
-                                     </p>
-                                   )}
-                                 </div>
-                                
-                                {booking.payment_status === 'pending' ? (
-                                  <div className="flex gap-2 mt-2">
-                                    <Button size="sm" variant="outline" onClick={() => cancelBooking(booking.id)}>
-                                      Cancel
-                                    </Button>
-                                     <Button 
-                                       size="sm"
-                                       onClick={() => handlePayNow(booking)}
-                                       disabled={paymentLoading === booking.id}
-                                     >
-                                       {paymentLoading === booking.id ? 'Processing...' : 'Pay Now'}
-                                     </Button>
-                                  </div>
-                                ) : (
-                                  <div className="mt-2">
-                                    <Badge variant="outline" className="text-green-600">
-                                      Confirmed
-                                    </Badge>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
+                  <div className="space-y-6">
+                    {/* Separate paid and pending trips for better organization */}
+                    {bookings.filter(b => b.payment_status === 'pending').length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-400">
+                          Payment Required
+                        </h3>
+                        <div className="space-y-4">
+                          {bookings
+                            .filter(booking => booking.payment_status === 'pending')
+                            .map((booking) => (
+                              <EnhancedTripCard
+                                key={booking.id}
+                                booking={booking}
+                                onPayNow={handlePayNow}
+                                onCancel={cancelBooking}
+                                paymentLoading={paymentLoading === booking.id}
+                              />
+                            ))}
                         </div>
-                      </Card>
-                    ))}
+                      </div>
+                    )}
+                    
+                    {bookings.filter(b => b.payment_status === 'paid').length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-green-700 dark:text-green-400">
+                          Confirmed Trips
+                        </h3>
+                        <div className="space-y-4">
+                          {bookings
+                            .filter(booking => booking.payment_status === 'paid')
+                            .map((booking) => (
+                              <EnhancedTripCard
+                                key={booking.id}
+                                booking={booking}
+                              />
+                            ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
