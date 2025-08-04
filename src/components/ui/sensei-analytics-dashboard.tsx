@@ -6,6 +6,7 @@ import { Progress } from "./progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Calendar, CalendarDays, TrendingUp, Users, Clock, MapPin, Star, Award, Target, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError, logInfo } from "@/lib/error-handler";
 
 interface TripAnalytics {
   completionRate: number;
@@ -177,7 +178,10 @@ export function SenseiAnalyticsDashboard() {
       setMonthlyData(monthlyStats);
       setAchievements(updatedAchievements);
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
+      logError(error as Error, {
+        component: 'SenseiAnalyticsDashboard',
+        action: 'fetchAnalyticsData'
+      });
     } finally {
       setLoading(false);
     }

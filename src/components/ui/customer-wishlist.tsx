@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Trash2, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { logError, logInfo } from "@/lib/error-handler";
 
 interface WishlistItem {
   id: string;
@@ -50,7 +51,11 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
         .order('created_at', { ascending: false });
 
       if (wishlistError) {
-        console.error('Wishlist fetch error:', wishlistError);
+        logError(wishlistError, {
+          component: 'CustomerWishlist',
+          action: 'fetchWishlist',
+          userId
+        });
         throw wishlistError;
       }
 
@@ -67,7 +72,11 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
         .in('id', tripIds);
 
       if (tripsError) {
-        console.error('Trips fetch error:', tripsError);
+        logError(tripsError, {
+          component: 'CustomerWishlist',
+          action: 'fetchTripsData',
+          userId
+        });
         throw tripsError;
       }
 
@@ -82,7 +91,11 @@ export function CustomerWishlist({ userId }: CustomerWishlistProps) {
 
       setWishlistItems(combinedData as any);
     } catch (error: any) {
-      console.error('Error fetching wishlist:', error);
+      logError(error as Error, {
+        component: 'CustomerWishlist',
+        action: 'fetchWishlist',
+        userId
+      });
       toast({
         title: "Error loading wishlist",
         description: error.message || "Failed to load your wishlist items",

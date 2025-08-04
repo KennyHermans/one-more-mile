@@ -6,6 +6,7 @@ import { Badge } from "./badge";
 import { Button } from "./button";
 import { Bell, X, Check, AlertTriangle, Users, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { logError, logInfo } from "@/lib/error-handler";
 
 interface Notification {
   id: string;
@@ -69,7 +70,10 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications(formattedNotifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      logError(error as Error, {
+        component: 'RealTimeNotifications',
+        action: 'fetchNotifications'
+      });
     }
   };
 
@@ -177,7 +181,11 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      logError(error as Error, {
+        component: 'RealTimeNotifications',
+        action: 'markAsRead',
+        metadata: { notificationId }
+      });
     }
   };
 
@@ -192,7 +200,10 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications([]);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      logError(error as Error, {
+        component: 'RealTimeNotifications',
+        action: 'markAllAsRead'
+      });
     }
   };
 
