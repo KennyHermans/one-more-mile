@@ -101,6 +101,7 @@ const CustomerDashboard = () => {
   const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -125,6 +126,9 @@ const CustomerDashboard = () => {
         fetchAnnouncements(user.id),
         fetchWishlistCount(user.id)
       ]);
+      
+      const messageCount = await fetchUnreadMessageCount(user.id);
+      setUnreadMessageCount(messageCount);
       
       // Check if user needs onboarding
       checkOnboardingStatus(user.id);
@@ -234,6 +238,36 @@ const CustomerDashboard = () => {
     
     if (error) throw error;
     setUserReviews(data || []);
+  };
+
+  const fetchUnreadMessageCount = async (userId: string) => {
+    try {
+      // Get all trip IDs where user has paid bookings
+      const { data: userTripIds } = await supabase
+        .from('trip_bookings')
+        .select('trip_id')
+        .eq('user_id', userId)
+        .eq('payment_status', 'paid');
+
+      if (!userTripIds || userTripIds.length === 0) {
+        return 0;
+      }
+
+      const tripIds = userTripIds.map(booking => booking.trip_id);
+
+      // Count unread messages in those trips where sender is not the current user
+      const { count } = await supabase
+        .from('trip_messages')
+        .select('*', { count: 'exact', head: true })
+        .in('trip_id', tripIds)
+        .neq('sender_id', userId)
+        .is('read_at', null);
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error fetching unread message count:', error);
+      return 0;
+    }
   };
 
   const handleReviewTrip = (booking: TripBooking) => {
@@ -1049,8 +1083,8 @@ const CustomerDashboard = () => {
 
   const notificationCounts = {
     notifications: announcements.length,
-    messages: 0, // This would come from actual message count
-    trips: bookings.filter(b => b.booking_status === "pending").length,
+    messages: unreadMessageCount,
+    trips: bookings.filter(b => b.payment_status === "pending").length,
     wishlist: wishlistCount
   };
 
