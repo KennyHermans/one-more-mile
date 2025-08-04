@@ -20,26 +20,7 @@ import {
   ArrowRight
 } from "lucide-react";
 
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  description: string;
-  price: string;
-  dates: string;
-  group_size: string;
-  sensei_name: string;
-  image_url: string;
-  theme: string;
-  rating: number;
-  duration_days: number;
-  difficulty_level: string;
-  included_amenities: string[];
-  excluded_items: string[];
-  requirements: string[];
-  max_participants: number;
-  current_participants: number;
-}
+import { Trip } from '@/types/trip';
 
 interface TripComparisonProps {
   trips: Trip[];

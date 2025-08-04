@@ -5,24 +5,7 @@ import { EnhancedTripCard } from "@/components/ui/enhanced-trip-card";
 import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, DollarSign, Clock } from "lucide-react";
-
-interface TripBooking {
-  id: string;
-  trip_id: string;
-  booking_status: string;
-  payment_status: string;
-  booking_date: string;
-  total_amount: number;
-  payment_deadline?: string;
-  trips: {
-    title: string;
-    destination: string;
-    dates: string;
-    image_url: string;
-    sensei_name: string;
-    sensei_id: string;
-  };
-}
+import { TripBooking } from '@/types/trip';
 
 interface CustomerTripsDashboardProps {
   bookings: TripBooking[];

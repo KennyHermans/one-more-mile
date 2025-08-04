@@ -5,20 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Map, List, MapPin, Star, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { TripListItem } from '@/types/trip';
+
 // Mock map implementation - in production, you'd use Mapbox or Google Maps
-interface Trip {
-  id: string;
-  title: string;
-  destination: string;
-  price: string;
-  theme: string;
-  rating: number;
-  image_url: string;
+interface TripWithCoordinates extends TripListItem {
   coordinates?: [number, number]; // [lat, lng]
 }
 
 interface TripMapViewProps {
-  trips: Trip[];
+  trips: TripListItem[];
   className?: string;
 }
 
@@ -36,16 +31,16 @@ const mockCoordinates: Record<string, [number, number]> = {
 
 export function TripMapView({ trips, className }: TripMapViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<TripWithCoordinates | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Add coordinates to trips based on destination
-  const tripsWithCoordinates = trips.map(trip => ({
+  const tripsWithCoordinates: TripWithCoordinates[] = trips.map(trip => ({
     ...trip,
     coordinates: mockCoordinates[trip.destination.toLowerCase()] || [0, 0] as [number, number]
   }));
 
-  const MapMarker = ({ trip, isSelected }: { trip: Trip; isSelected: boolean }) => (
+  const MapMarker = ({ trip, isSelected }: { trip: TripWithCoordinates; isSelected: boolean }) => (
     <div
       className={`absolute transform -translate-x-1/2 -translate-y-full cursor-pointer transition-all duration-200 ${
         isSelected ? 'scale-110 z-10' : 'hover:scale-105'
@@ -74,7 +69,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
     </div>
   );
 
-  const TripCard = ({ trip, compact = false }: { trip: Trip; compact?: boolean }) => (
+  const TripCard = ({ trip, compact = false }: { trip: TripWithCoordinates; compact?: boolean }) => (
     <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 ${compact ? 'mb-2' : 'mb-4'}`}>
       <div className={`${compact ? 'flex' : 'block'}`}>
         <div className={`${compact ? 'w-20 h-20' : 'h-48'} relative overflow-hidden`}>

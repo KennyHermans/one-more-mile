@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
-
 import { Link } from "react-router-dom";
 import { MapPin, Users, Calendar, Plus, BarChart3 } from "lucide-react";
+import { TripListItem } from '@/types/trip';
 
 interface FeaturedTripCardProps {
   id: string;
@@ -16,16 +16,18 @@ interface FeaturedTripCardProps {
   sensei: string;
   image: string;
   theme: string;
-  currentParticipants?: number;
-  maxParticipants?: number;
+  current_participants?: number;
+  max_participants?: number;
   onCompare?: (tripId: string) => void;
   isInComparison?: boolean;
 }
 
 export function FeaturedTripCard({ 
   id, title, destination, description, price, dates, groupSize, sensei, image, theme,
-  currentParticipants = 0, maxParticipants = 12, onCompare, isInComparison = false
+  current_participants = 0, max_participants = 12, onCompare, isInComparison = false
 }: FeaturedTripCardProps) {
+  const currentParticipants = current_participants;
+  const maxParticipants = max_participants;
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-1 animate-scale-in">
       <div className="relative h-64 overflow-hidden">

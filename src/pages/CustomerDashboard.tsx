@@ -25,6 +25,7 @@ import { CustomerTripsDashboard } from "@/components/ui/customer-trips-dashboard
 import { Badge } from "@/components/ui/badge";
 import { Upload, Download, MapPin, Calendar as CalendarIcon, CheckSquare, User, FileText, MessageCircle, Star, Megaphone, AlertTriangle, Info, Bell } from "lucide-react";
 import { CustomerDashboardLayout } from "@/components/ui/customer-dashboard-layout";
+import { TripBooking } from '@/types/trip';
 
 interface CustomerProfile {
   id: string;
@@ -36,23 +37,7 @@ interface CustomerProfile {
   medical_conditions: string;
 }
 
-interface TripBooking {
-  id: string;
-  trip_id: string;
-  booking_status: string;
-  payment_status: string;
-  booking_date: string;
-  total_amount: number;
-  payment_deadline?: string;
-  trips: {
-    title: string;
-    destination: string;
-    dates: string;
-    image_url: string;
-    sensei_name: string;
-    sensei_id: string;
-  };
-}
+// TripBooking interface moved to @/types/trip for standardization
 
 interface Todo {
   id: string;
@@ -186,7 +171,7 @@ const CustomerDashboard = () => {
       .from('trip_bookings')
       .select(`
         *,
-        trips (
+        trip:trips (
           title,
           destination,
           dates,
@@ -275,9 +260,9 @@ const CustomerDashboard = () => {
   const handleReviewTrip = (booking: TripBooking) => {
     setSelectedTripForReview({
       id: booking.trip_id,
-      title: booking.trips.title,
-      sensei_name: booking.trips.sensei_name,
-      sensei_id: booking.trips.sensei_id || '' // Add fallback since sensei_id might not be in the booking
+      title: booking.trip?.title,
+      sensei_name: booking.trip?.sensei_name,
+      sensei_id: booking.trip?.sensei_id || ''
     });
     setReviewDialogOpen(true);
   };

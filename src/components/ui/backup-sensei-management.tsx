@@ -13,7 +13,7 @@ import {
   Clock
 } from "lucide-react";
 
-interface Trip {
+interface BackupTrip {
   id: string;
   title: string;
   destination: string;
@@ -55,7 +55,7 @@ interface BackupSenseiManagementProps {
 }
 
 export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ isAdmin = false }) => {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<BackupTrip[]>([]);
   const [availableSenseis, setAvailableSenseis] = useState<SenseiProfile[]>([]);
   const [backupApplications, setBackupApplications] = useState<BackupApplication[]>([]);
   const [loading, setLoading] = useState(true);

@@ -4,24 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle, AlertTriangle, Calendar, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface TripBooking {
-  id: string;
-  trip_id: string;
-  booking_status: string;
-  payment_status: string;
-  booking_date: string;
-  total_amount: number;
-  payment_deadline?: string;
-  trips: {
-    title: string;
-    destination: string;
-    dates: string;
-    image_url: string;
-    sensei_name: string;
-    sensei_id: string;
-  };
-}
+import { TripBooking } from '@/types/trip';
 
 interface EnhancedTripCardProps {
   booking: TripBooking;
@@ -115,21 +98,21 @@ export function EnhancedTripCard({
       {/* Main Card Content */}
       <div className="flex">
         <img 
-          src={booking.trips.image_url} 
-          alt={booking.trips.title}
+          src={booking.trip?.image_url || ''} 
+          alt={booking.trip?.title || 'Trip'}
           className="w-32 h-32 object-cover"
         />
         <CardContent className="flex-1 p-4">
           <div className="flex justify-between items-start h-full">
             <div className="flex-1 space-y-1">
-              <h3 className="font-semibold text-lg">{booking.trips.title}</h3>
-              <p className="text-muted-foreground">{booking.trips.destination}</p>
+              <h3 className="font-semibold text-lg">{booking.trip?.title}</h3>
+              <p className="text-muted-foreground">{booking.trip?.destination}</p>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                {booking.trips.dates}
+                {booking.trip?.dates}
               </div>
-              {booking.trips.sensei_name && (
-                <p className="text-sm text-muted-foreground">Sensei: {booking.trips.sensei_name}</p>
+              {booking.trip?.sensei_name && (
+                <p className="text-sm text-muted-foreground">Sensei: {booking.trip.sensei_name}</p>
               )}
             </div>
             
