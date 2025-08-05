@@ -591,6 +591,45 @@ export type Database = {
         }
         Relationships: []
       }
+      destination_skill_mappings: {
+        Row: {
+          activity_types: string[] | null
+          country: string
+          created_at: string
+          cultural_contexts: string[] | null
+          destination: string
+          id: string
+          primary_languages: string[] | null
+          region: string | null
+          skill_weights: Json | null
+          updated_at: string
+        }
+        Insert: {
+          activity_types?: string[] | null
+          country: string
+          created_at?: string
+          cultural_contexts?: string[] | null
+          destination: string
+          id?: string
+          primary_languages?: string[] | null
+          region?: string | null
+          skill_weights?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          activity_types?: string[] | null
+          country?: string
+          created_at?: string
+          cultural_contexts?: string[] | null
+          destination?: string
+          id?: string
+          primary_languages?: string[] | null
+          region?: string | null
+          skill_weights?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       level_requirements: {
         Row: {
           additional_requirements: Json | null
@@ -1718,6 +1757,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_enhanced_sensei_insights: {
+        Args: { p_sensei_id: string }
+        Returns: Json
+      }
+      calculate_enhanced_sensei_match_score: {
+        Args: {
+          p_sensei_id: string
+          p_trip_theme: string
+          p_destination?: string
+          p_trip_months?: string[]
+          p_trip_id?: string
+        }
+        Returns: {
+          match_score: number
+          weighted_score: number
+          specialty_matches: string[]
+          certificate_matches: string[]
+          skill_matches: string[]
+          language_matches: string[]
+          destination_context_score: number
+          missing_requirements: string[]
+          contextual_recommendations: string[]
+          requirements_met_percentage: number
+          language_bonus: number
+          cultural_bonus: number
+          activity_bonus: number
+        }[]
+      }
       calculate_payment_deadline: {
         Args: { trip_start_date: string }
         Returns: string
