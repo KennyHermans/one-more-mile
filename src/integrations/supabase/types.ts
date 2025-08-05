@@ -1898,6 +1898,14 @@ export type Database = {
           match_score: number
         }[]
       }
+      search_users_by_email: {
+        Args: { email_pattern: string }
+        Returns: {
+          user_id: string
+          email: string
+          created_at: string
+        }[]
+      }
       send_welcome_message_to_participant: {
         Args: { trip_booking_id: string; user_id: string; trip_id: string }
         Returns: undefined
