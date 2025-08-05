@@ -50,7 +50,7 @@ export function SenseiAvailabilitySettings() {
         setProfile(data);
         setIsOffline(data.is_offline || false);
         setUnavailableMonths(data.unavailable_months || []);
-        setCertifications(data.certifications || []);
+        setCertifications(Array.isArray(data.certifications) ? data.certifications : []);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -108,7 +108,7 @@ export function SenseiAvailabilitySettings() {
   };
 
   const removeCertification = (certification: string) => {
-    setCertifications(prev => prev.filter(c => c !== certification));
+    setCertifications(prev => Array.isArray(prev) ? prev.filter(c => c !== certification) : []);
   };
 
   if (loading) {
