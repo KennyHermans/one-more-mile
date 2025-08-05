@@ -221,15 +221,6 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
 
   const handleAddSkill = async () => {
     try {
-      console.log('Adding skill with data:', {
-        sensei_id: senseiId,
-        skill_name: skillForm.skill_name,
-        skill_category: skillForm.skill_category,
-        proficiency_level: skillForm.proficiency_level,
-        description: skillForm.description || null,
-        years_experience: skillForm.years_experience ? parseInt(skillForm.years_experience) : null
-      });
-
       const { error } = await supabase
         .from("sensei_skills")
         .insert({
