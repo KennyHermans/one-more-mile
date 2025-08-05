@@ -15,8 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
-import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
-import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
@@ -806,9 +804,15 @@ const SenseiDashboard = () => {
           )}
 
           {activeTab === "backup" && (
-            <div className="space-y-6">
-              <BackupSenseiManagement />
-              <IntegratedBackupManagement />
+            <div className="space-y-6 text-center">
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold mb-2">Backup Sensei Program</h3>
+                  <p className="text-muted-foreground">
+                    The backup sensei program has been discontinued. Thank you for your interest in supporting fellow travelers.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           )}
 

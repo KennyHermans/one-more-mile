@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
 import { SenseiPermissionsDialog } from "./sensei-permissions-dialog";
-import { BackupSenseiManagement } from "./backup-sensei-management";
+
 import { useToast } from "@/hooks/use-toast";
 import { handleError } from "@/lib/error-handler";
 import { 

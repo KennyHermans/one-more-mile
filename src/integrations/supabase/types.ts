@@ -296,114 +296,6 @@ export type Database = {
         }
         Relationships: []
       }
-      backup_sensei_applications: {
-        Row: {
-          applied_at: string
-          created_at: string
-          id: string
-          sensei_id: string
-          status: string
-          trip_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          applied_at?: string
-          created_at?: string
-          id?: string
-          sensei_id: string
-          status?: string
-          trip_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          applied_at?: string
-          created_at?: string
-          id?: string
-          sensei_id?: string
-          status?: string
-          trip_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "backup_sensei_applications_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
-            referencedRelation: "sensei_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "backup_sensei_applications_trip_id_fkey"
-            columns: ["trip_id"]
-            isOneToOne: false
-            referencedRelation: "trips"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      backup_sensei_requests: {
-        Row: {
-          created_at: string
-          id: string
-          match_score: number
-          request_type: string
-          requested_at: string
-          responded_at: string | null
-          response_deadline: string
-          response_reason: string | null
-          sensei_id: string
-          status: string
-          trip_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          match_score?: number
-          request_type?: string
-          requested_at?: string
-          responded_at?: string | null
-          response_deadline: string
-          response_reason?: string | null
-          sensei_id: string
-          status?: string
-          trip_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          match_score?: number
-          request_type?: string
-          requested_at?: string
-          responded_at?: string | null
-          response_deadline?: string
-          response_reason?: string | null
-          sensei_id?: string
-          status?: string
-          trip_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "backup_sensei_requests_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
-            referencedRelation: "sensei_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "backup_sensei_requests_trip_id_fkey"
-            columns: ["trip_id"]
-            isOneToOne: false
-            referencedRelation: "trips"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customer_documents: {
         Row: {
           document_name: string
@@ -1691,8 +1583,6 @@ export type Database = {
       }
       trips: {
         Row: {
-          backup_assignment_deadline: string | null
-          backup_sensei_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by_sensei: boolean | null
@@ -1718,7 +1608,6 @@ export type Database = {
           rating: number | null
           replacement_needed: boolean | null
           requirements: string[] | null
-          requires_backup_sensei: boolean
           sensei_id: string | null
           sensei_name: string
           start_date: string | null
@@ -1728,8 +1617,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          backup_assignment_deadline?: string | null
-          backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
@@ -1755,7 +1642,6 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
-          requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name: string
           start_date?: string | null
@@ -1765,8 +1651,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          backup_assignment_deadline?: string | null
-          backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
@@ -1792,7 +1676,6 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
-          requires_backup_sensei?: boolean
           sensei_id?: string | null
           sensei_name?: string
           start_date?: string | null
@@ -1802,13 +1685,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "trips_backup_sensei_id_fkey"
-            columns: ["backup_sensei_id"]
-            isOneToOne: false
-            referencedRelation: "sensei_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "trips_sensei_id_fkey"
             columns: ["sensei_id"]
@@ -1967,15 +1843,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      request_backup_senseis: {
-        Args: { p_trip_id: string; p_max_requests?: number }
-        Returns: {
-          request_id: string
-          sensei_id: string
-          sensei_name: string
-          match_score: number
-        }[]
-      }
       revoke_admin_role: {
         Args: { p_role_id: string; p_revoked_by?: string }
         Returns: Json
@@ -2015,23 +1882,6 @@ export type Database = {
           location: string
           rating: number
           is_available: boolean
-        }[]
-      }
-      suggest_senseis_for_trip_enhanced: {
-        Args: { trip_theme: string; trip_months?: string[]; trip_id?: string }
-        Returns: {
-          sensei_id: string
-          sensei_name: string
-          match_score: number
-          matching_specialties: string[]
-          matching_certifications: string[]
-          matching_skills: string[]
-          verified_certificates: string[]
-          missing_requirements: string[]
-          location: string
-          rating: number
-          is_available: boolean
-          requirements_met_percentage: number
         }[]
       }
       update_sensei_level_permissions: {

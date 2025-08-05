@@ -6,7 +6,7 @@ import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview
 import { RealTimeAvailability } from "@/components/ui/real-time-availability";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
-import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assignment";
+
 import { DatabaseOptimization } from "@/components/ui/database-optimization";
 import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdminFilters } from "@/components/ui/admin-filters";
@@ -968,8 +968,15 @@ const AdminDashboard = () => {
             
             
             {activeTab === "automation" && (
-              <div className="space-y-6">
-                <AutomatedBackupAssignment />
+              <div className="space-y-6 text-center">
+                <Card>
+                  <CardContent className="pt-6">
+                    <h3 className="text-lg font-semibold mb-2">Backup Automation</h3>
+                    <p className="text-muted-foreground">
+                      Backup sensei automation has been discontinued as part of the platform simplification.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             )}
             

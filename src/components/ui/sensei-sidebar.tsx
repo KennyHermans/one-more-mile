@@ -66,9 +66,6 @@ const sidebarItems = [
     group: "trips"
   },
   {
-    title: "Backup Requests",
-    value: "backup-sensei",
-    icon: Shield,
     group: "trips"
   },
   

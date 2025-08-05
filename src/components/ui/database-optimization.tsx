@@ -17,7 +17,7 @@ export function DatabaseOptimization({ onComplete }: DatabaseOptimizationProps) 
       // Enable realtime for critical tables
       const tables = [
         'admin_alerts',
-        'backup_sensei_requests', 
+        'admin_alerts', 
         'trip_bookings',
         'applications',
         'trips',

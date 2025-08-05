@@ -33,7 +33,6 @@ export interface Trip {
   difficulty_level: string;
   sensei_id: string | null;
   sensei_name: string;
-  backup_sensei_id: string | null;
   image_url: string;
   trip_status: string;
   is_active: boolean | null;
@@ -44,8 +43,6 @@ export interface Trip {
   program: ProgramDay[] | null;
   created_by_sensei: boolean;
   created_by_user_id: string | null;
-  requires_backup_sensei: boolean;
-  backup_assignment_deadline: string | null;
   replacement_needed: boolean | null;
   cancelled_by_sensei: boolean | null;
   cancellation_reason: string | null;

@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { AdminSenseiOverview } from "./admin-sensei-overview";
-import { SenseiAssignmentManagement } from "./sensei-assignment-management";
+
 import { AdminSenseiLevelManagement } from "./admin-sensei-level-management";
 import { AdminApplicationsView } from "./admin-applications-view";
 
@@ -51,15 +51,13 @@ export function SenseiManagementDashboard() {
       const [senseiData, applicationData, tripData] = await Promise.all([
         supabase.from('sensei_profiles').select('id, is_active, rating'),
         supabase.from('applications').select('id, status'),
-        supabase.from('trips').select('id, requires_backup_sensei, backup_sensei_id, trip_status')
+        supabase.from('trips').select('id, trip_status')
       ]);
 
       const totalSenseis = senseiData.data?.length || 0;
       const activeSenseis = senseiData.data?.filter(s => s.is_active).length || 0;
       const pendingApplications = applicationData.data?.filter(a => a.status === 'pending').length || 0;
-      const tripsRequiringBackup = tripData.data?.filter(t => 
-        t.requires_backup_sensei && !t.backup_sensei_id && t.trip_status === 'approved'
-      ).length || 0;
+      const tripsRequiringBackup = 0;
       const averageRating = senseiData.data?.length > 0 
         ? senseiData.data.reduce((acc, s) => acc + (s.rating || 0), 0) / senseiData.data.length 
         : 0;
@@ -195,7 +193,9 @@ export function SenseiManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="assignments" className="space-y-6 mt-6">
-          <SenseiAssignmentManagement />
+          <div className="text-center text-muted-foreground">
+            Sensei assignment management has been simplified.
+          </div>
         </TabsContent>
 
         <TabsContent value="management" className="space-y-6 mt-6">

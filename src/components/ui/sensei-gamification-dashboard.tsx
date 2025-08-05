@@ -157,8 +157,8 @@ export const SenseiGamificationDashboard = ({ senseiId }: SenseiGamificationDash
                   <li className={permissions.can_modify_pricing ? 'text-success' : 'text-muted-foreground'}>
                     {permissions.can_modify_pricing ? '✓' : '✗'} Modify pricing
                   </li>
-                  <li className={permissions.can_apply_backup ? 'text-success' : 'text-muted-foreground'}>
-                    {permissions.can_apply_backup ? '✓' : '✗'} Apply as backup sensei
+                  <li className="text-muted-foreground">
+                    ✗ Apply as backup sensei (discontinued)
                   </li>
                   <li className={permissions.can_edit_profile ? 'text-success' : 'text-muted-foreground'}>
                     {permissions.can_edit_profile ? '✓' : '✗'} Edit profile

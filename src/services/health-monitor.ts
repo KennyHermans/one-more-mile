@@ -443,26 +443,7 @@ class HealthMonitorService {
         });
       }
 
-      // Check for backup requirements
-      const { data: tripsNeedingBackup, error: backupError } = await supabase
-        .from('trips')
-        .select('id, title, requires_backup_sensei, backup_sensei_id')
-        .eq('requires_backup_sensei', true)
-        .is('backup_sensei_id', null)
-        .eq('trip_status', 'approved');
-
-      if (!backupError && tripsNeedingBackup && tripsNeedingBackup.length > 0) {
-        issues.push({
-          id: `missing-backup-${Date.now()}`,
-          type: 'data_integrity',
-          component: 'trips',
-          title: 'Trips missing backup senseis',
-          description: `Found ${tripsNeedingBackup.length} trips requiring backup senseis`,
-          severity: 'medium',
-          detected_at: new Date(),
-          auto_fixable: true
-        });
-      }
+      // Backup sensei monitoring discontinued
 
       // Check for payment inconsistencies
       const { data: pendingPayments, error: paymentError } = await supabase
@@ -616,10 +597,7 @@ class HealthMonitorService {
   private async executeAutoFix(issue: HealthIssue): Promise<void> {
     switch (issue.id.split('-')[0]) {
       case 'missing':
-        if (issue.component === 'trips') {
-          // Trigger backup sensei assignment
-          await this.triggerBackupAssignment();
-        }
+        // Backup assignment discontinued
         break;
       default:
         logWarning(`No auto-fix available for issue type: ${issue.id}`, {
