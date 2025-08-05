@@ -28,6 +28,8 @@ import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dial
 import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
+import { AutomatedHealthDashboard } from "@/components/ui/automated-health-dashboard";
+import { useHealthMonitor } from "@/hooks/use-health-monitor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -187,6 +189,25 @@ const AdminDashboard = () => {
   });
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Health monitoring
+  const { 
+    systemHealth, 
+    isMonitoring, 
+    getHealthSummary, 
+    getCriticalIssues,
+    performManualCheck 
+  } = useHealthMonitor({ 
+    autoStart: true, 
+    refreshInterval: 30000,
+    onCriticalIssue: (issues) => {
+      toast({
+        title: "Critical System Issues Detected",
+        description: `${issues.length} critical issue(s) require immediate attention`,
+        variant: "destructive",
+      });
+    }
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -691,6 +712,30 @@ const AdminDashboard = () => {
                 
                 {/* Phase 1 completion summary */}
                 <Phase1Summary />
+              </div>
+            )}
+
+            {activeTab === "system-health" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">System Health Monitor</h2>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={systemHealth?.overall === 'healthy' ? 'default' : 
+                                  systemHealth?.overall === 'warning' ? 'secondary' : 'destructive'}>
+                      {isMonitoring ? 'Monitoring Active' : 'Monitoring Stopped'}
+                    </Badge>
+                    {getCriticalIssues().length > 0 && (
+                      <Badge variant="destructive">
+                        {getCriticalIssues().length} Critical Issue{getCriticalIssues().length !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <AutomatedHealthDashboard 
+                  autoStart={true}
+                  refreshInterval={30000}
+                  className="w-full"
+                />
               </div>
             )}
             
