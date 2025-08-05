@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
+// PersonalizedDashboard component removed for simplification
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
 
 import { Badge } from "@/components/ui/badge";
@@ -142,9 +142,18 @@ export function CustomerOverviewDashboard({
         </div>
       )}
 
-      {/* Personalized Dashboard */}
+      {/* Simplified for better UX */}
       {!isNewUser && (
-        <PersonalizedDashboard userId={userId} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Welcome Back!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Focus on your upcoming trips and complete any pending actions
+            </p>
+          </CardContent>
+        </Card>
       )}
 
     </div>

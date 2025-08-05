@@ -10,7 +10,7 @@ import { Textarea } from "./textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { SenseiMatchingInsights } from "./sensei-matching-insights";
+// SenseiMatchingInsights component removed for simplification
 import { EnhancedSkillVerification } from "./enhanced-skill-verification";
 import { 
   FileText, 
@@ -583,7 +583,16 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-6">
-          <SenseiMatchingInsights senseiId={senseiId} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Trip Matching Insights</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Focus on building your certificate portfolio - trip matching has been simplified
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

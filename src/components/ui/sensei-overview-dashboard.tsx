@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 // SenseiLevelBadge component removed
-import { SenseiMatchingInsights } from "@/components/ui/sensei-matching-insights";
-import { EnhancedMatchingRecommendations } from "@/components/ui/enhanced-matching-recommendations";
+// SenseiMatchingInsights component removed for simplification
 import { 
   TrendingUp, 
   MapPin, 
@@ -221,10 +220,28 @@ export function SenseiOverviewDashboard({
         </Card>
       </div>
 
-      {/* Enhanced Trip Matching Section */}
+      {/* Trip Focus Section - Simplified */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SenseiMatchingInsights senseiId={senseiProfile.id} />
-        <EnhancedMatchingRecommendations senseiId={senseiProfile.id} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Trip Insights</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Focus on creating quality trips that match your expertise and location
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Trip Recommendations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Create trips based on your specialties and customer demand
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

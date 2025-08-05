@@ -10,9 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
-import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
-import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
-import { SmartNotifications } from "@/components/ui/smart-notifications";
+// PersonalizedDashboard and TripTimelineVisualization components removed for simplification
+// SmartNotifications component removed for simplification
 import { CommunicationHub } from "@/components/ui/communication-hub";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
 import { CustomerWishlist } from "@/components/ui/customer-wishlist";
@@ -512,7 +511,19 @@ const CustomerDashboard = () => {
         );
 
       case "notifications":
-        return <SmartNotifications />;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>Stay updated with important information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Simplified notifications - check the News section for announcements
+              </p>
+            </CardContent>
+          </Card>
+        );
 
       case "messages":
         return user && <CommunicationHub userId={user.id} />;

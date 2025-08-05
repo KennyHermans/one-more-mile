@@ -7,7 +7,7 @@ import { RealTimeAvailability } from "@/components/ui/real-time-availability";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
 
-import { DatabaseOptimization } from "@/components/ui/database-optimization";
+// DatabaseOptimization component removed for simplification
 import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
@@ -686,8 +686,7 @@ const AdminDashboard = () => {
                   }}
                 />
                 
-                {/* Database optimization utility */}
-                <DatabaseOptimization />
+                {/* Database optimization removed for simplification */}
                 
                 {/* Phase 1 completion summary */}
                 <Phase1Summary />

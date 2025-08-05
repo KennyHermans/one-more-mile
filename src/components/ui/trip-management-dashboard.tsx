@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
-import { AdvancedTripManagement } from "./advanced-trip-management";
 import { AdminTripManagementOverview } from "./admin-trip-management-overview";
 import { TripProposalForm } from "./trip-proposal-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
@@ -210,7 +209,19 @@ export function TripManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="active-trips" className="space-y-6 mt-6">
-          <AdvancedTripManagement />
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Trips Management</CardTitle>
+              <CardDescription>
+                View and manage all currently active trips
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Simple trip management interface - focus on core functionality
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="proposals" className="space-y-6 mt-6">
