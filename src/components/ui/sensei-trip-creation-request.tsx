@@ -32,17 +32,31 @@ export function SenseiTripCreationRequest({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('request_trip_creation_permission', {
+      const { data, error } = await supabase.rpc('request_trip_creation_permission', {
         p_sensei_id: senseiId,
         p_reason: reason.trim()
       });
 
       if (error) throw error;
 
-      toast.success("Trip creation request submitted successfully!");
-      setReason("");
-      setDialogOpen(false);
-      onRequestSubmitted();
+      // Handle the JSON response from the improved function
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        const response = data as { success?: boolean; message?: string; error?: string };
+        if (response.success) {
+          toast.success(response.message || "Trip creation request submitted successfully!");
+          setReason("");
+          setDialogOpen(false);
+          onRequestSubmitted();
+        } else {
+          toast.error(response.error || "Failed to submit request");
+        }
+      } else {
+        // Fallback for old response format
+        toast.success("Trip creation request submitted successfully!");
+        setReason("");
+        setDialogOpen(false);
+        onRequestSubmitted();
+      }
     } catch (error) {
       console.error('Error submitting request:', error);
       toast.error("Failed to submit request. Please try again.");
