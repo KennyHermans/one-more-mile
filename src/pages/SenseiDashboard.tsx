@@ -86,6 +86,7 @@ interface SenseiProfile {
   can_create_trips: boolean;
   trip_creation_requested: boolean;
   trip_creation_request_date: string | null;
+  sensei_level?: 'apprentice' | 'journey_guide' | 'master_sensei';
 }
 
 interface TodoItem {
@@ -942,7 +943,7 @@ const SenseiDashboard = () => {
               location: senseiProfile.location,
               rating: senseiProfile.rating,
               trips_led: senseiProfile.trips_led,
-              sensei_level: 'apprentice', // Default level since not in profile
+              sensei_level: senseiProfile.sensei_level || 'apprentice',
               can_create_trips: senseiProfile.can_create_trips
             }}
             stats={{
