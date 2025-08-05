@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { handleError } from "@/lib/error-handler";
-import { Crown, Settings, History, AlertTriangle } from "lucide-react";
+import { Crown, Settings, History, AlertTriangle, RefreshCw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Sensei {
@@ -44,18 +44,25 @@ export const AdminSenseiLevelManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [adminOverride, setAdminOverride] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchSenseis = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
         .from('sensei_profiles')
         .select('id, name, sensei_level, trips_led, rating, level_achieved_at, user_id')
         .eq('is_active', true)
         .order('name');
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('Fetch senseis error:', fetchError);
+        setError('Failed to load sensei data');
+        return;
+      }
       
       // Map data to ensure sensei_level matches our enum
       const mappedData = (data || []).map(sensei => ({
@@ -64,11 +71,9 @@ export const AdminSenseiLevelManagement = () => {
       }));
       
       setSenseis(mappedData);
-    } catch (error) {
-      handleError(error, {
-        component: 'AdminSenseiLevelManagement',
-        action: 'fetchSenseis'
-      }, true, "Failed to load sensei data");
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('An unexpected error occurred while loading sensei data');
     } finally {
       setIsLoading(false);
     }
@@ -76,20 +81,32 @@ export const AdminSenseiLevelManagement = () => {
 
   const fetchLevelHistory = async (senseiId: string) => {
     try {
-      const { data, error } = await supabase
+      setError(null);
+      
+      const { data, error: historyError } = await supabase
         .from('sensei_level_history')
         .select('*')
         .eq('sensei_id', senseiId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (historyError) {
+        console.error('Fetch history error:', historyError);
+        toast({
+          title: "Warning",
+          description: "Failed to load level history",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       setLevelHistory(data || []);
-    } catch (error) {
-      handleError(error, {
-        component: 'AdminSenseiLevelManagement',
-        action: 'fetchLevelHistory',
-        userId: senseiId
-      }, true, "Failed to load level history");
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({
+        title: "Warning",
+        description: "An unexpected error occurred while loading history",
+        variant: "destructive"
+      });
     }
   };
 
@@ -105,15 +122,24 @@ export const AdminSenseiLevelManagement = () => {
 
     try {
       setIsUpdating(true);
+      setError(null);
       
-      const { data, error } = await supabase
+      const { data, error: updateError } = await supabase
         .rpc('upgrade_sensei_level', {
           p_sensei_id: selectedSensei.id,
           p_new_level: newLevel,
           p_reason: reason
         });
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Update level error:', updateError);
+        toast({
+          title: "Error",
+          description: "Failed to update sensei level. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
 
       toast({
         title: "Success",
@@ -125,12 +151,13 @@ export const AdminSenseiLevelManagement = () => {
       await fetchLevelHistory(selectedSensei.id);
       setReason('');
       setAdminOverride(false);
-    } catch (error) {
-      handleError(error, {
-        component: 'AdminSenseiLevelManagement',
-        action: 'updateLevel',
-        userId: selectedSensei?.user_id
-      }, true, "Failed to update sensei level");
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while updating the level",
+        variant: "destructive"
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -151,13 +178,38 @@ export const AdminSenseiLevelManagement = () => {
     }
   }, [selectedSensei]);
 
+  if (error && senseis.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="h-5 w-5" />
+            Sensei Level Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={fetchSenseis}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Crown className="h-5 w-5" />
-          Sensei Level Management
+          Manual Level Management
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Manually upgrade sensei levels with admin override capabilities
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Search */}
@@ -188,165 +240,174 @@ export const AdminSenseiLevelManagement = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Loading senseis...
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                    <p className="mt-2">Loading senseis...</p>
                   </TableCell>
                 </TableRow>
               ) : filteredSenseis.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    No senseis found
+                    {searchTerm ? `No senseis found matching "${searchTerm}"` : 'No senseis found'}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredSenseis.map((sensei) => (
                   <TableRow key={sensei.id}>
-                    <TableCell className="font-medium">{sensei.name}</TableCell>
+                    <TableCell className="font-medium">{sensei.name || 'Unnamed Sensei'}</TableCell>
                     <TableCell>
                       <SenseiLevelBadge level={sensei.sensei_level} />
                     </TableCell>
-                    <TableCell>{sensei.trips_led}</TableCell>
+                    <TableCell>{sensei.trips_led || 0}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {sensei.rating.toFixed(1)}⭐
+                        {(sensei.rating || 0).toFixed(1)}⭐
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(sensei.level_achieved_at).toLocaleDateString()}
+                      {sensei.level_achieved_at ? 
+                        new Date(sensei.level_achieved_at).toLocaleDateString() : 
+                        'Unknown'
+                      }
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedSensei(sensei)}
-                            >
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>
-                                Manage Level: {selectedSensei?.name}
-                              </DialogTitle>
-                            </DialogHeader>
-                            
-                            {selectedSensei && (
-                              <div className="space-y-6">
-                                {/* Current Status */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <Label>Current Level</Label>
-                                    <div className="mt-1">
-                                      <SenseiLevelBadge level={selectedSensei.sensei_level} />
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <Label>Performance</Label>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                      {selectedSensei.trips_led} trips • {selectedSensei.rating.toFixed(1)}⭐ rating
-                                    </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedSensei(sensei)}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Manage Level: {selectedSensei?.name || 'Unknown'}
+                            </DialogTitle>
+                          </DialogHeader>
+                          
+                          {selectedSensei && (
+                            <div className="space-y-6">
+                              {/* Current Status */}
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label>Current Level</Label>
+                                  <div className="mt-1">
+                                    <SenseiLevelBadge level={selectedSensei.sensei_level} />
                                   </div>
                                 </div>
-
-                                {/* Level Change Form */}
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label htmlFor="newLevel">New Level</Label>
-                                    <Select value={newLevel} onValueChange={(value) => setNewLevel(value as 'apprentice' | 'journey_guide' | 'master_sensei')}>
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="apprentice">Apprentice Sensei</SelectItem>
-                                        <SelectItem value="journey_guide">Journey Guide</SelectItem>
-                                        <SelectItem value="master_sensei">Master Sensei</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  <div>
-                                    <Label htmlFor="reason">Reason for Change</Label>
-                                    <Textarea
-                                      id="reason"
-                                      placeholder="Explain why you're changing this sensei's level..."
-                                      value={reason}
-                                      onChange={(e) => setReason(e.target.value)}
-                                      rows={3}
-                                    />
-                                  </div>
-
-                                  <div className="flex items-center space-x-2 p-4 border border-orange-200 rounded-lg bg-orange-50">
-                                    <Checkbox
-                                      id="adminOverride"
-                                      checked={adminOverride}
-                                      onCheckedChange={(checked) => setAdminOverride(checked as boolean)}
-                                    />
-                                    <div className="flex items-center gap-2">
-                                      <AlertTriangle className="h-4 w-4 text-orange-600" />
-                                      <Label htmlFor="adminOverride" className="text-sm font-medium">
-                                        Admin Override (bypass level requirements)
-                                      </Label>
-                                    </div>
-                                  </div>
-
-                                  <Button
-                                    onClick={updateSenseiLevel}
-                                    disabled={isUpdating || !reason.trim() || newLevel === selectedSensei.sensei_level}
-                                    className="w-full"
-                                  >
-                                    {isUpdating ? 'Updating...' : 'Update Level'}
-                                  </Button>
-                                </div>
-
-                                {/* Level History */}
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <History className="h-4 w-4" />
-                                    <Label>Level History</Label>
-                                  </div>
-                                  <div className="border rounded-lg max-h-40 overflow-y-auto">
-                                    {levelHistory.length === 0 ? (
-                                      <div className="p-4 text-center text-muted-foreground">
-                                        No level changes recorded
-                                      </div>
-                                    ) : (
-                                      <div className="divide-y">
-                                        {levelHistory.map((history) => (
-                                          <div key={history.id} className="p-3 space-y-1">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2">
-                                                {history.previous_level && (
-                                                  <SenseiLevelBadge 
-                                                    level={history.previous_level as any} 
-                                                    size="sm" 
-                                                  />
-                                                )}
-                                                <span className="text-sm">→</span>
-                                                <SenseiLevelBadge 
-                                                  level={history.new_level as any} 
-                                                  size="sm" 
-                                                />
-                                              </div>
-                                              <span className="text-xs text-muted-foreground">
-                                                {new Date(history.created_at).toLocaleDateString()}
-                                              </span>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">
-                                              {history.change_reason}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
+                                <div>
+                                  <Label>Performance</Label>
+                                  <div className="text-sm text-muted-foreground mt-1">
+                                    {selectedSensei.trips_led || 0} trips • {(selectedSensei.rating || 0).toFixed(1)}⭐ rating
                                   </div>
                                 </div>
                               </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+
+                              {/* Level Change Form */}
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="newLevel">New Level</Label>
+                                  <Select value={newLevel} onValueChange={(value) => setNewLevel(value as 'apprentice' | 'journey_guide' | 'master_sensei')}>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="apprentice">Apprentice Sensei</SelectItem>
+                                      <SelectItem value="journey_guide">Journey Guide</SelectItem>
+                                      <SelectItem value="master_sensei">Master Sensei</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="reason">Reason for Change</Label>
+                                  <Textarea
+                                    id="reason"
+                                    placeholder="Explain why you're changing this sensei's level..."
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
+                                    rows={3}
+                                  />
+                                </div>
+
+                                <div className="flex items-center space-x-2 p-4 border border-orange-200 rounded-lg bg-orange-50">
+                                  <Checkbox
+                                    id="adminOverride"
+                                    checked={adminOverride}
+                                    onCheckedChange={(checked) => setAdminOverride(checked as boolean)}
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                    <Label htmlFor="adminOverride" className="text-sm font-medium">
+                                      Admin Override (bypass level requirements)
+                                    </Label>
+                                  </div>
+                                </div>
+
+                                <Button
+                                  onClick={updateSenseiLevel}
+                                  disabled={isUpdating || !reason.trim() || newLevel === selectedSensei.sensei_level}
+                                  className="w-full"
+                                >
+                                  {isUpdating ? (
+                                    <>
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                      Updating...
+                                    </>
+                                  ) : (
+                                    'Update Level'
+                                  )}
+                                </Button>
+                              </div>
+
+                              {/* Level History */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <History className="h-4 w-4" />
+                                  <Label>Level History</Label>
+                                </div>
+                                <div className="border rounded-lg max-h-40 overflow-y-auto">
+                                  {levelHistory.length === 0 ? (
+                                    <div className="p-4 text-center text-muted-foreground">
+                                      No level changes recorded
+                                    </div>
+                                  ) : (
+                                    <div className="divide-y">
+                                      {levelHistory.map((history) => (
+                                        <div key={history.id} className="p-3 space-y-1">
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              {history.previous_level && (
+                                                <SenseiLevelBadge 
+                                                  level={history.previous_level as any} 
+                                                  size="sm" 
+                                                />
+                                              )}
+                                              <span className="text-sm">→</span>
+                                              <SenseiLevelBadge 
+                                                level={history.new_level as any} 
+                                                size="sm" 
+                                              />
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                              {new Date(history.created_at).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground">
+                                            {history.change_reason || 'No reason provided'}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))
