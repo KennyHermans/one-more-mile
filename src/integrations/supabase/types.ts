@@ -1238,8 +1238,6 @@ export type Database = {
           sensei_level: Database["public"]["Enums"]["sensei_level"] | null
           specialties: string[]
           specialty: string
-          trip_creation_request_date: string | null
-          trip_creation_requested: boolean
           trip_edit_permissions: Json | null
           trips_led: number | null
           unavailable_months: string[] | null
@@ -1265,8 +1263,6 @@ export type Database = {
           sensei_level?: Database["public"]["Enums"]["sensei_level"] | null
           specialties?: string[]
           specialty: string
-          trip_creation_request_date?: string | null
-          trip_creation_requested?: boolean
           trip_edit_permissions?: Json | null
           trips_led?: number | null
           unavailable_months?: string[] | null
@@ -1292,8 +1288,6 @@ export type Database = {
           sensei_level?: Database["public"]["Enums"]["sensei_level"] | null
           specialties?: string[]
           specialty?: string
-          trip_creation_request_date?: string | null
-          trip_creation_requested?: boolean
           trip_edit_permissions?: Json | null
           trips_led?: number | null
           unavailable_months?: string[] | null
@@ -1522,45 +1516,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      trip_creation_requests: {
-        Row: {
-          created_at: string
-          id: string
-          request_reason: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          sensei_id: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          request_reason?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          sensei_id: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          request_reason?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          sensei_id?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       trip_messages: {
         Row: {
@@ -2020,18 +1975,6 @@ export type Database = {
           sensei_name: string
           match_score: number
         }[]
-      }
-      request_trip_creation_permission: {
-        Args: { p_sensei_id: string; p_reason: string }
-        Returns: Json
-      }
-      review_trip_creation_request: {
-        Args: {
-          p_request_id: string
-          p_status: string
-          p_review_notes?: string
-        }
-        Returns: boolean
       }
       revoke_admin_role: {
         Args: { p_role_id: string; p_revoked_by?: string }

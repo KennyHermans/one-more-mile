@@ -22,7 +22,7 @@ import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
-import { SenseiTripCreationRequest } from "@/components/ui/sensei-trip-creation-request";
+
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 import { 
@@ -76,8 +76,6 @@ interface LocalSenseiProfile {
   rating: number;
   trips_led: number;
   can_create_trips: boolean;
-  trip_creation_requested: boolean;
-  trip_creation_request_date: string | null;
   sensei_level?: 'apprentice' | 'journey_guide' | 'master_sensei';
 }
 
@@ -788,12 +786,19 @@ const SenseiDashboard = () => {
           )}
 
           {activeTab === "applications" && (
-            <SenseiTripCreationRequest 
-              senseiId={senseiProfile?.id || ""}
-              canCreateTrips={senseiProfile?.can_create_trips || false}
-              hasRequestPending={senseiProfile?.trip_creation_requested || false}
-              onRequestSubmitted={() => fetchSenseiProfile(user?.id || "")}
-            />
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold">Applications</h1>
+              </div>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <h3 className="text-lg font-semibold mb-2">Trip Creation Requests</h3>
+                  <p className="text-muted-foreground">
+                    Trip creation request functionality has been removed. Contact your administrator for trip creation access.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === "availability" && (
