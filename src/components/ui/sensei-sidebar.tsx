@@ -43,24 +43,12 @@ const sidebarItems = [
     icon: MapPin,
     group: "main"
   },
-  {
-    title: "Calendar",
-    value: "calendar",
-    icon: Calendar,
-    group: "main"
-  },
   
   // Professional Development
   {
     title: "Level & Progress",
     value: "gamification",
     icon: Crown,
-    group: "professional"
-  },
-  {
-    title: "Goals & Tracking",
-    value: "goals",
-    icon: Target,
     group: "professional"
   },
   {

@@ -10,9 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { Trip, TripFormData, ProgramDay } from '@/types/trip';
 import { Label } from "@/components/ui/label";
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TripProposalForm } from "@/components/ui/trip-proposal-form";
@@ -21,7 +18,7 @@ import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management
 import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 
-import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
+
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
@@ -70,7 +67,7 @@ import {
 
 
 
-const localizer = momentLocalizer(moment);
+
 
 interface SenseiProfile {
   id: string;
@@ -109,13 +106,6 @@ interface TripParticipant {
   };
 }
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  resource: any;
-}
 
 interface Application {
   id: string;
@@ -216,7 +206,7 @@ const SenseiDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [newTodo, setNewTodo] = useState("");
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  
   const [createTripOpen, setCreateTripOpen] = useState(false);
   const [cancelTripOpen, setCancelTripOpen] = useState(false);
   const [selectedTripForCancel, setSelectedTripForCancel] = useState<Trip | null>(null);
@@ -367,62 +357,6 @@ const SenseiDashboard = () => {
       }));
       
       setTrips(processedTrips);
-      
-      const tripEvents: CalendarEvent[] = (data || []).map(trip => {
-        const dates = trip.dates.split(' - ');
-        const startDate = new Date(dates[0]);
-        const endDate = dates[1] ? new Date(dates[1]) : startDate;
-        
-        return {
-          id: `trip-${trip.id}`,
-          title: `🧳 ${trip.title}`,
-          start: startDate,
-          end: endDate,
-          resource: { 
-            ...trip, 
-            type: 'trip',
-            color: '#10b981'
-          }
-        };
-      });
-
-      const availabilityEvents: CalendarEvent[] = [];
-      const currentYear = new Date().getFullYear();
-      
-      if (profileData.unavailable_months && profileData.unavailable_months.length > 0) {
-        profileData.unavailable_months.forEach(monthName => {
-          const monthIndex = moment().month(monthName).month();
-          const startDate = new Date(currentYear, monthIndex, 1);
-          const endDate = new Date(currentYear, monthIndex + 1, 0);
-          
-          availabilityEvents.push({
-            id: `unavailable-${monthName}-${currentYear}`,
-            title: `🚫 Unavailable - ${monthName}`,
-            start: startDate,
-            end: endDate,
-            resource: { 
-              type: 'unavailable',
-              month: monthName,
-              color: '#ef4444'
-            }
-          });
-        });
-      }
-
-      if (profileData.is_offline) {
-        availabilityEvents.push({
-          id: `offline-${currentYear}`,
-          title: '💤 Profile Offline',
-          start: new Date(currentYear, 0, 1),
-          end: new Date(currentYear, 11, 31),
-          resource: { 
-            type: 'offline',
-            color: '#6b7280'
-          }
-        });
-      }
-      
-      setCalendarEvents([...tripEvents, ...availabilityEvents]);
     } catch (error) {
       console.error('Error fetching sensei trips:', error);
     }
@@ -1023,12 +957,6 @@ const SenseiDashboard = () => {
                 variant: senseiProfile.can_create_trips ? "default" : "outline"
               },
               {
-                title: "View Calendar",
-                description: "Check your schedule and availability",
-                icon: CalendarIcon,
-                action: () => setActiveTab("calendar")
-              },
-              {
                 title: "Messages",
                 description: "Connect with travelers and admins",
                 icon: MessageCircle,
@@ -1067,8 +995,6 @@ const SenseiDashboard = () => {
       case "analytics":
         return <div className="p-8 text-center text-muted-foreground">Analytics feature has been removed</div>;
 
-      case "goals":
-        return <SenseiGoalsTracker />;
 
       case "trips":
         return (
@@ -1129,52 +1055,6 @@ const SenseiDashboard = () => {
           </div>
         );
 
-      case "calendar":
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Calendar</h2>
-              <Badge variant="outline" className="text-sm">
-                Trips & Availability
-              </Badge>
-            </div>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div style={{ height: '600px' }}>
-                  <Calendar
-                    localizer={localizer}
-                    events={calendarEvents}
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: '100%' }}
-                    eventPropGetter={(event) => ({
-                      style: {
-                        backgroundColor: event.resource?.color || '#3174ad',
-                        borderColor: event.resource?.color || '#3174ad',
-                      }
-                    })}
-                    onSelectEvent={(event) => {
-                      let description = '';
-                      if (event.resource.type === 'trip') {
-                        description = `Trip to ${event.resource.destination} | ${event.resource.dates}`;
-                      } else if (event.resource.type === 'unavailable') {
-                        description = `You marked ${event.resource.month} as unavailable`;
-                      } else if (event.resource.type === 'offline') {
-                        description = 'Your profile is set to offline mode';
-                      }
-                      
-                      toast({
-                        title: event.title,
-                        description: description,
-                      });
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
 
       case "todos":
         return (
