@@ -171,6 +171,12 @@ const sidebarGroups = [
         requiresPermission: "canManageSenseis"
       },
       {
+        title: "Sensei Levels",
+        value: "sensei-levels",
+        icon: TrendingUp,
+        requiresPermission: "canManageSenseis"
+      },
+      {
         title: "Role Management",
         value: "roles",
         icon: Shield,
@@ -201,6 +207,8 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const handleItemClick = (value: string) => {
     if (value === "trip-editor") {
       navigate("/admin/trips");
+    } else if (value === "sensei-levels") {
+      navigate("/admin/sensei-levels");
     } else {
       onTabChange(value);
     }

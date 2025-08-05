@@ -20,6 +20,7 @@ import BecomeSensei from "./pages/BecomeSensei";
 import AdminApplications from "./pages/AdminApplications";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTrips from "./pages/AdminTrips";
+import AdminSenseiLevels from "./pages/AdminSenseiLevels";
 import SenseiDashboard from "./pages/SenseiDashboard";
 import TripDetail from "./pages/TripDetail";
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminAccessGuard><AdminDashboard /></AdminAccessGuard>} />
             <Route path="/admin/applications" element={<AdminAccessGuard><AdminApplications /></AdminAccessGuard>} />
             <Route path="/admin/trips" element={<AdminAccessGuard><AdminTrips /></AdminAccessGuard>} />
+            <Route path="/admin/sensei-levels" element={<AdminAccessGuard><AdminSenseiLevels /></AdminAccessGuard>} />
             <Route path="/sensei/dashboard" element={<DashboardAccessGuard requiredRole="sensei"><SenseiDashboard /></DashboardAccessGuard>} />
             <Route path="/customer/dashboard" element={<DashboardAccessGuard requiredRole="customer"><CustomerDashboard /></DashboardAccessGuard>} />
             <Route path="/customer/profile" element={<CustomerProfile />} />

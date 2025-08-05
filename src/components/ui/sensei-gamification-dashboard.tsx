@@ -109,12 +109,7 @@ export const SenseiGamificationDashboard = ({ senseiId }: SenseiGamificationDash
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Level Progress */}
-        <SenseiLevelProgress
-          currentLevel={currentLevel}
-          nextLevel={nextLevel}
-          progress={progress}
-          isMaxLevel={isMaxLevel}
-        />
+        <SenseiLevelProgress senseiId={senseiId} />
 
         {/* Achievements */}
         <SenseiAchievements

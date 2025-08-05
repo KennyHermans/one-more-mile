@@ -1117,6 +1117,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_level_requirements: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          level_name: string
+          level_order: number
+          rating_required: number
+          trips_required: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean
+          level_name: string
+          level_order: number
+          rating_required?: number
+          trips_required?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          level_name?: string
+          level_order?: number
+          rating_required?: number
+          trips_required?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sensei_matching_insights: {
         Row: {
           created_at: string
@@ -1816,6 +1852,10 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_upgrade_sensei_levels: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       calculate_enhanced_sensei_insights: {
         Args: { p_sensei_id: string }
         Returns: Json
@@ -1893,6 +1933,10 @@ export type Database = {
       can_view_customers: {
         Args: { user_id?: string }
         Returns: boolean
+      }
+      check_sensei_level_eligibility: {
+        Args: { p_sensei_id: string }
+        Returns: Json
       }
       get_customer_travel_stats: {
         Args: { _user_id: string }
