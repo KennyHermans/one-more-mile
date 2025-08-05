@@ -22,7 +22,7 @@ import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboa
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
-import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
+
 import { 
   DashboardHeaderSkeleton, 
   StatsGridSkeleton, 

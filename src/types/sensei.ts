@@ -155,17 +155,6 @@ export interface SenseiLevelHistory {
   created_at: string;
 }
 
-export interface SenseiPermissions {
-  can_view_trips: boolean;
-  can_apply_backup: boolean;
-  can_edit_profile: boolean;
-  can_edit_trips: boolean;
-  can_create_trips: boolean;
-  can_use_ai_builder: boolean;
-  can_publish_trips: boolean;
-  can_modify_pricing: boolean;
-  trip_edit_fields: string[];
-}
 
 export interface SenseiAnalytics {
   tripsCompleted: number;

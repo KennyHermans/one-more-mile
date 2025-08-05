@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
+
 import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
 
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
