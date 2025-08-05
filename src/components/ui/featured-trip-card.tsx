@@ -236,7 +236,7 @@ export function FeaturedTripCard({
             )}
             <Button asChild className="font-sans font-medium transition-all duration-300 hover:scale-105">
               <Link to={`/trip/${id}`}>
-                {isFull ? 'Join Waitlist' : 'Book Now'}
+                {isFull ? 'Join Waitlist' : 'More Details'}
               </Link>
             </Button>
           </div>
