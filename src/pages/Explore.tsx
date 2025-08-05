@@ -285,7 +285,7 @@ const Explore = () => {
       </section>
 
       {/* Search and Filters Section */}
-      <section className="py-12 bg-muted/30">
+      <section className="py-6 bg-muted/30">
         <div className="container">
           <SearchFilters 
             filters={filters}
