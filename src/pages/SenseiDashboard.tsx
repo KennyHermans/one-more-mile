@@ -675,7 +675,7 @@ const SenseiDashboard = () => {
     editingTrip?.id
   );
 
-  const { permissions: senseiPermissions } = useSenseiPermissions(senseiProfile?.id);
+  const { permissions: senseiPermissions, isLoading: senseiPermissionsLoading } = useSenseiPermissions(senseiProfile?.id);
 
   const canEdit = (tripId: string, field: keyof TripPermissions): boolean => {
     if (editingTrip?.id === tripId) {
@@ -1005,7 +1005,8 @@ const SenseiDashboard = () => {
           <SenseiTripsManagement
             trips={trips}
             canCreateTrips={senseiProfile.can_create_trips}
-            canEditTrips={senseiPermissions?.can_edit_trips || false}
+            canEditTrips={senseiPermissionsLoading ? true : (senseiPermissions?.can_edit_trips || false)}
+            isLoadingPermissions={senseiPermissionsLoading}
             onCreateTrip={() => setCreateTripOpen(true)}
             onEditTrip={(trip) => setEditingTrip({
               ...trip,

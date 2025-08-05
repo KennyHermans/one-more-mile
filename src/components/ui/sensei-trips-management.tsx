@@ -24,6 +24,7 @@ interface SenseiTripsManagementProps {
   trips: Trip[];
   canCreateTrips: boolean;
   canEditTrips: boolean;
+  isLoadingPermissions?: boolean;
   onCreateTrip: () => void;
   onEditTrip: (trip: Trip) => void;
   onViewTrip: (trip: Trip) => void;
@@ -34,6 +35,7 @@ export function SenseiTripsManagement({
   trips, 
   canCreateTrips,
   canEditTrips,
+  isLoadingPermissions = false,
   onCreateTrip,
   onEditTrip,
   onViewTrip,
@@ -111,14 +113,15 @@ export function SenseiTripsManagement({
                 <Eye className="h-3 w-3 mr-1" />
                 View
               </Button>
-              {trip.trip_status !== 'completed' && canEditTrips && (
+              {trip.trip_status !== 'completed' && (canEditTrips || isLoadingPermissions) && (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onEditTrip(trip)}
+                  disabled={isLoadingPermissions}
                 >
                   <Edit2 className="h-3 w-3 mr-1" />
-                  Edit
+                  {isLoadingPermissions ? "Loading..." : "Edit"}
                 </Button>
               )}
             </div>
