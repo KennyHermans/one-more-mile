@@ -29,6 +29,10 @@ export const useSenseiPermissions = (senseiId?: string) => {
         .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
 
       if (error) throw error;
+      
+      console.log('Raw permissions data:', data);
+      
+      // The RPC function returns the permissions object directly
       setPermissions(data as unknown as SenseiPermissions);
     } catch (error) {
       console.error('Error fetching permissions:', error);
