@@ -166,7 +166,7 @@ export const AdminSenseiLevelManagement = () => {
       setIsUpdating(true);
       setError(null);
       
-      console.log('Attempting to update sensei level:', {
+      console.log('Using secure admin function to update sensei level:', {
         sensei_id: selectedSensei.id,
         current_level: selectedSensei.sensei_level,
         new_level: newLevel,
@@ -174,63 +174,46 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: adminOverride
       });
 
-      let updateSuccessful = false;
-
-      // If admin override is enabled, skip RPC and go straight to direct update
-      if (adminOverride) {
-        console.log('Admin override enabled - using direct database update');
-        updateSuccessful = await performDirectUpdate();
-      } else {
-        // Try RPC function first for non-admin override cases
-        console.log('Attempting RPC function call...');
-        try {
-          const { data, error: updateError } = await supabase
-            .rpc('upgrade_sensei_level', {
-              p_sensei_id: selectedSensei.id,
-              p_new_level: newLevel,
-              p_reason: reason
-            });
-
-          console.log('RPC response:', { data, updateError });
-
-          // Check if RPC was successful
-          if (!updateError && data && typeof data === 'object' && 'success' in data && data.success) {
-            console.log('RPC update successful');
-            updateSuccessful = true;
-          } else {
-            // Log the RPC failure but don't throw - we'll use fallback
-            if (updateError) {
-              console.log('RPC failed with error:', updateError.message);
-            }
-            if (data && typeof data === 'object' && 'error' in data) {
-              console.log('RPC returned error:', data.error);
-            }
-            throw new Error('RPC_FAILED'); // Signal to use fallback
-          }
-        } catch (rpcError) {
-          // RPC failed, fall back to direct update
-          console.log('RPC failed, attempting direct update fallback...');
-          updateSuccessful = await performDirectUpdate();
-        }
-      }
-
-      if (!updateSuccessful) {
-        throw new Error('Failed to update sensei level through all available methods');
-      }
-
-      toast({
-        title: "Success",
-        description: `Sensei level updated to ${newLevel.replace('_', ' ')}`,
+      // Use the new secure admin function that handles permissions properly
+      const { data, error } = await supabase.rpc('admin_update_sensei_level', {
+        p_sensei_id: selectedSensei.id,
+        p_new_level: newLevel,
+        p_reason: reason,
+        p_admin_override: adminOverride
       });
 
-      // Refresh data
-      await fetchSenseis();
-      await fetchLevelHistory(selectedSensei.id);
-      setReason('');
-      setAdminOverride(false);
+      if (error) {
+        console.error('Admin update function error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      // Type the response data properly
+      const response = data as any;
+
+      if (response?.error) {
+        console.error('Function returned error:', response.error);
+        throw new Error(response.error);
+      }
+
+      if (response?.success) {
+        console.log('Level update successful:', response);
+        toast({
+          title: "Success",
+          description: `Sensei level updated from ${response.previous_level} to ${response.new_level}`,
+        });
+
+        // Refresh data
+        await fetchSenseis();
+        await fetchLevelHistory(selectedSensei.id);
+        setReason('');
+        setAdminOverride(false);
+      } else {
+        throw new Error('Unexpected response from update function');
+      }
     } catch (err) {
       console.error('Update failed with error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
       toast({
         title: "Error",
         description: `Failed to update sensei level: ${errorMessage}`,

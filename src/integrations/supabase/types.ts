@@ -1844,6 +1844,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_sensei_level: {
+        Args: {
+          p_sensei_id: string
+          p_new_level: string
+          p_reason: string
+          p_admin_override?: boolean
+        }
+        Returns: Json
+      }
       assign_admin_role: {
         Args: {
           p_user_email: string
