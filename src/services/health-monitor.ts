@@ -99,12 +99,12 @@ class HealthMonitorService {
         issues.push(...this.createIssuesFromHealth(dbHealth));
       }
 
-      // Check real-time subscriptions
-      const realtimeHealth = await this.checkRealtimeHealth();
-      components.push(realtimeHealth);
-      if (realtimeHealth.status !== 'healthy') {
-        issues.push(...this.createIssuesFromHealth(realtimeHealth));
-      }
+      // Check real-time subscriptions - TEMPORARILY DISABLED to fix stack overflow
+      // const realtimeHealth = await this.checkRealtimeHealth();
+      // components.push(realtimeHealth);
+      // if (realtimeHealth.status !== 'healthy') {
+      //   issues.push(...this.createIssuesFromHealth(realtimeHealth));
+      // }
 
       // Check authentication service
       const authHealth = await this.checkAuthHealth();
@@ -243,10 +243,24 @@ class HealthMonitorService {
     try {
       const testChannel = supabase.channel('health-check-test');
       const startTime = Date.now();
+      let isResolved = false;
       
       return new Promise((resolve) => {
+        const safeCleanup = () => {
+          if (!isResolved) {
+            isResolved = true;
+            try {
+              // Use removeChannel instead of unsubscribe to avoid recursion
+              supabase.removeChannel(testChannel);
+            } catch (error) {
+              // Ignore cleanup errors to prevent further recursion
+              console.warn('[HealthMonitor] Channel cleanup warning:', error);
+            }
+          }
+        };
+
         const timeout = setTimeout(() => {
-          testChannel.unsubscribe();
+          safeCleanup();
           resolve({
             component: 'realtime',
             status: 'warning',
@@ -257,11 +271,14 @@ class HealthMonitorService {
         }, 10000);
 
         testChannel.subscribe((status) => {
+          if (isResolved) return; // Prevent multiple resolutions
+          
           clearTimeout(timeout);
           const responseTime = Date.now() - startTime;
           
+          safeCleanup();
+          
           if (status === 'SUBSCRIBED') {
-            testChannel.unsubscribe();
             resolve({
               component: 'realtime',
               status: 'healthy',
@@ -270,7 +287,6 @@ class HealthMonitorService {
               responseTime
             });
           } else {
-            testChannel.unsubscribe();
             resolve({
               component: 'realtime',
               status: 'warning',
