@@ -43,7 +43,7 @@ const About = () => {
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&h=1080&fit=crop" alt="Mountain landscape" className="w-full h-full object-cover" />
+          <img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1920&h=1080&fit=crop" alt="Ocean wave at beach" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40"></div>
         </div>
         <div className="relative z-10 container text-white">
