@@ -1829,10 +1829,11 @@ const SenseiDashboard = () => {
         </DialogContent>
       </Dialog>
     </SenseiDashboardLayout>
+  );
+};
 
 export default SenseiDashboard;
 
-export default SenseiDashboard;
       <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -1964,4 +1965,11 @@ export default SenseiDashboard;
               setCreateTripOpen(false);
               if (user) fetchSenseiTrips(user.id);
             }}
-            onCancel={() => setCreateTripOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </SenseiDashboardLayout>
+  );
+};
+
+export default SenseiDashboard;
