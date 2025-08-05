@@ -1295,6 +1295,24 @@ const AdminTrips = () => {
                     <span>Participants:</span>
                     <span>{trip.current_participants}/{trip.max_participants}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span>Primary Sensei:</span>
+                    <span className="font-medium">
+                      {trip.sensei_name || <Badge variant="outline" className="text-xs">Unassigned</Badge>}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Backup Sensei:</span>
+                    <span className="font-medium">
+                      {trip.backup_sensei_id ? (
+                        <Badge variant="secondary" className="text-xs">Assigned</Badge>
+                      ) : trip.requires_backup_sensei ? (
+                        <Badge variant="destructive" className="text-xs">Required</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">Not Required</Badge>
+                      )}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex gap-1">
