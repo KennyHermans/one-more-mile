@@ -73,7 +73,7 @@ class ErrorHandler {
     // Prevent circular logging and infinite loops
     if (this.isLogging) return;
     
-    const errorMessage = error instanceof Error ? error.message : error;
+    const errorMessage = error instanceof Error ? error.message : String(error || '');
     const errorStack = error instanceof Error ? error.stack : undefined;
     
     // Skip certain errors that cause infinite loops
