@@ -60,12 +60,6 @@ const sidebarGroups = [
     label: "Intelligence & Reporting",
     items: [
       {
-        title: "AI Code Analyzer",
-        value: "ai-code-analyzer",
-        icon: Brain,
-        requiresPermission: null
-      },
-      {
         title: "Smart Alerts",
         value: "smart-alerts",
         icon: AlertTriangle,

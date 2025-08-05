@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { AICodeAnalyzer } from "@/components/ui/ai-code-analyzer";
+
 import { Navigation } from "@/components/ui/navigation";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
@@ -868,14 +868,6 @@ const AdminDashboard = () => {
             )}
             
             
-            {activeTab === "ai-code-analyzer" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">AI Code Analyzer</h2>
-                </div>
-                <AICodeAnalyzer />
-              </div>
-            )}
 
             {activeTab === "trips" && (
               <div className="space-y-6">
