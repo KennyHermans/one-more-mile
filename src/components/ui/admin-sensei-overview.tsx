@@ -28,16 +28,6 @@ interface EnhancedSenseiStatus {
   last_activity: string;
 }
 
-interface SenseiSuggestion {
-  sensei_id: string;
-  sensei_name: string;
-  match_score: number;
-  matching_specialties: string[];
-  matching_certifications: string[];
-  location: string;
-  rating: number;
-  is_available: boolean;
-}
 
 import { Trip } from '@/types/trip';
 import { createMinimalTrip } from '@/types/trip-utils';
@@ -45,8 +35,6 @@ import { createMinimalTrip } from '@/types/trip-utils';
 export function AdminSenseiOverview() {
   const { senseis, loading, refetch } = useRealtimeSenseiOverview();
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [suggestions, setSuggestions] = useState<SenseiSuggestion[]>([]);
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
   useEffect(() => {
     fetchTrips();
@@ -86,28 +74,6 @@ export function AdminSenseiOverview() {
     }
   };
 
-  const fetchSuggestions = async (trip: Trip) => {
-    try {
-      setSelectedTrip(trip);
-      
-      // Extract months from trip dates (basic parsing)
-      const months: string[] = [];
-      if (trip.dates.toLowerCase().includes('july')) months.push('July');
-      if (trip.dates.toLowerCase().includes('august')) months.push('August');
-      if (trip.dates.toLowerCase().includes('september')) months.push('September');
-      
-      const { data, error } = await supabase.rpc('suggest_senseis_for_trip', {
-        trip_theme: trip.theme,
-        trip_months: months
-      });
-      
-      if (error) throw error;
-      setSuggestions(data || []);
-    } catch (error) {
-      // Handle error silently or with toast notification
-      toast.error('Failed to load suggestions');
-    }
-  };
 
   const assignSenseiToTrip = async (tripId: string, senseiId: string) => {
     try {
@@ -273,126 +239,6 @@ export function AdminSenseiOverview() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Trip Sensei Suggestions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {trips.map((trip) => (
-              <Card key={trip.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">{trip.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">Theme: {trip.theme}</p>
-                  <p className="text-sm text-muted-foreground mb-3">Dates: {trip.dates}</p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => fetchSuggestions(trip)}
-                      >
-                        View Suggestions
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          Sensei Suggestions for {selectedTrip?.title}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="mt-4">
-                        {suggestions.length > 0 ? (
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Match Score</TableHead>
-                                <TableHead>Availability</TableHead>
-                                <TableHead>Rating</TableHead>
-                                <TableHead>Matching Skills</TableHead>
-                                <TableHead>Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {suggestions.map((suggestion) => (
-                                <TableRow key={suggestion.sensei_id}>
-                                  <TableCell className="font-medium">
-                                    {suggestion.sensei_name}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant="default">
-                                      {suggestion.match_score} points
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    {suggestion.is_available ? (
-                                      <Badge variant="default" className="bg-green-100 text-green-800">
-                                        Available
-                                      </Badge>
-                                    ) : (
-                                      <Badge variant="secondary" className="bg-red-100 text-red-800">
-                                        Unavailable
-                                      </Badge>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-1">
-                                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                      {Number(suggestion.rating).toFixed(1)}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="space-y-1">
-                                      {suggestion.matching_specialties.length > 0 && (
-                                        <div>
-                                          <span className="text-xs font-medium">Specialties: </span>
-                                          {suggestion.matching_specialties.map((s, idx) => (
-                                            <Badge key={idx} variant="outline" className="text-xs mr-1">
-                                              {s}
-                                            </Badge>
-                                          ))}
-                                        </div>
-                                      )}
-                                      {suggestion.matching_certifications.length > 0 && (
-                                        <div>
-                                          <span className="text-xs font-medium">Certs: </span>
-                                          {suggestion.matching_certifications.map((c, idx) => (
-                                            <Badge key={idx} variant="secondary" className="text-xs mr-1">
-                                              {c}
-                                            </Badge>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => assignSenseiToTrip(selectedTrip?.id || '', suggestion.sensei_id)}
-                                      disabled={!suggestion.is_available}
-                                    >
-                                      Assign
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            No suitable senseis found for this trip theme.
-                          </div>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Quick Assignment Section */}
       <Card>
