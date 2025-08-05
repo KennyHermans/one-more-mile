@@ -29,11 +29,7 @@ interface SenseiStats {
   averageRating: number;
 }
 
-interface SenseiManagementDashboardProps {
-  initialActiveTab?: string;
-}
-
-export function SenseiManagementDashboard({ initialActiveTab = "overview" }: SenseiManagementDashboardProps) {
+export function SenseiManagementDashboard() {
   const [stats, setStats] = useState<SenseiStats>({
     totalSenseis: 0,
     activeSenseis: 0,
@@ -155,7 +151,7 @@ export function SenseiManagementDashboard({ initialActiveTab = "overview" }: Sen
         />
       </div>
 
-      <Tabs defaultValue={initialActiveTab} className="w-full">
+      <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />

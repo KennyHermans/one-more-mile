@@ -850,13 +850,8 @@ const AdminDashboard = () => {
               <CommunicationHub userId={user.id} />
             )}
             
-            {(activeTab === "sensei-management" || activeTab.startsWith("sensei-management-")) && (
-              <SenseiManagementDashboard 
-                initialActiveTab={activeTab.startsWith("sensei-management-") 
-                  ? activeTab.replace("sensei-management-", "") 
-                  : "overview"
-                }
-              />
+            {activeTab === "sensei-management" && (
+              <SenseiManagementDashboard />
             )}
             
             
