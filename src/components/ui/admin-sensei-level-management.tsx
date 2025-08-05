@@ -124,6 +124,15 @@ export const AdminSenseiLevelManagement = () => {
       setIsUpdating(true);
       setError(null);
       
+      console.log('Attempting to update sensei level:', {
+        sensei_id: selectedSensei.id,
+        current_level: selectedSensei.sensei_level,
+        new_level: newLevel,
+        reason: reason,
+        admin_override: adminOverride
+      });
+
+      // Try using the RPC function first
       const { data, error: updateError } = await supabase
         .rpc('upgrade_sensei_level', {
           p_sensei_id: selectedSensei.id,
@@ -131,14 +140,57 @@ export const AdminSenseiLevelManagement = () => {
           p_reason: reason
         });
 
+      console.log('RPC response:', { data, updateError });
+
       if (updateError) {
-        console.error('Update level error:', updateError);
-        toast({
-          title: "Error",
-          description: "Failed to update sensei level. Please try again.",
-          variant: "destructive"
-        });
-        return;
+        console.error('RPC error:', updateError);
+        throw new Error(updateError.message);
+      }
+
+      // Check if the response contains an error
+      if (data && typeof data === 'object' && 'error' in data) {
+        console.error('Function returned error:', data.error);
+        throw new Error(String(data.error));
+      }
+
+      // If RPC failed or admin override is enabled, try direct database update
+      if (!data || (typeof data === 'object' && !('success' in data)) || adminOverride) {
+        console.log('Using direct database update approach...');
+        
+        // Update sensei level directly
+        const { error: directUpdateError } = await supabase
+          .from('sensei_profiles')
+          .update({
+            sensei_level: newLevel,
+            level_achieved_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedSensei.id);
+
+        if (directUpdateError) {
+          console.error('Direct update error:', directUpdateError);
+          throw new Error(directUpdateError.message);
+        }
+
+        // Add level history entry
+        const { error: historyError } = await supabase
+          .from('sensei_level_history')
+          .insert({
+            sensei_id: selectedSensei.id,
+            previous_level: selectedSensei.sensei_level,
+            new_level: newLevel,
+            change_reason: adminOverride ? `${reason} (Admin Override)` : reason,
+            requirements_met: {
+              timestamp: new Date().toISOString(),
+              updated_by: 'admin',
+              admin_override: adminOverride
+            }
+          });
+
+        if (historyError) {
+          console.error('History insert error:', historyError);
+          // Don't fail the whole operation for history error
+        }
       }
 
       toast({
