@@ -78,6 +78,33 @@ const Senseis = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Promotional Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer bg-gradient-to-br from-primary to-accent text-white border-0" onClick={() => window.location.href = '/become-sensei'}>
+              <div className="relative h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold">Join Our Community</h3>
+                </div>
+              </div>
+              
+              <CardHeader className="pb-3">
+                <CardTitle className="font-serif text-lg text-white text-center">Are you our next Sensei?</CardTitle>
+                <p className="font-sans text-sm text-white/90 leading-relaxed text-center">Share your expertise and passion by guiding transformative journeys</p>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <Button 
+                  variant="secondary"
+                  className="w-full font-sans font-medium text-sm bg-white text-primary hover:bg-white/90"
+                  size="sm"
+                >
+                  Become a Sensei
+                </Button>
+              </CardContent>
+            </Card>
+
             {loading ? (
               <>
                 <SenseiCardSkeleton />
