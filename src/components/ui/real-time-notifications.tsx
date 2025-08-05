@@ -78,85 +78,108 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
   };
 
   const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('admin-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'admin_alerts'
-        },
-        (payload) => {
-          // New alert received
-          const newAlert = payload.new;
-          
-          const notification: Notification = {
-            id: newAlert.id,
-            type: newAlert.alert_type,
-            title: newAlert.title,
-            message: newAlert.message,
-            priority: newAlert.priority,
-            read: false,
-            created_at: newAlert.created_at,
-            metadata: {
-              ...(typeof newAlert.metadata === 'object' && newAlert.metadata !== null ? newAlert.metadata : {}),
-              trip_id: newAlert.trip_id,
-              sensei_id: newAlert.sensei_id
-            }
-          };
+    let channel: any = null;
+    
+    try {
+      channel = supabase
+        .channel('admin-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'admin_alerts'
+          },
+          (payload) => {
+            try {
+              // New alert received
+              const newAlert = payload.new;
+              
+              const notification: Notification = {
+                id: newAlert.id,
+                type: newAlert.alert_type,
+                title: newAlert.title,
+                message: newAlert.message,
+                priority: newAlert.priority,
+                read: false,
+                created_at: newAlert.created_at,
+                metadata: {
+                  ...(typeof newAlert.metadata === 'object' && newAlert.metadata !== null ? newAlert.metadata : {}),
+                  trip_id: newAlert.trip_id,
+                  sensei_id: newAlert.sensei_id
+                }
+              };
 
-          setNotifications(prev => [notification, ...prev]);
-          
-          // Show toast notification
-          showNotificationToast(notification);
-          
-          // Browser notification if permission granted
-          if (Notification.permission === 'granted') {
-            new Notification(notification.title, {
-              body: notification.message,
-              icon: '/favicon.ico'
+              setNotifications(prev => [notification, ...prev]);
+              
+              // Show toast notification
+              showNotificationToast(notification);
+              
+              // Browser notification if permission granted
+              if (Notification.permission === 'granted') {
+                new Notification(notification.title, {
+                  body: notification.message,
+                  icon: '/favicon.ico'
+                });
+              }
+            } catch (error) {
+              logError(error as Error, {
+                component: 'RealTimeNotifications',
+                action: 'handleNewAlert'
+              });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'admin_alerts'
+          },
+          (payload) => {
+            try {
+              // Alert updated
+              const updatedAlert = payload.new;
+              
+              if (updatedAlert.is_resolved) {
+                setNotifications(prev => prev.filter(n => n.id !== updatedAlert.id));
+              }
+            } catch (error) {
+              logError(error as Error, {
+                component: 'RealTimeNotifications',
+                action: 'handleAlertUpdate'
+              });
+            }
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            logError(new Error('Realtime channel error'), {
+              component: 'RealTimeNotifications',
+              action: 'channelSubscribe'
             });
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'admin_alerts'
-        },
-        (payload) => {
-          // Alert updated
-          const updatedAlert = payload.new;
-          
-          if (updatedAlert.is_resolved) {
-            setNotifications(prev => prev.filter(n => n.id !== updatedAlert.id));
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'backup_sensei_requests'
-        },
-        (payload) => {
-          // New backup request
-          const request = payload.new;
-          
-          useToastHook({
-            title: "New Backup Request",
-            description: `Backup sensei request sent for trip ${request.trip_id}`,
-          });
-        }
-      )
-      .subscribe();
+        });
+
+    } catch (error) {
+      logError(error as Error, {
+        component: 'RealTimeNotifications',
+        action: 'setupRealtimeSubscription'
+      });
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          logError(error as Error, {
+            component: 'RealTimeNotifications',
+            action: 'cleanupChannel'
+          });
+        }
+      }
     };
   };
 

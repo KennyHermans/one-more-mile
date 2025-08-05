@@ -60,7 +60,9 @@ export function RealTimeAvailability({
     }, 30000);
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
       clearInterval(interval);
     };
   }, [destination, selectedDates, maxParticipants]);
