@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
-import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
+
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, CheckSquare, Star, TrendingUp } from "lucide-react";
 import { TripBooking } from '@/types/trip';
@@ -68,23 +68,13 @@ export function CustomerOverviewDashboard({
         </p>
       </div>
 
-      {/* Profile Completion & Onboarding for New Users */}
+      {/* Profile Completion for New Users */}
       {isNewUser && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ProfileCompletionIndicator 
-            profile={profile} 
-            documents={documents}
-            className="order-1"
-          />
-          <GettingStartedChecklist
-            userId={userId}
-            userProfile={profile}
-            userBookings={bookings}
-            userDocuments={documents}
-            userReviews={userReviews}
-            className="order-2"
-          />
-        </div>
+        <ProfileCompletionIndicator 
+          profile={profile} 
+          documents={documents}
+          className="mb-6"
+        />
       )}
 
       {/* Profile Completion for Existing Users */}
@@ -157,16 +147,6 @@ export function CustomerOverviewDashboard({
         <PersonalizedDashboard userId={userId} />
       )}
 
-      {/* Getting Started Checklist for Existing Users with Incomplete Actions */}
-      {!isNewUser && (userReviews.length === 0 || documents.length === 0) && (
-        <GettingStartedChecklist
-          userId={userId}
-          userProfile={profile}
-          userBookings={bookings}
-          userDocuments={documents}
-          userReviews={userReviews}
-        />
-      )}
     </div>
   );
 }
