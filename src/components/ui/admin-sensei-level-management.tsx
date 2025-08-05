@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +13,9 @@ import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/error-handler";
-import { Crown, Settings, History, AlertTriangle } from "lucide-react";
+import { Crown, Settings, History, AlertTriangle, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AdminPermissionConfiguration } from "./admin-permission-configuration";
 
 interface Sensei {
   id: string;
@@ -44,6 +46,7 @@ export const AdminSenseiLevelManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [adminOverride, setAdminOverride] = useState(false);
+  const [activeTab, setActiveTab] = useState<'levels' | 'permissions'>('levels');
   const { toast } = useToast();
 
   const fetchSenseis = async () => {
@@ -147,13 +150,37 @@ export const AdminSenseiLevelManagement = () => {
   }, [selectedSensei]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Crown className="h-6 w-6" />
           Sensei Level Management
-        </CardTitle>
-      </CardHeader>
+        </h2>
+        <p className="text-muted-foreground">Manage sensei levels and configure permissions</p>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'levels' | 'permissions')} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="levels" className="flex items-center gap-2">
+            <Crown className="h-4 w-4" />
+            Level Management
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Permission Configuration
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="levels" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Individual Level Management
+              </CardTitle>
+            </CardHeader>
       <CardContent className="space-y-6">
         {/* Search */}
         <div>
@@ -351,5 +378,12 @@ export const AdminSenseiLevelManagement = () => {
         </div>
       </CardContent>
     </Card>
+        </TabsContent>
+
+        <TabsContent value="permissions" className="space-y-4">
+          <AdminPermissionConfiguration />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

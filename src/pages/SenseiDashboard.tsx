@@ -24,6 +24,7 @@ import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
+import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 
 // Enhanced Loading Components
 import { 
@@ -673,6 +674,8 @@ const SenseiDashboard = () => {
     editingTrip?.id
   );
 
+  const { permissions: senseiPermissions } = useSenseiPermissions(senseiProfile?.id);
+
   const canEdit = (tripId: string, field: keyof TripPermissions): boolean => {
     if (editingTrip?.id === tripId) {
       return canEditTripField(field);
@@ -1001,6 +1004,7 @@ const SenseiDashboard = () => {
           <SenseiTripsManagement
             trips={trips}
             canCreateTrips={senseiProfile.can_create_trips}
+            canEditTrips={senseiPermissions?.can_edit_trips || false}
             onCreateTrip={() => setCreateTripOpen(true)}
             onEditTrip={(trip) => setEditingTrip({
               ...trip,

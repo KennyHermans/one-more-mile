@@ -18,10 +18,12 @@ import {
   XCircle
 } from "lucide-react";
 import { Trip, TripListItem } from '@/types/trip';
+import { SenseiTripDetailView } from './sensei-trip-detail-view';
 
 interface SenseiTripsManagementProps {
   trips: Trip[];
   canCreateTrips: boolean;
+  canEditTrips: boolean;
   onCreateTrip: () => void;
   onEditTrip: (trip: Trip) => void;
   onViewTrip: (trip: Trip) => void;
@@ -31,6 +33,7 @@ interface SenseiTripsManagementProps {
 export function SenseiTripsManagement({ 
   trips, 
   canCreateTrips,
+  canEditTrips,
   onCreateTrip,
   onEditTrip,
   onViewTrip,
@@ -38,6 +41,7 @@ export function SenseiTripsManagement({
 }: SenseiTripsManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
 
   const activeTrips = trips.filter(trip => 
     trip.is_active && 
@@ -102,12 +106,12 @@ export function SenseiTripsManagement({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onViewTrip(trip)}
+                onClick={() => setViewingTrip(trip)}
               >
                 <Eye className="h-3 w-3 mr-1" />
                 View
               </Button>
-              {trip.trip_status !== 'completed' && (
+              {trip.trip_status !== 'completed' && canEditTrips && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -123,6 +127,21 @@ export function SenseiTripsManagement({
       </CardContent>
     </Card>
   );
+
+  // Show detailed trip view if viewing a trip
+  if (viewingTrip) {
+    return (
+      <SenseiTripDetailView
+        trip={viewingTrip}
+        onBack={() => setViewingTrip(null)}
+        onEdit={() => {
+          setViewingTrip(null);
+          onEditTrip(viewingTrip);
+        }}
+        canEdit={canEditTrips && viewingTrip.trip_status !== 'completed'}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
