@@ -144,7 +144,7 @@ const Senseis = () => {
                        className="w-full font-sans font-medium text-sm"
                        size="sm"
                      >
-                       View Profile
+                       View Sensei
                      </Button>
                   </CardContent>
                 </Card>
