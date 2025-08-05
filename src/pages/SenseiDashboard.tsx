@@ -20,7 +20,7 @@ import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
-import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
+
 import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
@@ -1065,7 +1065,7 @@ const SenseiDashboard = () => {
         );
 
       case "analytics":
-        return <SenseiAnalyticsDashboard />;
+        return <div className="p-8 text-center text-muted-foreground">Analytics feature has been removed</div>;
 
       case "goals":
         return <SenseiGoalsTracker />;

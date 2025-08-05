@@ -41,18 +41,6 @@ const sidebarGroups = [
         value: "dashboard",
         icon: Home,
         requiresPermission: null
-      },
-      {
-        title: "Analytics",
-        value: "analytics", 
-        icon: BarChart3,
-        requiresPermission: null
-      },
-      {
-        title: "Advanced Analytics",
-        value: "advanced-analytics", 
-        icon: BarChart3,
-        requiresPermission: null
       }
     ]
   },
