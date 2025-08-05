@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -167,6 +167,14 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['sensei-management']));
 
+  // Keep sensei-management expanded when any sensei sub-tab is active
+  useEffect(() => {
+    const senseiTabs = ['overview', 'applications', 'active-senseis', 'assignments', 'management'];
+    if (senseiTabs.includes(activeTab)) {
+      setExpandedItems(prev => new Set([...prev, 'sensei-management']));
+    }
+  }, [activeTab]);
+
   const handleItemClick = (value: string) => {
     if (value === "trip-management") {
       navigate("/admin/trips");
@@ -176,7 +184,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   };
 
   const handleSubItemClick = (value: string) => {
-    // Map sub-item values to existing tab values in SenseiManagementDashboard
+    // Direct mapping to SenseiManagementDashboard tab values
     const tabMapping: Record<string, string> = {
       'sensei-overview': 'overview',
       'sensei-applications': 'applications', 
@@ -186,7 +194,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
     };
     
     const mappedTab = tabMapping[value] || value;
-    onTabChange(`sensei-management-${mappedTab}`);
+    onTabChange(mappedTab);
   };
 
   const toggleExpanded = (value: string) => {
@@ -202,12 +210,24 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   };
 
   const isActive = (value: string) => {
-    return activeTab === value || activeTab.startsWith(`${value}-`);
+    if (value === 'sensei-management') {
+      const senseiTabs = ['overview', 'applications', 'active-senseis', 'assignments', 'management'];
+      return senseiTabs.includes(activeTab);
+    }
+    return activeTab === value;
   };
 
   const isSubItemActive = (parentValue: string, subValue: string) => {
-    if (activeTab === parentValue) return subValue === 'overview';
-    return activeTab === `${parentValue}-${subValue}`;
+    const tabMapping: Record<string, string> = {
+      'sensei-overview': 'overview',
+      'sensei-applications': 'applications', 
+      'sensei-active': 'active-senseis',
+      'sensei-assignments': 'assignments',
+      'sensei-levels': 'management'
+    };
+    
+    const mappedTab = tabMapping[subValue] || subValue;
+    return activeTab === mappedTab;
   };
 
   const hasPermission = (requiredPermission: string | null) => {
@@ -275,7 +295,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
                                     <SidebarMenuSubButton 
                                       onClick={() => handleSubItemClick(subItem.value)}
                                        className={`cursor-pointer transition-colors ${
-                                         isSubItemActive(item.value, subItem.value.replace('sensei-', '')) 
+                                         isSubItemActive(item.value, subItem.value) 
                                            ? "bg-accent text-accent-foreground font-medium" 
                                            : "hover:bg-muted/50"
                                        }`}
