@@ -190,6 +190,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
               sensei_image={undefined} // Not available in TripListItem
               sensei_specialties={[]} // Not available in TripListItem
               sensei_location={undefined} // Not available in TripListItem
+              sensei_id={trip.sensei_id} // Now passing sensei_id from TripListItem
             />
           ))}
         </div>

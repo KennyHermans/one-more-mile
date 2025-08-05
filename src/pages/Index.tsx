@@ -56,7 +56,8 @@ const Index = () => {
       groupSize: "8-12 people",
       sensei: "Maya Chen",
       image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=600&h=400&fit=crop",
-      theme: "Wellness"
+      theme: "Wellness",
+      sensei_id: "maya-chen-1"
     },
     {
       id: "2", 
@@ -68,7 +69,8 @@ const Index = () => {
       groupSize: "6-10 people",
       sensei: "Giuseppe Romano",
       image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop",
-      theme: "Cultural"
+      theme: "Cultural",
+      sensei_id: "giuseppe-romano-1"
     }
   ];
 

@@ -28,13 +28,14 @@ interface FeaturedTripCardProps {
   sensei_image?: string;
   sensei_specialties?: string[];
   sensei_location?: string;
+  sensei_id?: string | null;
 }
 
 export function FeaturedTripCard({ 
   id, title, destination, description, price, dates, groupSize, sensei, image, theme,
   current_participants = 0, max_participants = 12, onCompare, isInComparison = false,
   difficulty_level, duration_days, rating = 0, review_count = 0, sensei_image, 
-  sensei_specialties = [], sensei_location
+  sensei_specialties = [], sensei_location, sensei_id
 }: FeaturedTripCardProps) {
   const currentParticipants = current_participants;
   const maxParticipants = max_participants;
@@ -147,33 +148,62 @@ export function FeaturedTripCard({
         </div>
         
         {/* Enhanced Sensei info */}
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={sensei_image} alt={`Sensei ${sensei}`} />
-            <AvatarFallback className="text-xs">{sensei.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm">Sensei {sensei}</p>
-            {sensei_location && (
-              <p className="text-xs text-muted-foreground">{sensei_location}</p>
-            )}
-            {sensei_specialties.length > 0 && (
-              <div className="flex gap-1 mt-1">
-                {sensei_specialties.slice(0, 2).map((specialty, index) => (
-                  <Badge key={index} variant="outline" className="text-xs py-0 px-1">
-                    {specialty}
-                  </Badge>
-                ))}
-                {sensei_specialties.length > 2 && (
-                  <span className="text-xs text-muted-foreground">+{sensei_specialties.length - 2}</span>
+        {sensei_id ? (
+          <Link to={`/senseis/${sensei_id}`} className="block">
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer group">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={sensei_image} alt={`Sensei ${sensei}`} />
+                <AvatarFallback className="text-xs">{sensei.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm group-hover:text-primary transition-colors">Sensei {sensei}</p>
+                {sensei_location && (
+                  <p className="text-xs text-muted-foreground">{sensei_location}</p>
+                )}
+                {sensei_specialties.length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {sensei_specialties.slice(0, 2).map((specialty, index) => (
+                      <Badge key={index} variant="outline" className="text-xs py-0 px-1">
+                        {specialty}
+                      </Badge>
+                    ))}
+                    {sensei_specialties.length > 2 && (
+                      <span className="text-xs text-muted-foreground">+{sensei_specialties.length - 2}</span>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+              <Button variant="ghost" size="sm" className="p-1 h-auto opacity-60 group-hover:opacity-100 transition-opacity">
+                <Eye className="h-3 w-3" />
+              </Button>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={sensei_image} alt={`Sensei ${sensei}`} />
+              <AvatarFallback className="text-xs">{sensei.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">Sensei {sensei}</p>
+              {sensei_location && (
+                <p className="text-xs text-muted-foreground">{sensei_location}</p>
+              )}
+              {sensei_specialties.length > 0 && (
+                <div className="flex gap-1 mt-1">
+                  {sensei_specialties.slice(0, 2).map((specialty, index) => (
+                    <Badge key={index} variant="outline" className="text-xs py-0 px-1">
+                      {specialty}
+                    </Badge>
+                  ))}
+                  {sensei_specialties.length > 2 && (
+                    <span className="text-xs text-muted-foreground">+{sensei_specialties.length - 2}</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <Button variant="ghost" size="sm" className="p-1 h-auto opacity-60 hover:opacity-100">
-            <Eye className="h-3 w-3" />
-          </Button>
-        </div>
+        )}
         
         {/* Availability indicator */}
         {currentParticipants >= 0 && maxParticipants > 0 && (
