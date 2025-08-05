@@ -21,22 +21,6 @@ const About = () => {
     title: "Transformative Experiences",
     description: "We believe travel should challenge, inspire, and expand your perspective on life."
   }];
-  const team = [{
-    name: "Kenny Hermans",
-    role: "Founder & CEO",
-    bio: "Former travel journalist who discovered the transformative power of purposeful travel after a life-changing trek in the Himalayas.",
-    image: "/lovable-uploads/0654a4fb-8308-4c54-a2ec-031f19de96db.png"
-  }, {
-    name: "Marcus Thompson",
-    role: "Head of Sensei Relations",
-    bio: "Cultural anthropologist and former Peace Corps volunteer with deep expertise in cross-cultural experiences.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face"
-  }, {
-    name: "Yuki Nakamura",
-    role: "Experience Designer",
-    bio: "Former adventure guide who crafts itineraries that balance challenge, beauty, and meaningful cultural exchange.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face"
-  }];
   return <div className="min-h-screen bg-background">
       <Navigation />
       
@@ -70,8 +54,22 @@ const About = () => {
               About me
             </h2>
             
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+              <div className="lg:col-span-4 flex justify-center lg:justify-start">
+                <img 
+                  src="/lovable-uploads/0654a4fb-8308-4c54-a2ec-031f19de96db.png" 
+                  alt="Kenny Hermans - Founder of One More Mile" 
+                  className="w-64 h-64 lg:w-72 lg:h-72 rounded-full object-cover shadow-lg"
+                />
+              </div>
+              <div className="lg:col-span-8">
+                <div className="prose prose-lg max-w-none font-sans text-muted-foreground leading-relaxed space-y-6">
+                  <p>Hi, I'm glad you're interested in learning more about who's behind One More Mile. While some people might skip this page, I believe it's important for you to understand why and how One More Mile came into existence. There was a time when I was searching for organizations and people that build these kinds of trips. We all know that travelling can be expensive, but with the right people, organization and meaning, it becomes more of an investment than a cost.</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="prose prose-lg max-w-none font-sans text-muted-foreground leading-relaxed space-y-6">
-              <p>Hi, I'm glad you're interested in learning more about who's behind One More Mile. While some people might skip this page, I believe it's important for you to understand why and how One More Mile came into existence. There was a time when I was searching for organizations and people that build these kinds of trips. We all know that travelling can be expensive, but with the right people, organization and meaning, it becomes more of an investment than a cost.</p>
               
               <blockquote className="border-l-4 border-primary pl-6 italic text-lg font-medium text-foreground">
                 "The best investment you can make is in yourself."
@@ -186,38 +184,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-16">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Meet Our Team
-            </h2>
-            <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
-              Passionate travel experts dedicated to creating extraordinary experiences
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {team.map((member, index) => <Card key={index} className="text-center hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <img src={member.image} alt={member.name} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />
-                  <CardTitle className="font-serif text-xl text-foreground">
-                    {member.name}
-                  </CardTitle>
-                  <Badge variant="secondary" className="mx-auto">
-                    {member.role}
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-sans text-muted-foreground leading-relaxed">
-                    {member.bio}
-                  </p>
-                </CardContent>
-              </Card>)}
-          </div>
-        </div>
-      </section>
 
       {/* Impact Section */}
       <section className="py-16 bg-gradient-to-br from-primary to-accent text-white">
