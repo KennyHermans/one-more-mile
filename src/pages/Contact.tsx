@@ -189,6 +189,15 @@ const Contact = () => {
                 </p>
               </div>
 
+              {/* Traveller Image */}
+              <div className="mb-8 flex justify-center">
+                <img 
+                  src="/lovable-uploads/d5d01d0c-e5a7-4c22-89f1-b36d97dba724.png" 
+                  alt="Traveller illustration" 
+                  className="w-32 h-auto opacity-80"
+                />
+              </div>
+
               {/* Contact Cards */}
               <div className="space-y-6">
                 <Card className="hover:shadow-lg transition-all duration-300">
