@@ -53,6 +53,7 @@ interface TripPermission {
 
 interface TripOverviewItem extends TripOverviewExtended {
   assigned_sensei?: SenseiProfile;
+  backup_sensei?: SenseiProfile;
   permissions: TripPermission[];
   permission_count: number;
   creator_type: 'admin' | 'sensei';
@@ -95,18 +96,24 @@ export function AdminTripManagementOverview() {
     try {
       const { data, error } = await supabase
         .from('trips')
-        .select('*')
+        .select(`
+          *,
+          sensei_profiles!trips_sensei_id_fkey(id, name, location, rating),
+          backup_sensei:sensei_profiles!trips_backup_sensei_id_fkey(id, name, location, rating)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
       const transformedTrips = transformToTripArray(data || []);
-      const processedTrips = transformedTrips.map(trip => ({
+      const processedTrips = transformedTrips.map((trip: any) => ({
         ...trip,
         creator_type: trip.created_by_sensei ? 'sensei' as const : 'admin' as const,
         creator_name: trip.created_by_sensei ? trip.sensei_name : 'One More Mile',
         permissions: [],
-        permission_count: 0
+        permission_count: 0,
+        assigned_sensei: trip.sensei_profiles || null,
+        backup_sensei: trip.backup_sensei || null
       }));
       
       setTrips(processedTrips);
@@ -210,7 +217,7 @@ export function AdminTripManagementOverview() {
       
       toast({
         title: "Success",
-        description: "Sensei assigned to trip successfully",
+        description: "Primary Sensei assigned to trip successfully",
       });
       
       fetchData();
@@ -220,6 +227,35 @@ export function AdminTripManagementOverview() {
         action: 'assignSensei',
         tripId: tripId
       }, true, "Failed to assign sensei to trip");
+    }
+  };
+
+  const assignBackupSenseiToTrip = async (tripId: string, senseiId: string) => {
+    try {
+      const sensei = senseis.find(s => s.id === senseiId);
+      if (!sensei) return;
+
+      const { error } = await supabase
+        .from('trips')
+        .update({ 
+          backup_sensei_id: senseiId
+        })
+        .eq('id', tripId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Backup Sensei assigned to trip successfully",
+      });
+      
+      fetchData();
+    } catch (error) {
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'assignBackupSensei',
+        tripId: tripId
+      }, true, "Failed to assign backup sensei to trip");
     }
   };
 
@@ -427,7 +463,8 @@ export function AdminTripManagementOverview() {
                   <TableHead>Trip</TableHead>
                   <TableHead>Creator</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Assigned Sensei</TableHead>
+                  <TableHead>Primary Sensei</TableHead>
+                  <TableHead>Backup Sensei</TableHead>
                   <TableHead>Permissions</TableHead>
                   <TableHead>Participants</TableHead>
                   <TableHead>Actions</TableHead>
@@ -477,16 +514,23 @@ export function AdminTripManagementOverview() {
                     
                     <TableCell>
                       {trip.sensei_id ? (
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-4 w-4 text-green-600" />
-                          <span className="font-medium">{trip.sensei_name}</span>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="h-4 w-4 text-green-600" />
+                            <span className="font-medium">{trip.sensei_name}</span>
+                          </div>
+                          {trip.assigned_sensei && (
+                            <div className="text-xs text-muted-foreground">
+                              ⭐ {trip.assigned_sensei.rating?.toFixed(1) || 'N/A'} • {trip.assigned_sensei.location}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="space-y-2">
                           <Badge variant="outline">Unassigned</Badge>
                           <Select onValueChange={(senseiId) => assignSenseiToTrip(trip.id, senseiId)}>
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Assign Sensei" />
+                              <SelectValue placeholder="Assign Primary Sensei" />
                             </SelectTrigger>
                             <SelectContent>
                               {senseis.map((sensei) => (
@@ -497,6 +541,42 @@ export function AdminTripManagementOverview() {
                             </SelectContent>
                           </Select>
                         </div>
+                      )}
+                    </TableCell>
+                    
+                    <TableCell>
+                      {trip.backup_sensei_id ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="h-4 w-4 text-orange-600" />
+                            <span className="font-medium text-sm">
+                              {trip.backup_sensei?.name || 'Backup Assigned'}
+                            </span>
+                          </div>
+                          {trip.backup_sensei && (
+                            <div className="text-xs text-muted-foreground">
+                              ⭐ {trip.backup_sensei.rating?.toFixed(1) || 'N/A'} • {trip.backup_sensei.location}
+                            </div>
+                          )}
+                        </div>
+                      ) : trip.requires_backup_sensei ? (
+                        <div className="space-y-2">
+                          <Badge variant="destructive" className="text-xs">Required</Badge>
+                          <Select onValueChange={(senseiId) => assignBackupSenseiToTrip(trip.id, senseiId)}>
+                            <SelectTrigger className="w-full text-xs">
+                              <SelectValue placeholder="Assign Backup" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {senseis.filter(s => s.id !== trip.sensei_id).map((sensei) => (
+                                <SelectItem key={sensei.id} value={sensei.id}>
+                                  {sensei.name} ({sensei.location})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">Not Required</Badge>
                       )}
                     </TableCell>
                     

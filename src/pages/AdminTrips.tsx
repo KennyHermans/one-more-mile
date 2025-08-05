@@ -199,6 +199,8 @@ const AdminTrips = () => {
     group_size: "",
     sensei_name: "",
     sensei_id: null as string | null,
+    backup_sensei_id: null as string | null,
+    requires_backup_sensei: false,
     image_url: "",
     theme: "",
     rating: 0,
@@ -327,6 +329,15 @@ const AdminTrips = () => {
       return;
     }
     
+    // Handle backup sensei selection
+    if (name === 'backup_sensei_id') {
+      setFormData(prev => ({
+        ...prev,
+        backup_sensei_id: value || null
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : 
@@ -347,6 +358,8 @@ const AdminTrips = () => {
       group_size: "",
       sensei_name: "",
       sensei_id: null,
+      backup_sensei_id: null,
+      requires_backup_sensei: false,
       image_url: "",
       theme: "",
       rating: 0,
@@ -376,6 +389,8 @@ const AdminTrips = () => {
       group_size: trip.group_size,
       sensei_name: trip.sensei_name,
       sensei_id: trip.sensei_id,
+      backup_sensei_id: trip.backup_sensei_id || null,
+      requires_backup_sensei: trip.requires_backup_sensei || false,
       image_url: trip.image_url,
       theme: trip.theme,
       rating: trip.rating,
@@ -525,6 +540,8 @@ const AdminTrips = () => {
       group_size: trip.group_size,
       sensei_name: "", // Clear sensei for admin to assign new one
       sensei_id: null, // Clear sensei for admin to assign new one
+      backup_sensei_id: null, // Clear backup sensei
+      requires_backup_sensei: false, // Reset backup requirement
       image_url: trip.image_url,
       theme: trip.theme,
       rating: trip.rating,
@@ -879,7 +896,7 @@ const AdminTrips = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Select Sensei</label>
+                    <label className="block text-sm font-medium mb-2">Primary Sensei</label>
                     <select
                       name="sensei_id"
                       value={formData.sensei_id || ""}
@@ -905,6 +922,40 @@ const AdminTrips = () => {
                       placeholder="Will be auto-filled when Sensei is selected"
                       readOnly={formData.sensei_id !== null}
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Backup Sensei (Optional)</label>
+                    <select
+                      name="backup_sensei_id"
+                      value={formData.backup_sensei_id || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-border rounded-lg"
+                    >
+                      <option value="">Select backup Sensei</option>
+                      {senseis
+                        .filter(sensei => approvedSenseiIds.has(sensei.id) && sensei.id !== formData.sensei_id)
+                        .map(sensei => (
+                          <option key={sensei.id} value={sensei.id}>
+                            {sensei.name} - {sensei.specialty} ({sensei.location})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center space-x-2 pt-8">
+                    <input
+                      type="checkbox"
+                      id="requires_backup_sensei"
+                      name="requires_backup_sensei"
+                      checked={formData.requires_backup_sensei}
+                      onChange={handleInputChange}
+                      className="rounded"
+                    />
+                    <label htmlFor="requires_backup_sensei" className="text-sm font-medium">
+                      Requires backup Sensei
+                    </label>
                   </div>
                 </div>
 
