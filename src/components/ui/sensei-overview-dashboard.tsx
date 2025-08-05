@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
+// SenseiLevelBadge component removed
 import { SenseiMatchingInsights } from "@/components/ui/sensei-matching-insights";
 import { EnhancedMatchingRecommendations } from "@/components/ui/enhanced-matching-recommendations";
 import { 
@@ -70,10 +70,9 @@ export function SenseiOverviewDashboard({
                 {senseiProfile.bio || "Ready to guide another adventure?"}
               </p>
             </div>
-            <SenseiLevelBadge 
-              level={senseiProfile.sensei_level} 
-              size="lg" 
-            />
+            <Badge variant="secondary">
+              Sensei
+            </Badge>
           </div>
         </CardHeader>
       </Card>
@@ -169,7 +168,7 @@ export function SenseiOverviewDashboard({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Current Level</span>
-                <SenseiLevelBadge level={senseiProfile.sensei_level} />
+                <Badge variant="secondary">Sensei</Badge>
               </div>
               
               <div className="space-y-2">

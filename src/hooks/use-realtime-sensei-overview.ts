@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 interface EnhancedSenseiStatus {
   sensei_id: string;
   sensei_name: string;
-  sensei_level: 'apprentice' | 'journey_guide' | 'master_sensei';
   level_achieved_at: string;
   trips_led: number;
   is_linked_to_trip: boolean;
@@ -26,9 +25,44 @@ export function useRealtimeSenseiOverview() {
 
   const fetchSenseiStatus = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_sensei_trip_status');
+      // Fallback to basic sensei profile query since RPC function doesn't exist
+      const { data, error } = await supabase
+        .from('sensei_profiles')
+        .select(`
+          id,
+          user_id,
+          name,
+          location,
+          rating,
+          trips_led,
+          is_active,
+          specialties,
+          certifications,
+          created_at
+        `)
+        .eq('is_active', true);
+      
       if (error) throw error;
-      setSenseis(data || []);
+      
+      // Transform data to match expected interface
+      const transformedData = (data || []).map(sensei => ({
+        sensei_id: sensei.id,
+        sensei_name: sensei.name,
+        level_achieved_at: sensei.created_at,
+        trips_led: sensei.trips_led || 0,
+        is_linked_to_trip: false, // Will be calculated later
+        current_trip_count: 0,
+        is_available: sensei.is_active,
+        specialties: sensei.specialties || [],
+        certifications: sensei.certifications || [],
+        location: sensei.location || '',
+        rating: sensei.rating || 0,
+        verified_skills_count: 0,
+        pending_certificates_count: 0,
+        last_activity: sensei.created_at
+      }));
+      
+      setSenseis(transformedData);
     } catch (error) {
       console.error('Error fetching sensei status:', error);
       toast.error('Failed to load sensei overview');

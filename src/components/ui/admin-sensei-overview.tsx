@@ -184,11 +184,9 @@ export function AdminSenseiOverview() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <SenseiLevelBadge 
-                      level={sensei.sensei_level} 
-                      size="sm" 
-                      showIcon={true}
-                    />
+                    <Badge variant="secondary">
+                      Sensei
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {sensei.is_available ? (

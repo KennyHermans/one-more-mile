@@ -200,7 +200,14 @@ export function SenseiManagementDashboard() {
 
         <TabsContent value="management" className="space-y-6 mt-6">
           <div className="space-y-6">
-            <AdminSenseiLevelManagement />
+            <Card>
+              <CardHeader>
+                <CardTitle>Sensei Management</CardTitle>
+                <CardDescription>
+                  Level management has been simplified. All senseis now have the same basic level.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

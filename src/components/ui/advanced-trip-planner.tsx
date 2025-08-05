@@ -1,7 +1,7 @@
 import { useState, useEffect, createElement } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PermissionAwareAiTripBuilder } from '@/components/ui/permission-aware-ai-trip-builder';
+// Permission-aware AI trip builder removed
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -357,10 +357,7 @@ export function AdvancedTripPlanner({
 
   return (
     <div className={className}>
-      {/* AI Trip Builder */}
-      <div className="mb-6">
-        <PermissionAwareAiTripBuilder senseiId={senseiId || ''} onSuccess={() => handleAITripGenerated} />
-      </div>
+      {/* AI Trip Builder - Temporarily disabled */}
 
       {/* Main Trip Planner */}
       <Card>
