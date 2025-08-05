@@ -1757,6 +1757,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_admin_role: {
+        Args: {
+          p_user_email: string
+          p_role: Database["public"]["Enums"]["platform_role"]
+          p_assigned_by?: string
+        }
+        Returns: Json
+      }
       calculate_enhanced_sensei_insights: {
         Args: { p_sensei_id: string }
         Returns: Json
