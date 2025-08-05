@@ -64,6 +64,12 @@ const sidebarGroups = [
         value: "smart-alerts",
         icon: AlertTriangle,
         requiresPermission: null
+      },
+      {
+        title: "Level Permissions",
+        value: "level-permissions",
+        icon: Shield,
+        requiresPermission: null
       }
     ]
   },

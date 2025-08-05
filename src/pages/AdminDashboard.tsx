@@ -15,6 +15,7 @@ import { DatabaseOptimization } from "@/components/ui/database-optimization";
 import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdvancedAnalyticsReporting } from "@/components/ui/advanced-analytics-reporting";
 import { SmartAlertSystem } from "@/components/ui/smart-alert-escalation";
+import { AdminLevelPermissions } from "@/components/ui/admin-level-permissions";
 
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
@@ -1070,6 +1071,10 @@ const AdminDashboard = () => {
             
             {activeTab === "smart-alerts" && (
               <SmartAlertSystem />
+            )}
+
+            {activeTab === "level-permissions" && (
+              <AdminLevelPermissions />
             )}
             
             
