@@ -26,6 +26,12 @@ interface SenseiOverview {
   next_eligible_level?: string;
 }
 
+interface EligibilityResponse {
+  can_auto_upgrade: boolean;
+  eligible_level: string;
+  requirements_met: Record<string, boolean>;
+}
+
 export const AdminSenseiLevelOverview = () => {
   const [levelStats, setLevelStats] = useState<LevelStats[]>([]);
   const [senseiOverview, setSenseiOverview] = useState<SenseiOverview[]>([]);
@@ -90,22 +96,25 @@ export const AdminSenseiLevelOverview = () => {
                 p_sensei_id: sensei.id
               });
               
-              const eligibility = eligibilityResponse.data;
+              // Safely access the response data with type casting
+              const eligibility = eligibilityResponse.data as EligibilityResponse | null;
               const canUpgrade = eligibility?.can_auto_upgrade || false;
               const eligibleLevel = eligibility?.eligible_level;
               
               return {
                 ...sensei,
+                sensei_level: sensei.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei',
                 eligible_for_upgrade: canUpgrade,
                 next_eligible_level: canUpgrade ? eligibleLevel : undefined
-              };
+              } as SenseiOverview;
             } catch (err) {
               console.error('Error checking eligibility for sensei:', sensei.id, err);
               return {
                 ...sensei,
+                sensei_level: sensei.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei',
                 eligible_for_upgrade: false,
                 next_eligible_level: undefined
-              };
+              } as SenseiOverview;
             }
           })
         );
