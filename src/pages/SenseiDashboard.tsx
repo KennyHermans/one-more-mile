@@ -1965,11 +1965,14 @@ export default SenseiDashboard;
               setCreateTripOpen(false);
               if (user) fetchSenseiTrips(user.id);
             }}
+            onCancel={() => setCreateTripOpen(false)}
           />
         </DialogContent>
       </Dialog>
     </SenseiDashboardLayout>
   );
 };
+
+export default SenseiDashboard;
 
 export default SenseiDashboard;
