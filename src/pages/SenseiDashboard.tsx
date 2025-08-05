@@ -1829,8 +1829,15 @@ const SenseiDashboard = () => {
         </DialogContent>
       </Dialog>
     </SenseiDashboardLayout>
+        </DialogContent>
+      </Dialog>
+    </SenseiDashboardLayout>
   );
 };
+
+export default SenseiDashboard;
+
+export default SenseiDashboard;
 
 export default SenseiDashboard;
       <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
@@ -1952,7 +1959,6 @@ export default SenseiDashboard;
       </Dialog>
 
       {/* Create Trip Dialog */}
-      {/* Create Trip Dialog */}
       <Dialog open={createTripOpen} onOpenChange={setCreateTripOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1971,6 +1977,4 @@ export default SenseiDashboard;
       </Dialog>
     </SenseiDashboardLayout>
   );
-};
-
-export default SenseiDashboard;
+}
