@@ -45,11 +45,6 @@ const sidebarGroups = [
     ]
   },
   {
-    label: "Intelligence & Reporting",
-    items: [
-    ]
-  },
-  {
     label: "Operations",
     items: [
       {
@@ -92,7 +87,7 @@ const sidebarGroups = [
     ]
   },
   {
-    label: "Automation & Alerts",
+    label: "Automation",
     items: [
       {
         title: "Backup Alerts",
@@ -101,7 +96,7 @@ const sidebarGroups = [
         requiresPermission: null
       },
       {
-        title: "Automation",
+        title: "Automation Settings",
         value: "automation",
         icon: Bot,
         requiresPermission: null
@@ -138,7 +133,7 @@ const sidebarGroups = [
     ]
   },
   {
-    label: "Management",
+    label: "Administration",
     items: [
       {
         title: "Senseis",
