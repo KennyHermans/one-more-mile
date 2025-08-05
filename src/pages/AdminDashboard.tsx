@@ -985,6 +985,12 @@ const AdminDashboard = () => {
                 <AdminPaymentSettings />
               </div>
             )}
+            
+            {activeTab === "roles" && (
+              <div className="space-y-6">
+                <AdminRoleManagement />
+              </div>
+            )}
           </main>
         </div>
 

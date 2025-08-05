@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { AdminSenseiOverview } from "./admin-sensei-overview";
 import { SenseiAssignmentManagement } from "./sensei-assignment-management";
 import { AdminSenseiLevelManagement } from "./admin-sensei-level-management";
-import { AdminRoleManagement } from "./admin-role-management";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
@@ -161,7 +161,7 @@ export function SenseiManagementDashboard() {
           </TabsTrigger>
           <TabsTrigger value="management" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Levels & Roles
+            Level Management
           </TabsTrigger>
         </TabsList>
 
@@ -196,7 +196,6 @@ export function SenseiManagementDashboard() {
         <TabsContent value="management" className="space-y-6 mt-6">
           <div className="space-y-6">
             <AdminSenseiLevelManagement />
-            <AdminRoleManagement />
           </div>
         </TabsContent>
       </Tabs>

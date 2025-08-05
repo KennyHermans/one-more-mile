@@ -1831,6 +1831,10 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      can_manage_roles: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       can_manage_senseis: {
         Args: { user_id?: string }
         Returns: boolean
@@ -1905,6 +1909,10 @@ export type Database = {
           sensei_name: string
           match_score: number
         }[]
+      }
+      revoke_admin_role: {
+        Args: { p_role_id: string; p_revoked_by?: string }
+        Returns: Json
       }
       search_users_by_email: {
         Args: { email_pattern: string }

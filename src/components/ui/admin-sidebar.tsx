@@ -103,7 +103,7 @@ const sidebarGroups = [
         title: "Role Management",
         value: "roles",
         icon: Shield,
-        requiresPermission: "canManageFinances"
+        requiresPermission: "canManageRoles"
       },
       {
         title: "Settings",
