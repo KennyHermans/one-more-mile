@@ -128,7 +128,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const navigate = useNavigate();
 
   const handleItemClick = (value: string) => {
-    if (value === "trip-editor") {
+    if (value === "trip-management") {
       navigate("/admin/trips");
     } else {
       onTabChange(value);
