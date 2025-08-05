@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { logError, logInfo } from '@/lib/error-handler';
 
 interface GlobalErrorContextType {
   errors: Error[];
@@ -28,17 +27,26 @@ export const GlobalErrorProvider = ({
   maxErrors = 10 
 }: GlobalErrorProviderProps) => {
   const [errors, setErrors] = useState<Error[]>([]);
+  const errorQueue = new Set<string>();
 
   const addError = (error: Error) => {
+    // Prevent duplicate errors and circular dependencies
+    const errorKey = `${error.message}_${error.stack?.slice(0, 100)}`;
+    if (errorQueue.has(errorKey)) return;
+    
+    errorQueue.add(errorKey);
+    
     setErrors(prev => {
       const newErrors = [error, ...prev].slice(0, maxErrors);
-      logError(error, {
-        component: 'GlobalErrorProvider',
-        action: 'addError',
-        metadata: { totalErrors: newErrors.length }
-      });
+      // Use native console to avoid circular dependency
+      if (import.meta.env.DEV) {
+        console.warn('[GlobalErrorProvider] Error added:', error.message);
+      }
       return newErrors;
     });
+
+    // Clean up error queue after a delay
+    setTimeout(() => errorQueue.delete(errorKey), 5000);
   };
 
   const removeError = (index: number) => {
@@ -47,44 +55,40 @@ export const GlobalErrorProvider = ({
 
   const clearErrors = () => {
     setErrors([]);
-    logInfo('All errors cleared', {
-      component: 'GlobalErrorProvider',
-      action: 'clearErrors'
-    });
+    errorQueue.clear();
+    if (import.meta.env.DEV) {
+      console.info('[GlobalErrorProvider] All errors cleared');
+    }
   };
 
-  // Global error handlers
+  // Global error handlers (simplified to prevent loops)
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
+      // Skip certain errors to prevent infinite loops
+      if (event.message.includes('RealtimeClient') || 
+          event.message.includes('Maximum call stack') ||
+          event.message.includes('GlobalErrorProvider')) {
+        return;
+      }
       addError(new Error(event.message));
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      addError(new Error(event.reason?.message || 'Unhandled promise rejection'));
-    };
-
-    // Capture React errors that escape error boundaries
-    const handleReactError = (error: Error) => {
-      addError(error);
+      const reason = event.reason?.message || event.reason || 'Unhandled promise rejection';
+      if (typeof reason === 'string' && (
+          reason.includes('RealtimeClient') || 
+          reason.includes('Maximum call stack'))) {
+        return;
+      }
+      addError(new Error(reason));
     };
 
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
-    // Override console.error to catch React errors
-    const originalConsoleError = console.error;
-    console.error = (...args) => {
-      const message = args.join(' ');
-      if (message.includes('React') || message.includes('Warning:')) {
-        handleReactError(new Error(message));
-      }
-      originalConsoleError.apply(console, args);
-    };
-
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      console.error = originalConsoleError;
     };
   }, []);
 

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
 import { Button } from "./button";
 import { Bell, X, Check, AlertTriangle, Users, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { logError, logInfo } from "@/lib/error-handler";
+import { RealtimeManager } from "./error-boundary";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -28,7 +28,6 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showPanel, setShowPanel] = useState(false);
-  const { toast: useToastHook } = useToast();
 
   useEffect(() => {
     fetchNotifications();
@@ -72,122 +71,60 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications(formattedNotifications);
     } catch (error) {
-      logError(error as Error, {
-        component: 'RealTimeNotifications',
-        action: 'fetchNotifications'
-      });
+      if (import.meta.env.DEV) {
+        console.warn('[RealTimeNotifications] Fetch error:', error);
+      }
     }
   };
 
   const setupRealtimeSubscription = () => {
-    let channel: any = null;
+    const realtimeManager = RealtimeManager.getInstance();
     
-    try {
-      channel = supabase
-        .channel('admin-notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'admin_alerts'
-          },
-          (payload) => {
-            try {
-              // New alert received
-              const newAlert = payload.new;
-              
-              const notification: Notification = {
-                id: newAlert.id,
-                type: newAlert.alert_type,
-                title: newAlert.title,
-                message: newAlert.message,
-                priority: newAlert.priority,
-                read: false,
-                created_at: newAlert.created_at,
-                metadata: {
-                  ...(typeof newAlert.metadata === 'object' && newAlert.metadata !== null ? newAlert.metadata : {}),
-                  trip_id: newAlert.trip_id,
-                  sensei_id: newAlert.sensei_id
-                }
-              };
+    return realtimeManager.subscribe('admin-notifications', {
+      table: 'admin_alerts',
+      event: 'INSERT',
+      onPayload: (payload) => {
+        try {
+          // New alert received
+          const newAlert = payload.new;
+          
+          const notification: Notification = {
+            id: newAlert.id,
+            type: newAlert.alert_type,
+            title: newAlert.title,
+            message: newAlert.message,
+            priority: newAlert.priority,
+            read: false,
+            created_at: newAlert.created_at,
+            metadata: {
+              ...(typeof newAlert.metadata === 'object' && newAlert.metadata !== null ? newAlert.metadata : {}),
+              trip_id: newAlert.trip_id,
+              sensei_id: newAlert.sensei_id
+            }
+          };
 
-              setNotifications(prev => [notification, ...prev]);
-              
-              // Show toast notification
-              showNotificationToast(notification);
-              
-              // Browser notification if permission granted
-              if (Notification.permission === 'granted') {
-                new Notification(notification.title, {
-                  body: notification.message,
-                  icon: '/favicon.ico'
-                });
-              }
-            } catch (error) {
-              logError(error as Error, {
-                component: 'RealTimeNotifications',
-                action: 'handleNewAlert'
-              });
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'admin_alerts'
-          },
-          (payload) => {
-            try {
-              // Alert updated
-              const updatedAlert = payload.new;
-              
-              if (updatedAlert.is_resolved) {
-                setNotifications(prev => prev.filter(n => n.id !== updatedAlert.id));
-              }
-            } catch (error) {
-              logError(error as Error, {
-                component: 'RealTimeNotifications',
-                action: 'handleAlertUpdate'
-              });
-            }
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            logError(new Error('Realtime channel error'), {
-              component: 'RealTimeNotifications',
-              action: 'channelSubscribe'
+          setNotifications(prev => [notification, ...prev]);
+          
+          // Show toast notification
+          showNotificationToast(notification);
+          
+          // Browser notification if permission granted
+          if (Notification.permission === 'granted') {
+            new Notification(notification.title, {
+              body: notification.message,
+              icon: '/favicon.ico'
             });
           }
-        });
-
-    } catch (error) {
-      logError(error as Error, {
-        component: 'RealTimeNotifications',
-        action: 'setupRealtimeSubscription'
-      });
-    }
-
-    return () => {
-      if (channel) {
-        try {
-          supabase.removeChannel(channel);
         } catch (error) {
-          logError(error as Error, {
-            component: 'RealTimeNotifications',
-            action: 'cleanupChannel'
-          });
+          if (import.meta.env.DEV) {
+            console.warn('[RealTimeNotifications] Payload error:', error);
+          }
         }
       }
-    };
+    });
   };
 
   const showNotificationToast = (notification: Notification) => {
-    const variant = notification.priority === 'critical' ? 'destructive' : 'default';
-    
     toast(notification.title, {
       description: notification.message,
       action: {
@@ -206,11 +143,9 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
-      logError(error as Error, {
-        component: 'RealTimeNotifications',
-        action: 'markAsRead',
-        metadata: { notificationId }
-      });
+      if (import.meta.env.DEV) {
+        console.warn('[RealTimeNotifications] Mark as read error:', error);
+      }
     }
   };
 
@@ -225,10 +160,9 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
       setNotifications([]);
     } catch (error) {
-      logError(error as Error, {
-        component: 'RealTimeNotifications',
-        action: 'markAllAsRead'
-      });
+      if (import.meta.env.DEV) {
+        console.warn('[RealTimeNotifications] Mark all as read error:', error);
+      }
     }
   };
 

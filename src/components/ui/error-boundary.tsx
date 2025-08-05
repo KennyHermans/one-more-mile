@@ -77,12 +77,13 @@ export const ErrorBoundary = ({
   return <>{children}</>;
 };
 
-// Enhanced real-time subscription manager
+// Enhanced real-time subscription manager with proper cleanup
 export class RealtimeManager {
   private static instance: RealtimeManager;
   private channels: Map<string, RealtimeChannel> = new Map();
   private reconnectAttempts: Map<string, number> = new Map();
   private maxReconnectAttempts = 3;
+  private isCleaningUp = false;
 
   static getInstance(): RealtimeManager {
     if (!RealtimeManager.instance) {
@@ -101,11 +102,19 @@ export class RealtimeManager {
       onPayload?: (payload: any) => void;
     }
   ): () => void {
-    try {
-      // Clean up existing channel
-      this.unsubscribe(channelName);
+    if (this.isCleaningUp) return () => {};
 
-      const channel = supabase.channel(channelName);
+    try {
+      // Prevent duplicate subscriptions
+      if (this.channels.has(channelName)) {
+        return () => this.unsubscribe(channelName);
+      }
+
+      const channel = supabase.channel(channelName, {
+        config: {
+          presence: { key: channelName }
+        }
+      });
       
       let changeOptions: any = {
         event: config.event || '*',
@@ -119,71 +128,88 @@ export class RealtimeManager {
 
       channel.on('postgres_changes', changeOptions, (payload) => {
         try {
-          config.onPayload?.(payload);
-          // Reset reconnect attempts on successful message
-          this.reconnectAttempts.set(channelName, 0);
+          if (!this.isCleaningUp && this.channels.has(channelName)) {
+            config.onPayload?.(payload);
+            this.reconnectAttempts.set(channelName, 0);
+          }
         } catch (error) {
-          logError(error as Error, {
-            component: 'RealtimeManager',
-            action: 'onPayload',
-            metadata: { channelName, table: config.table }
-          });
+          if (import.meta.env.DEV) {
+            console.warn('[RealtimeManager] Payload error:', error);
+          }
         }
       });
 
-      channel.subscribe((status) => {
+      const subscription = channel.subscribe((status) => {
+        if (this.isCleaningUp) return;
+
         if (status === 'CHANNEL_ERROR') {
           const attempts = this.reconnectAttempts.get(channelName) || 0;
           if (attempts < this.maxReconnectAttempts) {
             this.reconnectAttempts.set(channelName, attempts + 1);
             setTimeout(() => {
-              this.subscribe(channelName, config);
-            }, Math.pow(2, attempts) * 1000); // Exponential backoff
+              if (!this.isCleaningUp) {
+                this.subscribe(channelName, config);
+              }
+            }, Math.pow(2, attempts) * 1000);
           } else {
-            logError(new Error('Max reconnection attempts reached'), {
-              component: 'RealtimeManager',
-              action: 'subscribe',
-              metadata: { channelName, attempts }
-            });
+            if (import.meta.env.DEV) {
+              console.warn(`[RealtimeManager] Max reconnection attempts reached for ${channelName}`);
+            }
+            this.unsubscribe(channelName);
           }
         }
       });
 
       this.channels.set(channelName, channel);
-
       return () => this.unsubscribe(channelName);
 
     } catch (error) {
-      logError(error as Error, {
-        component: 'RealtimeManager',
-        action: 'subscribe',
-        metadata: { channelName }
-      });
+      if (import.meta.env.DEV) {
+        console.warn('[RealtimeManager] Subscribe error:', error);
+      }
       return () => {};
     }
   }
 
   unsubscribe(channelName: string): void {
     const channel = this.channels.get(channelName);
-    if (channel) {
+    if (channel && !this.isCleaningUp) {
       try {
-        supabase.removeChannel(channel);
+        // Use unsubscribe instead of removeChannel to be safer
+        channel.unsubscribe();
         this.channels.delete(channelName);
         this.reconnectAttempts.delete(channelName);
       } catch (error) {
-        logError(error as Error, {
-          component: 'RealtimeManager',
-          action: 'unsubscribe',
-          metadata: { channelName }
-        });
+        if (import.meta.env.DEV) {
+          console.warn(`[RealtimeManager] Unsubscribe error for ${channelName}:`, error);
+        }
+        // Force cleanup even if unsubscribe fails
+        this.channels.delete(channelName);
+        this.reconnectAttempts.delete(channelName);
       }
     }
   }
 
   cleanup(): void {
-    for (const [channelName] of this.channels) {
-      this.unsubscribe(channelName);
+    this.isCleaningUp = true;
+    
+    const channelNames = Array.from(this.channels.keys());
+    for (const channelName of channelNames) {
+      const channel = this.channels.get(channelName);
+      if (channel) {
+        try {
+          channel.unsubscribe();
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn(`[RealtimeManager] Cleanup error for ${channelName}:`, error);
+          }
+        }
+      }
     }
+    
+    this.channels.clear();
+    this.reconnectAttempts.clear();
+    this.isCleaningUp = false;
   }
 }
 
