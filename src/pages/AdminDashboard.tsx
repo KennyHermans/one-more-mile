@@ -14,8 +14,8 @@ import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/
 import { BulkOperations } from "@/components/ui/bulk-operations";
 import { GlobalSearch } from "@/components/ui/global-search";
 import { CommunicationHub } from "@/components/ui/communication-hub";
-import { AdvancedTripManagement } from "@/components/ui/advanced-trip-management";
 import { TripCalendar } from "@/components/ui/trip-calendar";
+import { TripManagementDashboard } from "@/components/ui/trip-management-dashboard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
-import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
-import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
@@ -843,16 +841,8 @@ const AdminDashboard = () => {
             
             
 
-            {activeTab === "trips" && (
-              <div className="space-y-6">
-                <BulkOperations
-                  selectedItems={selectedItems}
-                  onSelectionChange={setSelectedItems}
-                  itemType="trips"
-                  allItems={transformedTrips}
-                />
-                <AdvancedTripManagement />
-              </div>
+            {activeTab === "trip-management" && (
+              <TripManagementDashboard />
             )}
             
             {activeTab === "communication" && user && (
@@ -866,61 +856,7 @@ const AdminDashboard = () => {
             {activeTab === "calendar" && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Calendar</h2>
-                <div className="bg-card rounded-lg p-4">
-                  <p className="text-muted-foreground">Calendar view will be implemented here.</p>
-                </div>
-              </div>
-            )}
-            
-            {activeTab === "trip-permissions" && (
-              <AdminTripManagementOverview />
-            )}
-            
-            {activeTab === "proposals" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Trip Proposals</h2>
-                  <Badge variant="outline" className="text-sm">
-                    {tripProposals.length} pending proposals
-                  </Badge>
-                </div>
-
-                {tripProposals.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 text-center">
-                      <p className="text-muted-foreground">No trip proposals found.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4">
-                    {tripProposals.map((trip) => (
-                      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="text-lg font-semibold">{trip.title}</h3>
-                              <p className="text-muted-foreground">{trip.destination}</p>
-                              <p className="text-muted-foreground">{trip.dates}</p>
-                              <p className="text-sm text-muted-foreground mt-2">
-                                Proposed by: {trip.sensei_name}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                <Check className="w-4 h-4 mr-1" />
-                                Approve
-                              </Button>
-                              <Button variant="destructive" size="sm">
-                                <X className="w-4 h-4 mr-1" />
-                                Reject
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                <TripCalendar />
               </div>
             )}
             
@@ -987,43 +923,6 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {activeTab === "cancellations" && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Trip Cancellations</h2>
-                  <Badge variant="outline" className="text-sm">
-                    {tripCancellations.length} cancellations
-                  </Badge>
-                </div>
-
-                <div className="grid gap-4">
-                  {tripCancellations.map((cancellation) => (
-                    <Card key={cancellation.id}>
-                      <CardContent className="pt-6">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{cancellation.trips?.title}</h3>
-                            <p className="text-muted-foreground">{cancellation.trips?.destination}</p>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Cancelled by: {cancellation.sensei_profiles?.name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              Reason: {cancellation.cancellation_reason}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Users className="w-4 h-4 mr-1" />
-                              Find Replacement
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
             
             
             
@@ -1039,13 +938,6 @@ const AdminDashboard = () => {
             {activeTab === "roles" && (
               <div className="space-y-6">
                 <AdminRoleManagement />
-              </div>
-            )}
-
-            {activeTab === "calendar" && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Trip Calendar</h2>
-                <TripCalendar />
               </div>
             )}
 

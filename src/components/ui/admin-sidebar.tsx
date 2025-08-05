@@ -49,7 +49,7 @@ const sidebarGroups = [
     items: [
       {
         title: "Trip Management",
-        value: "trips",
+        value: "trip-management",
         icon: MapPin,
         requiresPermission: "canManageTrips"
       },
@@ -65,18 +65,6 @@ const sidebarGroups = [
         value: "calendar",
         icon: Calendar,
         requiresPermission: null
-      },
-      {
-        title: "Trip Editor",
-        value: "trip-editor",
-        icon: Edit,
-        requiresPermission: "canManageTrips"
-      },
-      {
-        title: "Trip Permissions",
-        value: "trip-permissions",
-        icon: Settings,
-        requiresPermission: "canManageTrips"
       }
     ]
   },
@@ -95,12 +83,6 @@ const sidebarGroups = [
     label: "Content & Communication",
     items: [
       {
-        title: "Trip Proposals",
-        value: "proposals",
-        icon: TrendingUp,
-        requiresPermission: "canManageTrips"
-      },
-      {
         title: "Announcements",
         value: "announcements",
         icon: Megaphone,
@@ -111,12 +93,6 @@ const sidebarGroups = [
         value: "feedback",
         icon: MessageCircle,
         requiresPermission: "canViewCustomers"
-      },
-      {
-        title: "Cancellations",
-        value: "cancellations",
-        icon: AlertTriangle,
-        requiresPermission: "canManageTrips"
       }
     ]
   },
