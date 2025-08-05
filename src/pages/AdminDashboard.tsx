@@ -12,7 +12,6 @@ import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assi
 import { DatabaseOptimization } from "@/components/ui/database-optimization";
 import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdvancedAnalyticsReporting } from "@/components/ui/advanced-analytics-reporting";
-import { ComprehensiveReporting } from "@/components/ui/comprehensive-reporting";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { BulkOperations } from "@/components/ui/bulk-operations";
@@ -1063,9 +1062,6 @@ const AdminDashboard = () => {
             )}
             
             
-            {activeTab === "comprehensive-reports" && (
-              <ComprehensiveReporting />
-            )}
             
             {activeTab === "automation" && (
               <div className="space-y-6">

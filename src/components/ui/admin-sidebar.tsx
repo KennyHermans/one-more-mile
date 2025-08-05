@@ -59,18 +59,6 @@ const sidebarGroups = [
   {
     label: "Intelligence & Reporting",
     items: [
-      {
-        title: "AI Code Analyzer",
-        value: "ai-code-analyzer",
-        icon: Brain,
-        requiresPermission: null
-      },
-      {
-        title: "Comprehensive Reports",
-        value: "comprehensive-reports",
-        icon: FileText,
-        requiresPermission: null
-      }
     ]
   },
   {
