@@ -301,6 +301,9 @@ export type Database = {
           applied_at: string
           created_at: string
           id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           sensei_id: string
           status: string
           trip_id: string
@@ -311,6 +314,9 @@ export type Database = {
           applied_at?: string
           created_at?: string
           id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sensei_id: string
           status?: string
           trip_id: string
@@ -321,6 +327,9 @@ export type Database = {
           applied_at?: string
           created_at?: string
           id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sensei_id?: string
           status?: string
           trip_id?: string
@@ -348,7 +357,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          match_score: number
+          match_score: number | null
           request_type: string
           requested_at: string
           responded_at: string | null
@@ -362,7 +371,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          match_score?: number
+          match_score?: number | null
           request_type?: string
           requested_at?: string
           responded_at?: string | null
@@ -376,7 +385,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          match_score?: number
+          match_score?: number | null
           request_type?: string
           requested_at?: string
           responded_at?: string | null
@@ -591,32 +600,41 @@ export type Database = {
         }
         Relationships: []
       }
-      level_requirements: {
+      destination_skill_mappings: {
         Row: {
-          additional_requirements: Json | null
+          activity_types: string[] | null
+          country: string
           created_at: string
+          cultural_contexts: string[] | null
+          destination: string
           id: string
-          level: Database["public"]["Enums"]["sensei_level"]
-          min_average_rating: number
-          min_trips_completed: number
+          primary_languages: string[] | null
+          region: string | null
+          skill_weights: Json | null
           updated_at: string
         }
         Insert: {
-          additional_requirements?: Json | null
+          activity_types?: string[] | null
+          country: string
           created_at?: string
+          cultural_contexts?: string[] | null
+          destination: string
           id?: string
-          level: Database["public"]["Enums"]["sensei_level"]
-          min_average_rating?: number
-          min_trips_completed?: number
+          primary_languages?: string[] | null
+          region?: string | null
+          skill_weights?: Json | null
           updated_at?: string
         }
         Update: {
-          additional_requirements?: Json | null
+          activity_types?: string[] | null
+          country?: string
           created_at?: string
+          cultural_contexts?: string[] | null
+          destination?: string
           id?: string
-          level?: Database["public"]["Enums"]["sensei_level"]
-          min_average_rating?: number
-          min_trips_completed?: number
+          primary_languages?: string[] | null
+          region?: string | null
+          skill_weights?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -994,39 +1012,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sensei_level_history: {
-        Row: {
-          change_reason: string | null
-          changed_by: string | null
-          created_at: string
-          id: string
-          new_level: Database["public"]["Enums"]["sensei_level"]
-          previous_level: Database["public"]["Enums"]["sensei_level"] | null
-          requirements_met: Json | null
-          sensei_id: string
-        }
-        Insert: {
-          change_reason?: string | null
-          changed_by?: string | null
-          created_at?: string
-          id?: string
-          new_level: Database["public"]["Enums"]["sensei_level"]
-          previous_level?: Database["public"]["Enums"]["sensei_level"] | null
-          requirements_met?: Json | null
-          sensei_id: string
-        }
-        Update: {
-          change_reason?: string | null
-          changed_by?: string | null
-          created_at?: string
-          id?: string
-          new_level?: Database["public"]["Enums"]["sensei_level"]
-          previous_level?: Database["public"]["Enums"]["sensei_level"] | null
-          requirements_met?: Json | null
-          sensei_id?: string
-        }
-        Relationships: []
-      }
       sensei_matching_insights: {
         Row: {
           created_at: string
@@ -1119,16 +1104,11 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_offline: boolean | null
-          level_achieved_at: string | null
-          level_requirements_met: Json | null
           location: string
           name: string
           rating: number | null
-          sensei_level: Database["public"]["Enums"]["sensei_level"] | null
           specialties: string[]
           specialty: string
-          trip_creation_request_date: string | null
-          trip_creation_requested: boolean
           trip_edit_permissions: Json | null
           trips_led: number | null
           unavailable_months: string[] | null
@@ -1146,16 +1126,11 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_offline?: boolean | null
-          level_achieved_at?: string | null
-          level_requirements_met?: Json | null
           location: string
           name: string
           rating?: number | null
-          sensei_level?: Database["public"]["Enums"]["sensei_level"] | null
           specialties?: string[]
           specialty: string
-          trip_creation_request_date?: string | null
-          trip_creation_requested?: boolean
           trip_edit_permissions?: Json | null
           trips_led?: number | null
           unavailable_months?: string[] | null
@@ -1173,16 +1148,11 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_offline?: boolean | null
-          level_achieved_at?: string | null
-          level_requirements_met?: Json | null
           location?: string
           name?: string
           rating?: number | null
-          sensei_level?: Database["public"]["Enums"]["sensei_level"] | null
           specialties?: string[]
           specialty?: string
-          trip_creation_request_date?: string | null
-          trip_creation_requested?: boolean
           trip_edit_permissions?: Json | null
           trips_led?: number | null
           unavailable_months?: string[] | null
@@ -1586,7 +1556,6 @@ export type Database = {
       }
       trips: {
         Row: {
-          backup_assignment_deadline: string | null
           backup_sensei_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -1613,7 +1582,7 @@ export type Database = {
           rating: number | null
           replacement_needed: boolean | null
           requirements: string[] | null
-          requires_backup_sensei: boolean
+          requires_backup_sensei: boolean | null
           sensei_id: string | null
           sensei_name: string
           start_date: string | null
@@ -1623,7 +1592,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1650,7 +1618,7 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
-          requires_backup_sensei?: boolean
+          requires_backup_sensei?: boolean | null
           sensei_id?: string | null
           sensei_name: string
           start_date?: string | null
@@ -1660,7 +1628,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1687,7 +1654,7 @@ export type Database = {
           rating?: number | null
           replacement_needed?: boolean | null
           requirements?: string[] | null
-          requires_backup_sensei?: boolean
+          requires_backup_sensei?: boolean | null
           sensei_id?: string | null
           sensei_name?: string
           start_date?: string | null
@@ -1718,6 +1685,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_admin_role: {
+        Args: {
+          p_user_email: string
+          p_role: Database["public"]["Enums"]["platform_role"]
+          p_assigned_by?: string
+        }
+        Returns: Json
+      }
+      calculate_enhanced_sensei_insights: {
+        Args: { p_sensei_id: string }
+        Returns: Json
+      }
+      calculate_enhanced_sensei_match_score: {
+        Args: {
+          p_sensei_id: string
+          p_trip_theme: string
+          p_destination?: string
+          p_trip_months?: string[]
+          p_trip_id?: string
+        }
+        Returns: {
+          match_score: number
+          weighted_score: number
+          specialty_matches: string[]
+          certificate_matches: string[]
+          skill_matches: string[]
+          language_matches: string[]
+          destination_context_score: number
+          missing_requirements: string[]
+          contextual_recommendations: string[]
+          requirements_met_percentage: number
+          language_bonus: number
+          cultural_bonus: number
+          activity_bonus: number
+        }[]
+      }
       calculate_payment_deadline: {
         Args: { trip_start_date: string }
         Returns: string
@@ -1725,14 +1728,6 @@ export type Database = {
       calculate_sensei_insights: {
         Args: { p_sensei_id: string }
         Returns: undefined
-      }
-      calculate_sensei_level_eligibility: {
-        Args: { p_sensei_id: string }
-        Returns: {
-          eligible_level: Database["public"]["Enums"]["sensei_level"]
-          requirements_met: Json
-          next_level_requirements: Json
-        }[]
       }
       calculate_sensei_match_score_enhanced: {
         Args: {
@@ -1753,6 +1748,10 @@ export type Database = {
         }[]
       }
       can_manage_finances: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
+      can_manage_roles: {
         Args: { user_id?: string }
         Returns: boolean
       }
@@ -1784,20 +1783,6 @@ export type Database = {
         Args: { p_sensei_id: string }
         Returns: Json
       }
-      get_sensei_trip_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          sensei_id: string
-          sensei_name: string
-          is_linked_to_trip: boolean
-          current_trip_count: number
-          is_available: boolean
-          specialties: string[]
-          certifications: string[]
-          location: string
-          rating: number
-        }[]
-      }
       get_user_platform_role: {
         Args: { user_id?: string }
         Returns: Database["public"]["Enums"]["platform_role"]
@@ -1816,13 +1801,16 @@ export type Database = {
         }
         Returns: undefined
       }
-      request_backup_senseis: {
-        Args: { p_trip_id: string; p_max_requests?: number }
+      revoke_admin_role: {
+        Args: { p_role_id: string; p_revoked_by?: string }
+        Returns: Json
+      }
+      search_users_by_email: {
+        Args: { email_pattern: string }
         Returns: {
-          request_id: string
-          sensei_id: string
-          sensei_name: string
-          match_score: number
+          user_id: string
+          email: string
+          created_at: string
         }[]
       }
       send_welcome_message_to_participant: {
@@ -1854,40 +1842,6 @@ export type Database = {
           is_available: boolean
         }[]
       }
-      suggest_senseis_for_trip_enhanced: {
-        Args: { trip_theme: string; trip_months?: string[]; trip_id?: string }
-        Returns: {
-          sensei_id: string
-          sensei_name: string
-          match_score: number
-          matching_specialties: string[]
-          matching_certifications: string[]
-          matching_skills: string[]
-          verified_certificates: string[]
-          missing_requirements: string[]
-          location: string
-          rating: number
-          is_available: boolean
-          requirements_met_percentage: number
-        }[]
-      }
-      upgrade_sensei_level: {
-        Args:
-          | {
-              p_sensei_id: string
-              p_new_level: Database["public"]["Enums"]["sensei_level"]
-              p_changed_by?: string
-              p_reason?: string
-            }
-          | {
-              p_sensei_id: string
-              p_new_level: Database["public"]["Enums"]["sensei_level"]
-              p_changed_by?: string
-              p_reason?: string
-              p_admin_override?: boolean
-            }
-        Returns: Json
-      }
       validate_sensei_action: {
         Args: { p_sensei_id: string; p_action: string }
         Returns: boolean
@@ -1899,7 +1853,6 @@ export type Database = {
         | "journey_curator"
         | "sensei_scout"
         | "traveler_support"
-      sensei_level: "apprentice" | "journey_guide" | "master_sensei"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2033,7 +1986,6 @@ export const Constants = {
         "sensei_scout",
         "traveler_support",
       ],
-      sensei_level: ["apprentice", "journey_guide", "master_sensei"],
     },
   },
 } as const
