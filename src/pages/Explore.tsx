@@ -297,7 +297,7 @@ const Explore = () => {
       </section>
 
       {/* Results Section */}
-      <section className="py-16">
+      <section className="py-8">
         <div className="container">
           {/* Results Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
