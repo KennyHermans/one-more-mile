@@ -88,7 +88,19 @@ const AdminApplications = () => {
   const approveApplication = async (application: Application) => {
     setProcessing(application.id);
     try {
-      // Update application status
+      // Check if a sensei profile already exists for this user
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('sensei_profiles')
+        .select('id, name, is_active')
+        .eq('user_id', application.user_id)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing profile:', checkError);
+        throw new Error('Failed to check existing sensei profile.');
+      }
+
+      // Update application status first
       const { error: updateError } = await supabase
         .from('applications')
         .update({ status: 'approved' })
@@ -96,34 +108,65 @@ const AdminApplications = () => {
 
       if (updateError) throw updateError;
 
-      // Create sensei profile
-      const { error: insertError } = await supabase
-        .from('sensei_profiles')
-        .insert({
-          user_id: application.user_id,
-          name: application.full_name,
-          specialty: application.expertise_areas[0] || 'General',
-          bio: application.bio,
-          experience: `${application.years_experience} years`,
-          location: application.location,
-          specialties: application.expertise_areas,
-          is_active: true,
-          rating: 0.0,
-          trips_led: 0
+      if (existingProfile) {
+        // Profile exists - reactivate if inactive, or just skip creation
+        if (!existingProfile.is_active) {
+          const { error: reactivateError } = await supabase
+            .from('sensei_profiles')
+            .update({ 
+              is_active: true,
+              name: application.full_name,
+              bio: application.bio,
+              experience: `${application.years_experience} years`,
+              location: application.location,
+              specialties: application.expertise_areas,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingProfile.id);
+
+          if (reactivateError) throw reactivateError;
+
+          toast({
+            title: "Application Approved",
+            description: `${application.full_name} has been approved and their existing Sensei profile has been reactivated!`,
+          });
+        } else {
+          toast({
+            title: "Application Approved",
+            description: `${application.full_name} has been approved! They already have an active Sensei profile.`,
+          });
+        }
+      } else {
+        // No existing profile - create new one
+        const { error: insertError } = await supabase
+          .from('sensei_profiles')
+          .insert({
+            user_id: application.user_id,
+            name: application.full_name,
+            specialty: application.expertise_areas[0] || 'General',
+            bio: application.bio,
+            experience: `${application.years_experience} years`,
+            location: application.location,
+            specialties: application.expertise_areas,
+            is_active: true,
+            rating: 0.0,
+            trips_led: 0
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "Application Approved",
+          description: `${application.full_name} has been approved as a new Sensei!`,
         });
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Application Approved",
-        description: `${application.full_name} has been approved as a Sensei!`,
-      });
+      }
 
       fetchApplications();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error approving application:', error);
       toast({
         title: "Error",
-        description: "Failed to approve application.",
+        description: error.message || "Failed to approve application.",
         variant: "destructive",
       });
     } finally {
