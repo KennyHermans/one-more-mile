@@ -41,6 +41,8 @@ export function SenseiTripsManagement({
   onViewTrip,
   onCancelTrip 
 }: SenseiTripsManagementProps) {
+  console.log('SenseiTripsManagement props:', { canCreateTrips, canEditTrips, isLoadingPermissions });
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
@@ -117,7 +119,10 @@ export function SenseiTripsManagement({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onEditTrip(trip)}
+                  onClick={() => {
+                    console.log('Edit button clicked:', { canEditTrips, isLoadingPermissions, trip: trip.title });
+                    onEditTrip(trip);
+                  }}
                   disabled={isLoadingPermissions}
                 >
                   <Edit2 className="h-3 w-3 mr-1" />

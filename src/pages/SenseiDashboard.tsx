@@ -1002,6 +1002,11 @@ const SenseiDashboard = () => {
 
 
       case "trips":
+        console.log('Trips tab - Permission debugging:', {
+          senseiPermissionsLoading,
+          senseiPermissions,
+          canEditTrips: !senseiPermissionsLoading && (senseiPermissions?.can_edit_trips || false)
+        });
         return (
           <SenseiTripsManagement
             trips={trips}
