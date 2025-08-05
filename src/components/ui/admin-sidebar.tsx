@@ -65,12 +65,6 @@ const sidebarGroups = [
         icon: Users,
         badge: true,
         requiresPermission: "canManageSenseis"
-      },
-      {
-        title: "Calendar",
-        value: "calendar",
-        icon: Calendar,
-        requiresPermission: null
       }
     ]
   },

@@ -14,7 +14,7 @@ import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/
 import { BulkOperations } from "@/components/ui/bulk-operations";
 import { GlobalSearch } from "@/components/ui/global-search";
 import { CommunicationHub } from "@/components/ui/communication-hub";
-import { TripCalendar } from "@/components/ui/trip-calendar";
+
 import { TripManagementDashboard } from "@/components/ui/trip-management-dashboard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +45,7 @@ import {
   Trash2,
   Star,
   MapPin,
-  Calendar,
+  
   Users,
   Settings,
   TrendingUp,
@@ -898,12 +898,6 @@ const AdminDashboard = () => {
               <SenseiManagementDashboard />
             )}
             
-            {activeTab === "calendar" && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Calendar</h2>
-                <TripCalendar />
-              </div>
-            )}
             
             {activeTab === "announcements" && (
               <div className="space-y-6">
