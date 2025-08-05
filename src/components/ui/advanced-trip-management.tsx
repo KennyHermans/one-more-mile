@@ -365,7 +365,7 @@ export function AdvancedTripManagement() {
                         <Badge className={getStatusColor(trip.trip_status)}>
                           {trip.trip_status}
                         </Badge>
-                        {conflicts.some(c => c.affectedTrips.includes(trip.id)) && (
+                        {conflicts.some(c => Array.isArray(c.affectedTrips) && c.affectedTrips.includes(trip.id)) && (
                           <Badge variant="destructive">
                             <AlertTriangle className="h-3 w-3 mr-1" />
                             Conflict
