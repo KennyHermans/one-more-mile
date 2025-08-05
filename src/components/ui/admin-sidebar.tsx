@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -167,14 +167,6 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['sensei-management']));
 
-  // Keep sensei-management expanded when any sensei sub-tab is active
-  useEffect(() => {
-    const senseiTabs = ['overview', 'applications', 'active-senseis', 'assignments', 'management'];
-    if (senseiTabs.includes(activeTab)) {
-      setExpandedItems(prev => new Set([...prev, 'sensei-management']));
-    }
-  }, [activeTab]);
-
   const handleItemClick = (value: string) => {
     if (value === "trip-management") {
       navigate("/admin/trips");
@@ -184,7 +176,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   };
 
   const handleSubItemClick = (value: string) => {
-    // Direct mapping to SenseiManagementDashboard tab values
+    // Map sub-item values to existing tab values in SenseiManagementDashboard
     const tabMapping: Record<string, string> = {
       'sensei-overview': 'overview',
       'sensei-applications': 'applications', 
@@ -193,8 +185,14 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
       'sensei-levels': 'management'
     };
     
-    const mappedTab = tabMapping[value] || value;
-    onTabChange(mappedTab);
+    // First activate sensei-management tab, then let dashboard handle sub-tab
+    onTabChange('sensei-management');
+    
+    // Use a small delay to ensure the dashboard renders before setting the sub-tab
+    setTimeout(() => {
+      const mappedTab = tabMapping[value] || value;
+      onTabChange(`sensei-management-${mappedTab}`);
+    }, 50);
   };
 
   const toggleExpanded = (value: string) => {
@@ -210,24 +208,12 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   };
 
   const isActive = (value: string) => {
-    if (value === 'sensei-management') {
-      const senseiTabs = ['overview', 'applications', 'active-senseis', 'assignments', 'management'];
-      return senseiTabs.includes(activeTab);
-    }
-    return activeTab === value;
+    return activeTab === value || activeTab.startsWith(`${value}-`);
   };
 
   const isSubItemActive = (parentValue: string, subValue: string) => {
-    const tabMapping: Record<string, string> = {
-      'sensei-overview': 'overview',
-      'sensei-applications': 'applications', 
-      'sensei-active': 'active-senseis',
-      'sensei-assignments': 'assignments',
-      'sensei-levels': 'management'
-    };
-    
-    const mappedTab = tabMapping[subValue] || subValue;
-    return activeTab === mappedTab;
+    return activeTab.startsWith(`${parentValue}-`) && 
+           (activeTab.includes(subValue) || (subValue === 'overview' && activeTab === 'sensei-management'));
   };
 
   const hasPermission = (requiredPermission: string | null) => {
@@ -294,11 +280,11 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
                                   <SidebarMenuSubItem key={subItem.title}>
                                     <SidebarMenuSubButton 
                                       onClick={() => handleSubItemClick(subItem.value)}
-                                       className={`cursor-pointer transition-colors ${
-                                         isSubItemActive(item.value, subItem.value) 
-                                           ? "bg-accent text-accent-foreground font-medium" 
-                                           : "hover:bg-muted/50"
-                                       }`}
+                                      className={`cursor-pointer transition-colors ${
+                                        isSubItemActive(item.value, subItem.value.split('-').pop() || '') 
+                                          ? "bg-accent text-accent-foreground font-medium" 
+                                          : "hover:bg-muted/50"
+                                      }`}
                                     >
                                       <subItem.icon className="h-4 w-4" />
                                       <span className="flex items-center justify-between w-full">

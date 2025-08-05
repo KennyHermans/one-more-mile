@@ -193,19 +193,7 @@ export function SenseiManagementDashboard({ initialActiveTab = "overview" }: Sen
         </TabsContent>
 
         <TabsContent value="active-senseis" className="space-y-6 mt-6">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Senseis</CardTitle>
-                <CardDescription>
-                  Manage currently active sensei profiles and their status.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Active sensei management features coming soon.</p>
-              </CardContent>
-            </Card>
-          </div>
+          <AdminSenseiOverview />
         </TabsContent>
 
         <TabsContent value="assignments" className="space-y-6 mt-6">
