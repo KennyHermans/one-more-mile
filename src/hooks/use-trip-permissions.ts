@@ -27,18 +27,69 @@ export const useTripPermissions = (senseiId?: string, tripId?: string) => {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      
+      // First try to get individual trip permissions
+      const { data: tripPermData, error: tripError } = await supabase
         .from('trip_permissions')
         .select('permissions')
         .eq('sensei_id', senseiId)
         .eq('trip_id', tripId)
         .single();
 
-      if (error) {
-        console.error('Error fetching trip permissions:', error);
-        setPermissions(null);
+      if (tripError && tripError.code !== 'PGRST116') {
+        console.error('Error fetching trip permissions:', tripError);
+      }
+
+      // If no individual permissions, get level-based defaults
+      if (!tripPermData?.permissions) {
+        const { data: senseiData, error: senseiError } = await supabase
+          .from('sensei_profiles')
+          .select('sensei_level')
+          .eq('id', senseiId)
+          .single();
+
+        if (senseiError) {
+          console.error('Error fetching sensei level:', senseiError);
+          setPermissions(null);
+          return;
+        }
+
+        // Get level-based field permissions
+        const { data: fieldPermissions, error: fieldError } = await supabase
+          .from('sensei_level_field_permissions')
+          .select('field_name, can_edit')
+          .eq('sensei_level', senseiData.sensei_level);
+
+        if (fieldError) {
+          console.error('Error fetching field permissions:', fieldError);
+          setPermissions(null);
+          return;
+        }
+
+        // Convert field permissions to TripPermissions format
+        const levelPermissions: TripPermissions = {
+          title: false,
+          description: false,
+          destination: false,
+          theme: false,
+          dates: false,
+          price: false,
+          group_size: false,
+          included_amenities: false,
+          excluded_items: false,
+          requirements: false,
+          program: false,
+        };
+
+        fieldPermissions?.forEach(perm => {
+          if (perm.field_name in levelPermissions) {
+            (levelPermissions as any)[perm.field_name] = perm.can_edit;
+          }
+        });
+
+        setPermissions(levelPermissions);
       } else {
-        setPermissions(data?.permissions as unknown as TripPermissions);
+        setPermissions(tripPermData.permissions as unknown as TripPermissions);
       }
     } catch (error) {
       console.error('Error fetching trip permissions:', error);
