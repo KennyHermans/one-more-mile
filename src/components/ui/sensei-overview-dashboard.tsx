@@ -182,14 +182,6 @@ export function SenseiOverviewDashboard({
                 </div>
               </div>
 
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onTabChange('gamification')}
-                className="w-full"
-              >
-                View Full Progress
-              </Button>
             </div>
           </CardContent>
         </Card>

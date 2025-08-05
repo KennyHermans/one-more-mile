@@ -820,16 +820,6 @@ const SenseiDashboard = () => {
             <SenseiCertificatesManagement senseiId={senseiProfile?.id || ""} />
           )}
 
-          {activeTab === "gamification" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Gamification</CardTitle>
-                <CardDescription>
-                  Gamification features have been simplified. Focus on creating great trips!
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
         </SenseiDashboardLayout>
 
         {/* Profile Edit Dialog */}

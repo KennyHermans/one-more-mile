@@ -25,8 +25,7 @@ import {
   Calendar,
   CheckSquare,
   Settings,
-  Home,
-  Crown
+  Home
 } from "lucide-react";
 
 const sidebarItems = [
@@ -45,12 +44,6 @@ const sidebarItems = [
   },
   
   // Professional Development
-  {
-    title: "Level & Progress",
-    value: "gamification",
-    icon: Crown,
-    group: "professional"
-  },
   {
     title: "Certificates",
     value: "certificates",
