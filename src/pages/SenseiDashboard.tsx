@@ -1736,42 +1736,6 @@ const SenseiDashboard = () => {
             </Card>
           </div>
         );
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Arrays */}
-                                {canEdit(editingTrip.id, 'included_amenities') && (
-                                  <div>
-                                    <Label>Included Amenities (comma-separated)</Label>
-                                    <Textarea
-                                      value={editingTrip.included_amenities?.join(', ') || ''}
-                                      onChange={(e) => setEditingTrip({
-                                        ...editingTrip, 
-                                        included_amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)
-                                      })}
-                                      rows={3}
-                                    />
-                                  </div>
-                                )}
-
-                                <div className="flex justify-end space-x-2">
-                                  <Button variant="outline" onClick={() => setEditingTrip(null)}>
-                                    <X className="w-4 h-4 mr-2" />
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={handleSaveTrip}>
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Save Changes
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-          </div>
-        );
-
       default:
         return <div>Tab not found</div>;
     }
@@ -1790,130 +1754,38 @@ const SenseiDashboard = () => {
       <Dialog open={!!editingTrip} onOpenChange={(open) => !open && setEditingTrip(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex justify-between items-center">
-              <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
-              <Button
-                onClick={() => fetchTripPermissions(user.id)}
-                variant="outline"
-                size="sm"
-              >
-                Refresh Permissions
-              </Button>
-            </div>
+            <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
           </DialogHeader>
           
           {editingTrip && (
             <div className="space-y-6">
-              {/* Title */}
               <div>
                 <Label htmlFor="trip-title">Title</Label>
                 <Input
                   id="trip-title"
                   value={editingTrip.title}
                   onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
-                  disabled={!canEdit(editingTrip.id, 'title')}
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <Label htmlFor="trip-description">Description</Label>
                 <Textarea
                   id="trip-description"
                   value={editingTrip.description}
                   onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
-                  disabled={!canEdit(editingTrip.id, 'description')}
                   rows={4}
                 />
               </div>
 
-              {/* Destination */}
               <div>
-                <Label htmlFor="trip-destination">Destination</Label>
-                <Input
-                  id="trip-destination"
-                  value={editingTrip.destination}
-                  onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
-                  disabled={!canEdit(editingTrip.id, 'destination')}
-                />
-              </div>
-
-              {/* Theme */}
-              <div>
-                <Label htmlFor="trip-theme">Theme</Label>
-                <Input
-                  id="trip-theme"
-                  value={editingTrip.theme || ''}
-                  onChange={(e) => setEditingTrip({...editingTrip, theme: e.target.value})}
-                  disabled={!canEdit(editingTrip.id, 'theme')}
-                />
-              </div>
-
-              {/* Price */}
-              <div>
-                <Label htmlFor="trip-price">Price ($)</Label>
+                <Label htmlFor="trip-price">Price</Label>
                 <Input
                   id="trip-price"
-                  type="number"
                   value={editingTrip.price}
                   onChange={(e) => setEditingTrip({...editingTrip, price: e.target.value})}
-                  disabled={!canEdit(editingTrip.id, 'price')}
                 />
               </div>
-
-              {/* Group Size */}
-              <div>
-                <Label htmlFor="trip-group-size">Maximum Group Size</Label>
-                <Input
-                  id="trip-group-size"
-                  type="number"
-                  value={editingTrip.max_participants}
-                  onChange={(e) => setEditingTrip({...editingTrip, max_participants: Number(e.target.value)})}
-                  disabled={!canEdit(editingTrip.id, 'group_size')}
-                />
-              </div>
-
-              {/* Program/Itinerary */}
-              {canEdit(editingTrip.id, 'program') && (
-                <div>
-                  <Label>Daily Program</Label>
-                  <div className="space-y-4 mt-2">
-                    {editingTrip.program?.map((day: ProgramDay, index: number) => (
-                      <Card key={index}>
-                        <CardContent className="pt-4">
-                          <div className="space-y-2">
-                            <div>
-                              <Label htmlFor={`day-${index}-title`}>Day {index + 1} Title</Label>
-                              <Input
-                                id={`day-${index}-title`}
-                                value={day.title}
-                                onChange={(e) => {
-                                  const newProgram = [...(editingTrip.program || [])];
-                                  newProgram[index] = {...day, title: e.target.value};
-                                  setEditingTrip({...editingTrip, program: newProgram});
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor={`day-${index}-description`}>Description</Label>
-                              <Textarea
-                                id={`day-${index}-description`}
-                                value={day.description}
-                                onChange={(e) => {
-                                  const newProgram = [...(editingTrip.program || [])];
-                                  newProgram[index] = {...day, description: e.target.value};
-                                  setEditingTrip({...editingTrip, program: newProgram});
-                                }}
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setEditingTrip(null)}>
@@ -1929,6 +1801,38 @@ const SenseiDashboard = () => {
       </Dialog>
 
       {/* Edit Profile Dialog */}
+      <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={profileFormData.name}
+                onChange={(e) => setProfileFormData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button variant="outline" onClick={() => setEditProfileOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveProfile}>
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </SenseiDashboardLayout>
+  );
+};
+
+export default SenseiDashboard;
       <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
