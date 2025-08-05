@@ -65,9 +65,6 @@ const sidebarItems = [
     icon: Edit3,
     group: "trips"
   },
-  {
-    group: "trips"
-  },
   
   // Communication
   {
