@@ -70,7 +70,10 @@ export const AdminSenseiLevelOverview = () => {
     try {
       setError(null);
       const { data, error: overviewError } = await supabase
-        .rpc('get_sensei_level_overview');
+        .from('sensei_profiles')
+        .select('id, name, sensei_level, trips_led, rating')
+        .eq('is_active', true)
+        .order('trips_led', { ascending: false });
 
       if (overviewError) {
         console.error('Overview error:', overviewError);
@@ -78,10 +81,43 @@ export const AdminSenseiLevelOverview = () => {
         return;
       }
 
-      setSenseiOverview(data || []);
+      if (data && Array.isArray(data)) {
+        // Check eligibility for each sensei
+        const senseiWithEligibility = await Promise.all(
+          data.map(async (sensei) => {
+            try {
+              const eligibilityResponse = await supabase.rpc('check_sensei_level_eligibility', {
+                p_sensei_id: sensei.id
+              });
+              
+              const eligibility = eligibilityResponse.data;
+              const canUpgrade = eligibility?.can_auto_upgrade || false;
+              const eligibleLevel = eligibility?.eligible_level;
+              
+              return {
+                ...sensei,
+                eligible_for_upgrade: canUpgrade,
+                next_eligible_level: canUpgrade ? eligibleLevel : undefined
+              };
+            } catch (err) {
+              console.error('Error checking eligibility for sensei:', sensei.id, err);
+              return {
+                ...sensei,
+                eligible_for_upgrade: false,
+                next_eligible_level: undefined
+              };
+            }
+          })
+        );
+
+        setSenseiOverview(senseiWithEligibility);
+      } else {
+        setSenseiOverview([]);
+      }
     } catch (err) {
       console.error('Unexpected error:', err);
       setError('An unexpected error occurred');
+      setSenseiOverview([]);
     }
   };
 
