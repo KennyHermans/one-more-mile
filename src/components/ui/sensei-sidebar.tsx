@@ -58,13 +58,7 @@ const sidebarItems = [
     group: "professional"
   },
   {
-    title: "Analytics",
-    value: "analytics", 
-    icon: BarChart3,
-    group: "professional"
-  },
-  {
-    title: "Goals",
+    title: "Goals & Tracking",
     value: "goals",
     icon: Target,
     group: "professional"
@@ -74,6 +68,20 @@ const sidebarItems = [
     value: "certificates",
     icon: FileCheck,
     group: "professional"
+  },
+  
+  // Trip Management
+  {
+    title: "Trip Proposals",
+    value: "proposals",
+    icon: Edit3,
+    group: "trips"
+  },
+  {
+    title: "Backup Requests",
+    value: "backup-sensei",
+    icon: Shield,
+    group: "trips"
   },
   
   // Communication
@@ -90,21 +98,13 @@ const sidebarItems = [
     group: "communication"
   },
   
-  // Applications & Backup
+  // Applications & Settings
   {
-    title: "Applications",
+    title: "My Applications",
     value: "applications",
     icon: FileText,
-    group: "admin"
+    group: "settings"
   },
-  {
-    title: "Backup Sensei",
-    value: "backup-sensei",
-    icon: Shield,
-    group: "admin"
-  },
-  
-  // Settings
   {
     title: "Availability",
     value: "availability",
@@ -115,9 +115,9 @@ const sidebarItems = [
 
 const sidebarGroups = [
   { key: "main", label: "Dashboard" },
-  { key: "professional", label: "Professional" },
+  { key: "professional", label: "Development" },
+  { key: "trips", label: "Trip Management" },
   { key: "communication", label: "Communication" },
-  { key: "admin", label: "Applications" },
   { key: "settings", label: "Settings" }
 ];
 
