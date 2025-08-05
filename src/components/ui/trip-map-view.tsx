@@ -139,9 +139,6 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
     <div className={className}>
       {/* View Toggle */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-serif text-2xl font-bold">
-          {trips.length} Adventures Found
-        </h2>
         
         <div className="flex bg-muted rounded-lg p-1">
           <Button
