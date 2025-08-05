@@ -64,12 +64,6 @@ const sidebarGroups = [
         value: "smart-alerts",
         icon: AlertTriangle,
         requiresPermission: null
-      },
-      {
-        title: "Comprehensive Reports",
-        value: "comprehensive-reports",
-        icon: FileText,
-        requiresPermission: null
       }
     ]
   },

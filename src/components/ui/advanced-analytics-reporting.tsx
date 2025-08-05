@@ -286,7 +286,7 @@ export function AdvancedAnalyticsReporting() {
   };
 
   const exportReport = async (reportType: string) => {
-    // In a real app, this would generate and download a comprehensive report
+    // In a real app, this would generate and download a detailed report
     const currentReportData = {
       type: reportType,
       generatedAt: new Date().toISOString(),
@@ -325,7 +325,7 @@ export function AdvancedAnalyticsReporting() {
             Advanced Analytics & Predictive Insights
           </h2>
           <p className="text-muted-foreground">
-            AI-powered analytics with predictive modeling and comprehensive reporting
+            AI-powered analytics with predictive modeling and advanced reporting
           </p>
         </div>
         <div className="flex gap-2">
