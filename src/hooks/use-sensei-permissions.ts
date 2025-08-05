@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSenseiLevel } from '@/contexts/SenseiLevelContext';
 
 interface SenseiPermissions {
   can_view_trips: boolean;
@@ -16,6 +17,7 @@ interface SenseiPermissions {
 export const useSenseiPermissions = (senseiId?: string) => {
   const [permissions, setPermissions] = useState<SenseiPermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { currentLevel, lastLevelChange } = useSenseiLevel();
 
   const fetchPermissions = async () => {
     if (!senseiId) {
@@ -63,7 +65,7 @@ export const useSenseiPermissions = (senseiId?: string) => {
 
   useEffect(() => {
     fetchPermissions();
-  }, [senseiId]);
+  }, [senseiId, currentLevel, lastLevelChange]);
 
   return {
     permissions,

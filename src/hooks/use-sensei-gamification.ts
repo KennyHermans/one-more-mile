@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSenseiLevel } from '@/contexts/SenseiLevelContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface SenseiLevel {
@@ -35,6 +36,7 @@ export const useSenseiGamification = (senseiId?: string) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [levelHistory, setLevelHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { currentLevel, lastLevelChange } = useSenseiLevel();
   const { toast } = useToast();
 
   const fetchLevelData = async () => {
@@ -198,7 +200,7 @@ export const useSenseiGamification = (senseiId?: string) => {
 
   useEffect(() => {
     fetchLevelData();
-  }, [senseiId]);
+  }, [senseiId, currentLevel, lastLevelChange]);
 
   // Add a refresh effect when component mounts/becomes visible
   useEffect(() => {
