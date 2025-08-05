@@ -27,10 +27,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
-import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
-import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
+import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
-import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -861,8 +859,8 @@ const AdminDashboard = () => {
               <CommunicationHub userId={user.id} />
             )}
             
-            {activeTab === "sensei-assignment" && (
-              <SenseiAssignmentManagement />
+            {activeTab === "sensei-management" && (
+              <SenseiManagementDashboard />
             )}
             
             {activeTab === "calendar" && (
@@ -1027,18 +1025,7 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {activeTab === "senseis" && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Sensei Management</h2>
-                <AdminSenseiOverview />
-              </div>
-            )}
             
-            {activeTab === "alerts" && (
-              <div className="space-y-6">
-                <AdminBackupAlerts />
-              </div>
-            )}
             
             
             
@@ -1052,7 +1039,6 @@ const AdminDashboard = () => {
             {activeTab === "roles" && (
               <div className="space-y-6">
                 <AdminRoleManagement />
-                <AdminSenseiLevelManagement />
               </div>
             )}
 

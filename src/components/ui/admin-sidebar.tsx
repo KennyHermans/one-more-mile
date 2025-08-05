@@ -48,22 +48,16 @@ const sidebarGroups = [
     label: "Operations",
     items: [
       {
-        title: "Applications",
-        value: "applications",
-        icon: FileText,
-        badge: true,
-        requiresPermission: "canManageSenseis"
-      },
-      {
         title: "Trip Management",
         value: "trips",
         icon: MapPin,
         requiresPermission: "canManageTrips"
       },
       {
-        title: "Sensei Assignment",
-        value: "sensei-assignment",
-        icon: Shield,
+        title: "Sensei Management",
+        value: "sensei-management",
+        icon: Users,
+        badge: true,
         requiresPermission: "canManageSenseis"
       },
       {
@@ -89,12 +83,6 @@ const sidebarGroups = [
   {
     label: "Automation",
     items: [
-      {
-        title: "Backup Alerts",
-        value: "alerts",
-        icon: AlertTriangle,
-        requiresPermission: null
-      },
       {
         title: "Automation Settings",
         value: "automation",
@@ -135,12 +123,6 @@ const sidebarGroups = [
   {
     label: "Administration",
     items: [
-      {
-        title: "Senseis",
-        value: "senseis",
-        icon: Users,
-        requiresPermission: "canManageSenseis"
-      },
       {
         title: "Role Management",
         value: "roles",
