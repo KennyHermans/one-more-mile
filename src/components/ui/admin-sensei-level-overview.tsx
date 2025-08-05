@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,8 +95,8 @@ export const AdminSenseiLevelOverview = () => {
                 p_sensei_id: sensei.id
               });
               
-              // Safely access the response data with type casting
-              const eligibility = eligibilityResponse.data as EligibilityResponse | null;
+              // Safely access the response data with proper type casting
+              const eligibility = eligibilityResponse.data as unknown as EligibilityResponse | null;
               const canUpgrade = eligibility?.can_auto_upgrade || false;
               const eligibleLevel = eligibility?.eligible_level;
               
