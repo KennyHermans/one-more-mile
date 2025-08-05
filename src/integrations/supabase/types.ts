@@ -2022,8 +2022,8 @@ export type Database = {
         }[]
       }
       request_trip_creation_permission: {
-        Args: { p_sensei_id: string; p_reason?: string }
-        Returns: boolean
+        Args: { p_sensei_id: string; p_reason: string }
+        Returns: Json
       }
       review_trip_creation_request: {
         Args: {
