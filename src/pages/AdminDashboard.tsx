@@ -6,14 +6,12 @@ import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview
 import { AdminAnalyticsDashboard } from "@/components/ui/admin-analytics-dashboard";
 import { AdvancedAnalyticsDashboard } from "@/components/ui/advanced-analytics-dashboard";
 import { RealTimeAvailability } from "@/components/ui/real-time-availability";
-import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
 import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assignment";
 import { DatabaseOptimization } from "@/components/ui/database-optimization";
 import { Phase1Summary } from "@/components/ui/phase1-summary";
 import { AdvancedAnalyticsReporting } from "@/components/ui/advanced-analytics-reporting";
-import { SmartAlertSystem } from "@/components/ui/smart-alert-escalation";
 import { ComprehensiveReporting } from "@/components/ui/comprehensive-reporting";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
@@ -665,7 +663,6 @@ const AdminDashboard = () => {
               <Navigation />
             </div>
             <div className="flex items-center gap-4">
-              <NotificationCenter />
             </div>
           </div>
         </header>
@@ -687,8 +684,6 @@ const AdminDashboard = () => {
                 savedFilters={savedFilters}
                 onSaveFilter={handleSaveFilter}
               />
-              
-              <SmartAlerts />
             </div>
             
             {activeTab === "dashboard" && (
@@ -1067,9 +1062,6 @@ const AdminDashboard = () => {
               <AdvancedAnalyticsReporting />
             )}
             
-            {activeTab === "smart-alerts" && (
-              <SmartAlertSystem />
-            )}
             
             {activeTab === "comprehensive-reports" && (
               <ComprehensiveReporting />
