@@ -5,12 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Star, MapPin, Users, AlertCircle, CheckCircle } from 'lucide-react';
+import { Star, MapPin, Users, AlertCircle, CheckCircle, RefreshCw, Award, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { SenseiLevelBadge } from '@/components/ui/sensei-level-badge';
+import { useRealtimeSenseiOverview } from '@/hooks/use-realtime-sensei-overview';
 
-interface SenseiStatus {
+interface EnhancedSenseiStatus {
   sensei_id: string;
   sensei_name: string;
+  sensei_level: 'apprentice' | 'journey_guide' | 'master_sensei';
+  level_achieved_at: string;
+  trips_led: number;
   is_linked_to_trip: boolean;
   current_trip_count: number;
   is_available: boolean;
@@ -18,6 +23,9 @@ interface SenseiStatus {
   certifications: string[];
   location: string;
   rating: number;
+  verified_skills_count: number;
+  pending_certificates_count: number;
+  last_activity: string;
 }
 
 interface SenseiSuggestion {
@@ -35,29 +43,14 @@ import { Trip } from '@/types/trip';
 import { createMinimalTrip } from '@/types/trip-utils';
 
 export function AdminSenseiOverview() {
-  const [senseis, setSenseis] = useState<SenseiStatus[]>([]);
+  const { senseis, loading, refetch } = useRealtimeSenseiOverview();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [suggestions, setSuggestions] = useState<SenseiSuggestion[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSenseiStatus();
     fetchTrips();
   }, []);
-
-  const fetchSenseiStatus = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_sensei_trip_status');
-      if (error) throw error;
-      setSenseis(data || []);
-    } catch (error) {
-      // Handle error silently or with toast notification
-      toast.error('Failed to load sensei overview');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchTrips = async () => {
     try {
@@ -128,7 +121,7 @@ export function AdminSenseiOverview() {
       toast.success('Sensei assigned to trip successfully');
       
       // Refresh data
-      fetchSenseiStatus();
+      refetch();
       fetchTrips();
     } catch (error) {
       // Handle error silently or with toast notification
@@ -148,9 +141,20 @@ export function AdminSenseiOverview() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Sensei Overview
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Sensei Overview
+            </div>
+            <Button
+              onClick={refetch}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,26 +162,42 @@ export function AdminSenseiOverview() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Level</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Trip Assignment</TableHead>
+                <TableHead>Progress</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Location</TableHead>
-                <TableHead>Specialties</TableHead>
-                <TableHead>Certifications</TableHead>
+                <TableHead>Skills & Certs</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {senseis.map((sensei) => (
                 <TableRow key={sensei.sensei_id}>
-                  <TableCell className="font-medium">{sensei.sensei_name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div className="font-semibold">{sensei.sensei_name}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <Calendar className="h-3 w-3" />
+                        Level achieved: {new Date(sensei.level_achieved_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <SenseiLevelBadge 
+                      level={sensei.sensei_level} 
+                      size="sm" 
+                      showIcon={true}
+                    />
+                  </TableCell>
                   <TableCell>
                     {sensei.is_available ? (
-                      <Badge variant="default" className="bg-green-100 text-green-800">
+                      <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Available
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-red-100 text-red-800">
+                      <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
                         <AlertCircle className="h-3 w-3 mr-1" />
                         Offline
                       </Badge>
@@ -193,6 +213,22 @@ export function AdminSenseiOverview() {
                     )}
                   </TableCell>
                   <TableCell>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-sm">
+                        <Award className="h-3 w-3 text-muted-foreground" />
+                        {sensei.trips_led} trips led
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {sensei.verified_skills_count} verified skills
+                        {sensei.pending_certificates_count > 0 && (
+                          <span className="text-orange-600 ml-1">
+                            • {sensei.pending_certificates_count} pending certs
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       {Number(sensei.rating).toFixed(1)}
@@ -205,31 +241,31 @@ export function AdminSenseiOverview() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {sensei.specialties.slice(0, 2).map((specialty, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {specialty}
-                        </Badge>
-                      ))}
-                      {sensei.specialties.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{sensei.specialties.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {sensei.certifications.slice(0, 2).map((cert, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {cert}
-                        </Badge>
-                      ))}
-                      {sensei.certifications.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{sensei.certifications.length - 2}
-                        </Badge>
-                      )}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1">
+                        {sensei.specialties.slice(0, 2).map((specialty, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {specialty}
+                          </Badge>
+                        ))}
+                        {sensei.specialties.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{sensei.specialties.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {sensei.certifications.slice(0, 2).map((cert, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {cert}
+                          </Badge>
+                        ))}
+                        {sensei.certifications.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{sensei.certifications.length - 2}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                 </TableRow>

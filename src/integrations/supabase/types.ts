@@ -1856,6 +1856,9 @@ export type Database = {
         Returns: {
           sensei_id: string
           sensei_name: string
+          sensei_level: Database["public"]["Enums"]["sensei_level"]
+          level_achieved_at: string
+          trips_led: number
           is_linked_to_trip: boolean
           current_trip_count: number
           is_available: boolean
@@ -1863,6 +1866,9 @@ export type Database = {
           certifications: string[]
           location: string
           rating: number
+          verified_skills_count: number
+          pending_certificates_count: number
+          last_activity: string
         }[]
       }
       get_user_platform_role: {
