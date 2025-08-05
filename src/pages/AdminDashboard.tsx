@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
+import { AdminTripCreationRequests } from "@/components/ui/admin-trip-creation-requests";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
 import { AutomatedHealthDashboard } from "@/components/ui/automated-health-dashboard";
@@ -898,6 +899,9 @@ const AdminDashboard = () => {
               <SenseiManagementDashboard />
             )}
             
+            {activeTab === "trip-creation-requests" && (
+              <AdminTripCreationRequests />
+            )}
             
             {activeTab === "announcements" && (
               <div className="space-y-6">

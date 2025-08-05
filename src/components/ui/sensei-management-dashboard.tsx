@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { AdminSenseiOverview } from "./admin-sensei-overview";
 import { SenseiAssignmentManagement } from "./sensei-assignment-management";
 import { AdminSenseiLevelManagement } from "./admin-sensei-level-management";
+import { AdminApplicationsView } from "./admin-applications-view";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
@@ -46,13 +47,29 @@ export function SenseiManagementDashboard() {
     try {
       setIsLoading(true);
       
-      // Use placeholder data for now - will be connected to actual database later
+      // Fetch real statistics from database
+      const [senseiData, applicationData, tripData] = await Promise.all([
+        supabase.from('sensei_profiles').select('id, is_active, rating'),
+        supabase.from('applications').select('id, status'),
+        supabase.from('trips').select('id, requires_backup_sensei, backup_sensei_id, trip_status')
+      ]);
+
+      const totalSenseis = senseiData.data?.length || 0;
+      const activeSenseis = senseiData.data?.filter(s => s.is_active).length || 0;
+      const pendingApplications = applicationData.data?.filter(a => a.status === 'pending').length || 0;
+      const tripsRequiringBackup = tripData.data?.filter(t => 
+        t.requires_backup_sensei && !t.backup_sensei_id && t.trip_status === 'approved'
+      ).length || 0;
+      const averageRating = senseiData.data?.length > 0 
+        ? senseiData.data.reduce((acc, s) => acc + (s.rating || 0), 0) / senseiData.data.length 
+        : 0;
+
       setStats({
-        totalSenseis: 25,
-        activeSenseis: 18,
-        pendingApplications: 3,
-        tripsRequiringBackup: 2,
-        averageRating: 4.6
+        totalSenseis,
+        activeSenseis,
+        pendingApplications,
+        tripsRequiringBackup,
+        averageRating: Number(averageRating.toFixed(1))
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -170,19 +187,7 @@ export function SenseiManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="applications" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sensei Applications</CardTitle>
-              <CardDescription>
-                Review and approve new sensei applications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Application management component will be integrated here
-              </div>
-            </CardContent>
-          </Card>
+          <AdminApplicationsView />
         </TabsContent>
 
         <TabsContent value="active-senseis" className="space-y-6 mt-6">

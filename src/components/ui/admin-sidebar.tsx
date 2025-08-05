@@ -60,6 +60,12 @@ const sidebarGroups = [
         requiresPermission: "canManageTrips"
       },
       {
+        title: "Trip Creation Requests",
+        value: "trip-creation-requests",
+        icon: FileText,
+        requiresPermission: "canManageTrips"
+      },
+      {
         title: "Sensei Management",
         value: "sensei-management",
         icon: Users,
