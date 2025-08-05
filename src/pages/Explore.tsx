@@ -257,7 +257,7 @@ const Explore = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary via-primary to-accent text-white py-20 relative overflow-hidden">
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0" style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=800&fit=crop&opacity=20')`,
             backgroundSize: 'cover',
