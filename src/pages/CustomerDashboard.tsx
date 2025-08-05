@@ -10,10 +10,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { TripMessagingEnhanced } from "@/components/ui/trip-messaging-enhanced";
 import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
-// PersonalizedDashboard and TripTimelineVisualization components removed for simplification
-// SmartNotifications component removed for simplification
+import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
+import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
+import { SmartNotifications } from "@/components/ui/smart-notifications";
 import { CommunicationHub } from "@/components/ui/communication-hub";
+import { OnboardingWizard } from "@/components/ui/onboarding-wizard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
+import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
+import { GuidedTour } from "@/components/ui/guided-tour";
 import { CustomerWishlist } from "@/components/ui/customer-wishlist";
 import { EnhancedTripCard } from "@/components/ui/enhanced-trip-card";
 import { CustomerOverviewDashboard } from "@/components/ui/customer-overview-dashboard";
@@ -80,6 +84,8 @@ const CustomerDashboard = () => {
   const [selectedTripForReview, setSelectedTripForReview] = useState<any>(null);
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [wishlistCount, setWishlistCount] = useState(0);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
@@ -112,7 +118,7 @@ const CustomerDashboard = () => {
       setUnreadMessageCount(messageCount);
       
       // Check if user needs onboarding
-      
+      checkOnboardingStatus(user.id);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -124,6 +130,28 @@ const CustomerDashboard = () => {
     }
   };
 
+  const checkOnboardingStatus = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('customer_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // Show onboarding if no profile exists
+      if (!profile) {
+        setShowOnboarding(true);
+      } else {
+        // Show tour for first-time users
+        const hasSeenTour = localStorage.getItem('hasSeenTour');
+        if (!hasSeenTour) {
+          setShowTour(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+    }
+  };
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -304,6 +332,23 @@ const CustomerDashboard = () => {
     }
   };
 
+  const handleOnboardingComplete = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+      setShowOnboarding(false);
+      
+      // Show tour after onboarding
+      const hasSeenTour = localStorage.getItem('hasSeenTour');
+      if (!hasSeenTour) {
+        setTimeout(() => setShowTour(true), 1000);
+      }
+    }
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    localStorage.setItem('hasSeenTour', 'true');
+  };
 
   const updateProfile = async () => {
     if (!user || !profile) return;
@@ -511,19 +556,7 @@ const CustomerDashboard = () => {
         );
 
       case "notifications":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>Stay updated with important information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Simplified notifications - check the News section for announcements
-              </p>
-            </CardContent>
-          </Card>
-        );
+        return <SmartNotifications />;
 
       case "messages":
         return user && <CommunicationHub userId={user.id} />;
@@ -987,6 +1020,22 @@ const CustomerDashboard = () => {
         />
       )}
 
+      {/* Onboarding Wizard */}
+      {user && (
+        <OnboardingWizard
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          userId={user.id}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+
+      {/* Guided Tour */}
+      <GuidedTour
+        autoStart={showTour}
+        onComplete={handleTourComplete}
+        onSkip={() => setShowTour(false)}
+      />
     </CustomerDashboardLayout>
   );
 };

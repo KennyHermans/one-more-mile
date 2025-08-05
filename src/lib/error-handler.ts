@@ -38,8 +38,6 @@ interface LogEntry {
 class ErrorHandler {
   private isDevelopment = import.meta.env.DEV;
   private sessionId = this.generateSessionId();
-  private errorQueue = new Set<string>();
-  private isLogging = false;
 
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -70,40 +68,16 @@ class ErrorHandler {
   }
 
   logError(error: Error | string, context?: ErrorContext) {
-    // Prevent circular logging and infinite loops
-    if (this.isLogging) return;
-    
-    const errorMessage = error instanceof Error ? error.message : String(error || '');
+    const errorMessage = error instanceof Error ? error.message : error;
     const errorStack = error instanceof Error ? error.stack : undefined;
     
-    // Skip certain errors that cause infinite loops
-    if (errorMessage.includes('Maximum call stack') || 
-        errorMessage.includes('RealtimeClient') ||
-        errorMessage.includes('GlobalErrorProvider')) {
-      return;
-    }
-
-    // Prevent duplicate errors
-    const errorKey = `${errorMessage}_${context?.component}`;
-    if (this.errorQueue.has(errorKey)) return;
+    const logEntry = this.createLogEntry('ERROR', errorMessage, context, errorStack);
     
-    this.errorQueue.add(errorKey);
-    this.isLogging = true;
-    
-    try {
-      const logEntry = this.createLogEntry('ERROR', errorMessage, context, errorStack);
-      
-      if (this.isDevelopment) {
-        // Use native console methods to avoid overrides
-        console.warn('[ERROR]', logEntry);
-      }
-      
-      this.sendToProduction(logEntry);
-    } finally {
-      this.isLogging = false;
-      // Clean up error queue after a delay
-      setTimeout(() => this.errorQueue.delete(errorKey), 5000);
+    if (this.isDevelopment) {
+      console.error('[ERROR]', logEntry);
     }
+    
+    this.sendToProduction(logEntry);
   }
 
   logWarning(message: string, context?: ErrorContext) {

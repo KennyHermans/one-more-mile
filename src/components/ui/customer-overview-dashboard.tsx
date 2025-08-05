@@ -1,8 +1,8 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// PersonalizedDashboard component removed for simplification
+import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
-
+import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, CheckSquare, Star, TrendingUp } from "lucide-react";
 import { TripBooking } from '@/types/trip';
@@ -68,13 +68,23 @@ export function CustomerOverviewDashboard({
         </p>
       </div>
 
-      {/* Profile Completion for New Users */}
+      {/* Profile Completion & Onboarding for New Users */}
       {isNewUser && (
-        <ProfileCompletionIndicator 
-          profile={profile} 
-          documents={documents}
-          className="mb-6"
-        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ProfileCompletionIndicator 
+            profile={profile} 
+            documents={documents}
+            className="order-1"
+          />
+          <GettingStartedChecklist
+            userId={userId}
+            userProfile={profile}
+            userBookings={bookings}
+            userDocuments={documents}
+            userReviews={userReviews}
+            className="order-2"
+          />
+        </div>
       )}
 
       {/* Profile Completion for Existing Users */}
@@ -142,20 +152,21 @@ export function CustomerOverviewDashboard({
         </div>
       )}
 
-      {/* Simplified for better UX */}
+      {/* Personalized Dashboard */}
       {!isNewUser && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome Back!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Focus on your upcoming trips and complete any pending actions
-            </p>
-          </CardContent>
-        </Card>
+        <PersonalizedDashboard userId={userId} />
       )}
 
+      {/* Getting Started Checklist for Existing Users with Incomplete Actions */}
+      {!isNewUser && (userReviews.length === 0 || documents.length === 0) && (
+        <GettingStartedChecklist
+          userId={userId}
+          userProfile={profile}
+          userBookings={bookings}
+          userDocuments={documents}
+          userReviews={userReviews}
+        />
+      )}
     </div>
   );
 }

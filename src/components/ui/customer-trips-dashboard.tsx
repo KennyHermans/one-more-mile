@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedTripCard } from "@/components/ui/enhanced-trip-card";
-// TripTimelineVisualization component removed for simplification
+import { TripTimelineVisualization } from "@/components/ui/trip-timeline-visualization";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, DollarSign, Clock } from "lucide-react";
 import { TripBooking } from '@/types/trip';
@@ -132,18 +132,9 @@ export function CustomerTripsDashboard({
       {/* Trip Statistics */}
       {renderTripStats()}
 
-      {/* Trip Timeline Simplified */}
+      {/* Trip Timeline */}
       {bookings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Trip Timeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Simplified view - use the tabs below to manage your trips
-            </p>
-          </CardContent>
-        </Card>
+        <TripTimelineVisualization tripBookings={bookings} />
       )}
 
       {/* Trip Tabs */}

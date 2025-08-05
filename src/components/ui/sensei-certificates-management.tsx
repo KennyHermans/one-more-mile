@@ -10,7 +10,7 @@ import { Textarea } from "./textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-// SenseiMatchingInsights component removed for simplification
+import { SenseiMatchingInsights } from "./sensei-matching-insights";
 import { EnhancedSkillVerification } from "./enhanced-skill-verification";
 import { 
   FileText, 
@@ -249,8 +249,7 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
       setIsAddingSkill(false);
       fetchCertificatesAndSkills();
     } catch (error) {
-      console.error('Skill addition error:', error);
-      logError(new Error(error?.message || 'Failed to add skill'), {
+      logError(error as Error, {
         component: 'SenseiCertificatesManagement',
         action: 'addSkill'
       });
@@ -583,16 +582,7 @@ export function SenseiCertificatesManagement({ senseiId }: { senseiId: string })
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Trip Matching Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Focus on building your certificate portfolio - trip matching has been simplified
-              </p>
-            </CardContent>
-          </Card>
+          <SenseiMatchingInsights senseiId={senseiId} />
         </TabsContent>
       </Tabs>
     </div>

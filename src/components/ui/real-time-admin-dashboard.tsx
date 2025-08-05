@@ -89,7 +89,7 @@ export function RealTimeAdminDashboard({ onStatsUpdate }: RealTimeStatsProps) {
       // Fetch trips stats
       const { data: trips } = await supabase
         .from('trips')
-        .select('trip_status');
+        .select('trip_status, requires_backup_sensei, backup_sensei_id');
 
       // Fetch alerts stats
       const { data: alerts } = await supabase
@@ -120,7 +120,11 @@ export function RealTimeAdminDashboard({ onStatsUpdate }: RealTimeStatsProps) {
         total: trips?.length || 0,
         active: trips?.filter(t => t.trip_status === 'approved').length || 0,
         completed: trips?.filter(t => t.trip_status === 'completed').length || 0,
-        needingBackup: 0
+        needingBackup: trips?.filter(t => 
+          t.trip_status === 'approved' && 
+          t.requires_backup_sensei === true && 
+          !t.backup_sensei_id
+        ).length || 0
       };
 
       const alertStats = {

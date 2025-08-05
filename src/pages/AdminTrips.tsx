@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TripItineraryMap } from "@/components/ui/trip-itinerary-map";
-
+import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { 
   Plus, 
   Edit2, 
@@ -1264,6 +1264,19 @@ const AdminTrips = () => {
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
+                  {trip.sensei_id && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTripForPermissions(trip.id);
+                        setPermissionsDialogOpen(true);
+                      }}
+                      title="Manage Sensei Permissions"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button 
                     variant="destructive" 
                     size="sm"
@@ -1286,6 +1299,22 @@ const AdminTrips = () => {
           </div>
         )}
 
+        {/* Sensei Permissions Dialog */}
+        <SenseiPermissionsDialog
+          tripId={selectedTripForPermissions}
+          isOpen={permissionsDialogOpen}
+          onClose={() => {
+            setPermissionsDialogOpen(false);
+            setSelectedTripForPermissions("");
+          }}
+          onSave={() => {
+            // Optionally refresh data here
+            toast({
+              title: "Success",
+              description: "Sensei permissions updated successfully!",
+            });
+          }}
+        />
         </div>
       </div>
     </AdminAccessGuard>

@@ -18,13 +18,10 @@ import {
   XCircle
 } from "lucide-react";
 import { Trip, TripListItem } from '@/types/trip';
-import { SenseiTripDetailView } from './sensei-trip-detail-view';
 
 interface SenseiTripsManagementProps {
   trips: Trip[];
   canCreateTrips: boolean;
-  canEditTrips: boolean;
-  isLoadingPermissions?: boolean;
   onCreateTrip: () => void;
   onEditTrip: (trip: Trip) => void;
   onViewTrip: (trip: Trip) => void;
@@ -34,8 +31,6 @@ interface SenseiTripsManagementProps {
 export function SenseiTripsManagement({ 
   trips, 
   canCreateTrips,
-  canEditTrips,
-  isLoadingPermissions = false,
   onCreateTrip,
   onEditTrip,
   onViewTrip,
@@ -43,7 +38,6 @@ export function SenseiTripsManagement({
 }: SenseiTripsManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
 
   const activeTrips = trips.filter(trip => 
     trip.is_active && 
@@ -108,23 +102,19 @@ export function SenseiTripsManagement({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setViewingTrip(trip)}
+                onClick={() => onViewTrip(trip)}
               >
                 <Eye className="h-3 w-3 mr-1" />
                 View
               </Button>
-              {trip.trip_status !== 'completed' && (canEditTrips || isLoadingPermissions) && (
+              {trip.trip_status !== 'completed' && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    console.log('Edit button clicked:', { canEditTrips, isLoadingPermissions, trip: trip.title });
-                    onEditTrip(trip);
-                  }}
-                  disabled={isLoadingPermissions}
+                  onClick={() => onEditTrip(trip)}
                 >
                   <Edit2 className="h-3 w-3 mr-1" />
-                  {isLoadingPermissions ? "Loading..." : "Edit"}
+                  Edit
                 </Button>
               )}
             </div>
@@ -133,21 +123,6 @@ export function SenseiTripsManagement({
       </CardContent>
     </Card>
   );
-
-  // Show detailed trip view if viewing a trip
-  if (viewingTrip) {
-    return (
-      <SenseiTripDetailView
-        trip={viewingTrip}
-        onBack={() => setViewingTrip(null)}
-        onEdit={() => {
-          setViewingTrip(null);
-          onEditTrip(viewingTrip);
-        }}
-        canEdit={canEditTrips && viewingTrip.trip_status !== 'completed'}
-      />
-    );
-  }
 
   return (
     <div className="space-y-6">

@@ -1,21 +1,28 @@
 import { useState, useEffect, useMemo } from "react";
+import { AICodeAnalyzer } from "@/components/ui/ai-code-analyzer";
 import { Navigation } from "@/components/ui/navigation";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { AdminDashboardOverview } from "@/components/ui/admin-dashboard-overview";
+import { AdminAnalyticsDashboard } from "@/components/ui/admin-analytics-dashboard";
+import { AdvancedAnalyticsDashboard } from "@/components/ui/advanced-analytics-dashboard";
 import { RealTimeAvailability } from "@/components/ui/real-time-availability";
+import { SmartAlerts, NotificationCenter } from "@/components/ui/smart-alerts";
 import { AdminLoadingStates } from "@/components/ui/admin-loading-states";
 import { RealTimeAdminDashboard } from "@/components/ui/real-time-admin-dashboard";
-
-// DatabaseOptimization component removed for simplification
+import { AutomatedBackupAssignment } from "@/components/ui/automated-backup-assignment";
+import { DatabaseOptimization } from "@/components/ui/database-optimization";
 import { Phase1Summary } from "@/components/ui/phase1-summary";
+import { AdvancedAnalyticsReporting } from "@/components/ui/advanced-analytics-reporting";
+import { SmartAlertSystem } from "@/components/ui/smart-alert-escalation";
+import { ComprehensiveReporting } from "@/components/ui/comprehensive-reporting";
 import { AdminFilters } from "@/components/ui/admin-filters";
 import { ActionButtons, BulkActions, ConfirmationDialog } from "@/components/ui/admin-actions";
 import { BulkOperations } from "@/components/ui/bulk-operations";
 import { GlobalSearch } from "@/components/ui/global-search";
 import { CommunicationHub } from "@/components/ui/communication-hub";
-
-import { TripManagementDashboard } from "@/components/ui/trip-management-dashboard";
+import { AdvancedTripManagement } from "@/components/ui/advanced-trip-management";
+import { TripCalendar } from "@/components/ui/trip-calendar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +31,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-
-import { SenseiManagementDashboard } from "@/components/ui/sensei-management-dashboard";
-
+import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
+import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
+import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
+import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
+import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
+import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +54,7 @@ import {
   Trash2,
   Star,
   MapPin,
-  
+  Calendar,
   Users,
   Settings,
   TrendingUp,
@@ -141,6 +151,8 @@ interface SenseiProfile {
   location: string;
   user_id: string;
   can_create_trips: boolean;
+  trip_creation_requested: boolean;
+  trip_creation_request_date: string | null;
   bio: string;
   rating: number;
   trips_led: number;
@@ -186,7 +198,6 @@ const AdminDashboard = () => {
   });
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -655,6 +666,7 @@ const AdminDashboard = () => {
               <Navigation />
             </div>
             <div className="flex items-center gap-4">
+              <NotificationCenter />
             </div>
           </div>
         </header>
@@ -676,6 +688,8 @@ const AdminDashboard = () => {
                 savedFilters={savedFilters}
                 onSaveFilter={handleSaveFilter}
               />
+              
+              <SmartAlerts />
             </div>
             
             {activeTab === "dashboard" && (
@@ -686,14 +700,28 @@ const AdminDashboard = () => {
                   }}
                 />
                 
-                {/* Database optimization removed for simplification */}
+                {/* Database optimization utility */}
+                <DatabaseOptimization />
                 
                 {/* Phase 1 completion summary */}
                 <Phase1Summary />
               </div>
             )}
-
             
+            {activeTab === "analytics" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <AdvancedAnalyticsDashboard />
+                </div>
+                <div>
+                  <RealTimeAvailability />
+                </div>
+              </div>
+            )}
+            
+            {activeTab === "basic-analytics" && (
+              <AdminAnalyticsDashboard stats={stats} />
+            )}
             
             {activeTab === "applications" && (
               <div className="space-y-6">
@@ -840,19 +868,95 @@ const AdminDashboard = () => {
             )}
             
             
+            {activeTab === "ai-code-analyzer" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">AI Code Analyzer</h2>
+                </div>
+                <AICodeAnalyzer />
+              </div>
+            )}
 
-            {activeTab === "trip-management" && (
-              <TripManagementDashboard />
+            {activeTab === "trips" && (
+              <div className="space-y-6">
+                <BulkOperations
+                  selectedItems={selectedItems}
+                  onSelectionChange={setSelectedItems}
+                  itemType="trips"
+                  allItems={transformedTrips}
+                />
+                <AdvancedTripManagement />
+              </div>
             )}
             
             {activeTab === "communication" && user && (
               <CommunicationHub userId={user.id} />
             )}
             
-            {activeTab === "sensei-management" && (
-              <SenseiManagementDashboard />
+            {activeTab === "sensei-assignment" && (
+              <SenseiAssignmentManagement />
             )}
             
+            {activeTab === "calendar" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Calendar</h2>
+                <div className="bg-card rounded-lg p-4">
+                  <p className="text-muted-foreground">Calendar view will be implemented here.</p>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === "trip-permissions" && (
+              <AdminTripManagementOverview />
+            )}
+            
+            {activeTab === "proposals" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Trip Proposals</h2>
+                  <Badge variant="outline" className="text-sm">
+                    {tripProposals.length} pending proposals
+                  </Badge>
+                </div>
+
+                {tripProposals.length === 0 ? (
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <p className="text-muted-foreground">No trip proposals found.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {tripProposals.map((trip) => (
+                      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold">{trip.title}</h3>
+                              <p className="text-muted-foreground">{trip.destination}</p>
+                              <p className="text-muted-foreground">{trip.dates}</p>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                Proposed by: {trip.sensei_name}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                <Check className="w-4 h-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button variant="destructive" size="sm">
+                                <X className="w-4 h-4 mr-1" />
+                                Reject
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             
             {activeTab === "announcements" && (
               <div className="space-y-6">
@@ -917,40 +1021,92 @@ const AdminDashboard = () => {
               </div>
             )}
             
+            {activeTab === "cancellations" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Trip Cancellations</h2>
+                  <Badge variant="outline" className="text-sm">
+                    {tripCancellations.length} cancellations
+                  </Badge>
+                </div>
+
+                <div className="grid gap-4">
+                  {tripCancellations.map((cancellation) => (
+                    <Card key={cancellation.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{cancellation.trips?.title}</h3>
+                            <p className="text-muted-foreground">{cancellation.trips?.destination}</p>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Cancelled by: {cancellation.sensei_profiles?.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Reason: {cancellation.cancellation_reason}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <Users className="w-4 h-4 mr-1" />
+                              Find Replacement
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
             
+            {activeTab === "senseis" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Sensei Management</h2>
+                <AdminSenseiOverview />
+              </div>
+            )}
             
+            {activeTab === "alerts" && (
+              <div className="space-y-6">
+                <AdminBackupAlerts />
+              </div>
+            )}
             
+            {activeTab === "advanced-analytics" && (
+              <AdvancedAnalyticsReporting />
+            )}
             
+            {activeTab === "smart-alerts" && (
+              <SmartAlertSystem />
+            )}
             
+            {activeTab === "comprehensive-reports" && (
+              <ComprehensiveReporting />
+            )}
             
             {activeTab === "automation" && (
-              <div className="space-y-6 text-center">
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="text-lg font-semibold mb-2">Backup Automation</h3>
-                    <p className="text-muted-foreground">
-                      Backup sensei automation has been discontinued as part of the platform simplification.
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="space-y-6">
+                <AutomatedBackupAssignment />
               </div>
             )}
             
             {activeTab === "roles" && (
               <div className="space-y-6">
                 <AdminRoleManagement />
+                <AdminSenseiLevelManagement />
+              </div>
+            )}
+
+            {activeTab === "calendar" && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Trip Calendar</h2>
+                <TripCalendar />
               </div>
             )}
 
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <AdminPaymentSettings />
-              </div>
-            )}
-            
-            {activeTab === "roles" && (
-              <div className="space-y-6">
-                <AdminRoleManagement />
               </div>
             )}
           </main>

@@ -8,8 +8,8 @@ import { Label } from "./label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
-
-
+import { SenseiPermissionsDialog } from "./sensei-permissions-dialog";
+import { BackupSenseiManagement } from "./backup-sensei-management";
 import { useToast } from "@/hooks/use-toast";
 import { handleError } from "@/lib/error-handler";
 import { 
@@ -80,7 +80,7 @@ export function AdminTripManagementOverview() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchTrips(), fetchSenseis()]);
+      await Promise.all([fetchTrips(), fetchSenseis(), fetchPermissions()]);
     } catch (error) {
       handleError(error, {
         component: 'AdminTripManagementOverview',
@@ -137,7 +137,49 @@ export function AdminTripManagementOverview() {
   };
 
   const fetchPermissions = async () => {
-    // No longer fetching permissions - simplified trip management
+    try {
+      const { data, error } = await supabase
+        .from('trip_permissions')
+        .select(`
+          trip_id,
+          sensei_id,
+          permissions,
+          sensei_profiles!inner(name)
+        `);
+
+      if (error) throw error;
+      
+      // Group permissions by trip
+      const permissionsByTrip: { [tripId: string]: TripPermission[] } = {};
+      (data || []).forEach(permission => {
+        const tripId = permission.trip_id;
+        if (!permissionsByTrip[tripId]) {
+          permissionsByTrip[tripId] = [];
+        }
+        permissionsByTrip[tripId].push({
+          ...permission,
+          sensei_name: (permission.sensei_profiles as any)?.name
+        });
+      });
+
+      // Update trips with permission data
+      setTrips(prev => prev.map(trip => {
+        const tripPermissions = permissionsByTrip[trip.id] || [];
+        const assignedSensei = senseis.find(s => s.id === trip.sensei_id);
+        
+        return {
+          ...trip,
+          permissions: tripPermissions,
+          permission_count: tripPermissions.length,
+          assigned_sensei: assignedSensei
+        };
+      }));
+    } catch (error) {
+      handleError(error, {
+        component: 'AdminTripManagementOverview',
+        action: 'fetchPermissions'
+      }, false);
+    }
   };
 
   const handleViewPermissions = (trip: TripOverviewItem) => {
@@ -209,7 +251,8 @@ export function AdminTripManagementOverview() {
     adminCreated: trips.filter(t => t.creator_type === 'admin').length,
     senseiCreated: trips.filter(t => t.creator_type === 'sensei').length,
     assigned: trips.filter(t => t.sensei_id).length,
-    unassigned: trips.filter(t => !t.sensei_id).length
+    unassigned: trips.filter(t => !t.sensei_id).length,
+    withPermissions: trips.filter(t => t.permission_count > 0).length
   };
 
   if (loading) {
@@ -277,8 +320,8 @@ export function AdminTripManagementOverview() {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">N/A</div>
-              <div className="text-sm text-muted-foreground">Permissions (Removed)</div>
+              <div className="text-2xl font-bold text-purple-600">{stats.withPermissions}</div>
+              <div className="text-sm text-muted-foreground">With Permissions</div>
             </div>
           </CardContent>
         </Card>
@@ -385,6 +428,8 @@ export function AdminTripManagementOverview() {
                   <TableHead>Creator</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned Sensei</TableHead>
+                  <TableHead>Permissions</TableHead>
+                  <TableHead>Participants</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -454,16 +499,40 @@ export function AdminTripManagementOverview() {
                         </div>
                       )}
                     </TableCell>
-                     
+                    
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={trip.permission_count > 0 ? 'default' : 'outline'}>
+                          {trip.permission_count} Sensei{trip.permission_count !== 1 ? 's' : ''}
+                        </Badge>
+                        {trip.permission_count > 0 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleViewPermissions(trip)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{trip.current_participants}/{trip.max_participants}</span>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleManagePermissions(trip.id)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Manage
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -514,6 +583,20 @@ export function AdminTripManagementOverview() {
         </DialogContent>
       </Dialog>
 
+      {/* Permissions Management Dialog */}
+      <SenseiPermissionsDialog
+        tripId={selectedTripForPermissions}
+        isOpen={permissionsDialogOpen && !selectedPermissions.length}
+        onClose={() => {
+          setPermissionsDialogOpen(false);
+          setSelectedTripForPermissions("");
+        }}
+        onSave={() => {
+          fetchData();
+          setPermissionsDialogOpen(false);
+          setSelectedTripForPermissions("");
+        }}
+      />
     </div>
   );
 }

@@ -44,9 +44,13 @@ interface SenseiSuggestion {
   match_score: number;
   matching_specialties: string[];
   matching_certifications: string[];
+  matching_skills: string[];
+  verified_certificates: string[];
+  missing_requirements: string[];
   location: string;
   rating: number;
   is_available: boolean;
+  requirements_met_percentage: number;
 }
 
 export function SenseiSuggestionsOverview() {
@@ -83,6 +87,7 @@ export function SenseiSuggestionsOverview() {
         `)
         .eq('is_active', true)
         .eq('trip_status', 'approved')
+        .or('sensei_id.is.null,backup_sensei_id.is.null')
         .order('created_at', { ascending: false });
 
       if (tripsError) throw tripsError;
@@ -110,9 +115,10 @@ export function SenseiSuggestionsOverview() {
       const tripMonths: string[] = [];
       
       const { data, error } = await supabase
-        .rpc('suggest_senseis_for_trip', {
+        .rpc('suggest_senseis_for_trip_enhanced', {
           trip_theme: trip.theme,
-          trip_months: tripMonths
+          trip_months: tripMonths,
+          trip_id: trip.id
         });
 
       if (error) throw error;
@@ -131,9 +137,11 @@ export function SenseiSuggestionsOverview() {
     }
   };
 
-  const assignSenseiToTrip = async (tripId: string, senseiId: string, senseiName: string) => {
+  const assignSenseiToTrip = async (tripId: string, senseiId: string, senseiName: string, isBackup: boolean = false) => {
     try {
-      const updateData = { sensei_id: senseiId, sensei_name: senseiName };
+      const updateData = isBackup 
+        ? { backup_sensei_id: senseiId }
+        : { sensei_id: senseiId, sensei_name: senseiName };
 
       const { error } = await supabase
         .from('trips')
@@ -144,7 +152,7 @@ export function SenseiSuggestionsOverview() {
 
       toast({
         title: "Success",
-        description: "Sensei assigned successfully"
+        description: `${isBackup ? 'Backup s' : 'S'}ensei assigned successfully`
       });
 
       setSuggestionsDialogOpen(false);
@@ -208,7 +216,7 @@ export function SenseiSuggestionsOverview() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-warning rounded-full"></div>
-                <span>No Sensei ({tripsNeedingSenseis.filter(t => !t.sensei_id).length})</span>
+                <span>No Backup ({tripsNeedingSenseis.filter(t => !t.backup_sensei_id).length})</span>
               </div>
             </div>
           </div>
@@ -257,10 +265,10 @@ export function SenseiSuggestionsOverview() {
                               No Primary Sensei
                             </Badge>
                           )}
-                          {!trip.sensei_id && (
+                          {!trip.backup_sensei_id && (
                             <Badge variant="outline" className="text-xs border-orange-300 text-orange-700">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              No Sensei
+                              No Backup Sensei
                             </Badge>
                           )}
                         </div>
@@ -333,31 +341,52 @@ export function SenseiSuggestionsOverview() {
                                 </div>
                               </div>
                               
+                              {suggestion.requirements_met_percentage < 100 && (
+                                <div className="mb-2">
+                                  <Badge className={getRequirementMetBadge(suggestion.requirements_met_percentage)}>
+                                    {suggestion.requirements_met_percentage.toFixed(0)}% requirements met
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
                             
                             <div className="space-y-2">
-                              {suggestion.matching_specialties.length > 0 && (
+                              {suggestion.verified_certificates.length > 0 && (
                                 <div>
-                                  <strong className="text-blue-700">Matching Specialties:</strong>
+                                  <strong className="text-green-700">Verified Certificates:</strong>
                                   <div className="flex flex-wrap gap-1 mt-1">
-                                    {suggestion.matching_specialties.map((specialty, idx) => (
-                                      <Badge key={idx} variant="outline" className="text-xs border-blue-300">
-                                        <Award className="h-3 w-3 mr-1" />
-                                        {specialty}
+                                    {suggestion.verified_certificates.map((cert, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-xs border-green-300">
+                                        <FileText className="h-3 w-3 mr-1" />
+                                        {cert}
                                       </Badge>
                                     ))}
                                   </div>
                                 </div>
                               )}
                               
-                              {suggestion.matching_certifications.length > 0 && (
+                              {suggestion.matching_skills.length > 0 && (
                                 <div>
-                                  <strong className="text-green-700">Matching Certifications:</strong>
+                                  <strong className="text-blue-700">Matching Skills:</strong>
                                   <div className="flex flex-wrap gap-1 mt-1">
-                                    {suggestion.matching_certifications.map((cert, idx) => (
-                                      <Badge key={idx} variant="outline" className="text-xs border-green-300">
-                                        <FileText className="h-3 w-3 mr-1" />
-                                        {cert}
+                                    {suggestion.matching_skills.map((skill, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-xs border-blue-300">
+                                        <Award className="h-3 w-3 mr-1" />
+                                        {skill}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {suggestion.missing_requirements.length > 0 && (
+                                <div>
+                                  <strong className="text-red-700">Missing Requirements:</strong>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {suggestion.missing_requirements.map((req, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-xs border-red-300 text-red-700">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {req}
                                       </Badge>
                                     ))}
                                   </div>
@@ -370,11 +399,21 @@ export function SenseiSuggestionsOverview() {
                         <div className="ml-4 space-y-2">
                           {selectedTrip && !selectedTrip.sensei_id && (
                             <Button 
-                              onClick={() => assignSenseiToTrip(selectedTrip.id, suggestion.sensei_id, suggestion.sensei_name)}
+                              onClick={() => assignSenseiToTrip(selectedTrip.id, suggestion.sensei_id, suggestion.sensei_name, false)}
                               className="w-full"
                             >
                               <UserCheck className="h-4 w-4 mr-2" />
-                              Assign as Sensei
+                              Assign as Primary
+                            </Button>
+                          )}
+                          {selectedTrip && !selectedTrip.backup_sensei_id && (
+                            <Button 
+                              variant="outline"
+                              onClick={() => assignSenseiToTrip(selectedTrip.id, suggestion.sensei_id, suggestion.sensei_name, true)}
+                              className="w-full"
+                            >
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Assign as Backup
                             </Button>
                           )}
                         </div>

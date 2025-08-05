@@ -42,31 +42,96 @@ const sidebarGroups = [
         icon: Home,
         requiresPermission: null
       },
+      {
+        title: "Analytics",
+        value: "analytics", 
+        icon: BarChart3,
+        requiresPermission: null
+      },
+      {
+        title: "Advanced Analytics",
+        value: "advanced-analytics", 
+        icon: BarChart3,
+        requiresPermission: null
+      }
+    ]
+  },
+  {
+    label: "Intelligence & Reporting",
+    items: [
+      {
+        title: "AI Code Analyzer",
+        value: "ai-code-analyzer",
+        icon: Brain,
+        requiresPermission: null
+      },
+      {
+        title: "Smart Alerts",
+        value: "smart-alerts",
+        icon: AlertTriangle,
+        requiresPermission: null
+      },
+      {
+        title: "Comprehensive Reports",
+        value: "comprehensive-reports",
+        icon: FileText,
+        requiresPermission: null
+      }
     ]
   },
   {
     label: "Operations",
     items: [
       {
+        title: "Applications",
+        value: "applications",
+        icon: FileText,
+        badge: true,
+        requiresPermission: "canManageSenseis"
+      },
+      {
         title: "Trip Management",
-        value: "trip-management",
+        value: "trips",
         icon: MapPin,
         requiresPermission: "canManageTrips"
       },
       {
-        title: "Sensei Management",
-        value: "sensei-management",
-        icon: Users,
-        badge: true,
+        title: "Sensei Assignment",
+        value: "sensei-assignment",
+        icon: Shield,
         requiresPermission: "canManageSenseis"
+      },
+      {
+        title: "Calendar",
+        value: "calendar",
+        icon: Calendar,
+        requiresPermission: null
+      },
+      {
+        title: "Trip Editor",
+        value: "trip-editor",
+        icon: Edit,
+        requiresPermission: "canManageTrips"
+      },
+      {
+        title: "Trip Permissions",
+        value: "trip-permissions",
+        icon: Settings,
+        requiresPermission: "canManageTrips"
       }
     ]
   },
   {
-    label: "Automation",
+    label: "Automation & Alerts",
     items: [
       {
-        title: "Automation Settings",
+        title: "Backup Alerts",
+        value: "alerts",
+        icon: AlertTriangle,
+        requiresPermission: null
+      },
+      {
+        title: "Automation",
         value: "automation",
         icon: Bot,
         requiresPermission: null
@@ -76,6 +141,12 @@ const sidebarGroups = [
   {
     label: "Content & Communication",
     items: [
+      {
+        title: "Trip Proposals",
+        value: "proposals",
+        icon: TrendingUp,
+        requiresPermission: "canManageTrips"
+      },
       {
         title: "Announcements",
         value: "announcements",
@@ -87,17 +158,29 @@ const sidebarGroups = [
         value: "feedback",
         icon: MessageCircle,
         requiresPermission: "canViewCustomers"
+      },
+      {
+        title: "Cancellations",
+        value: "cancellations",
+        icon: AlertTriangle,
+        requiresPermission: "canManageTrips"
       }
     ]
   },
   {
-    label: "Administration",
+    label: "Management",
     items: [
+      {
+        title: "Senseis",
+        value: "senseis",
+        icon: Users,
+        requiresPermission: "canManageSenseis"
+      },
       {
         title: "Role Management",
         value: "roles",
         icon: Shield,
-        requiresPermission: "canManageRoles"
+        requiresPermission: "canManageFinances"
       },
       {
         title: "Settings",
@@ -122,7 +205,7 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   const navigate = useNavigate();
 
   const handleItemClick = (value: string) => {
-    if (value === "trip-management") {
+    if (value === "trip-editor") {
       navigate("/admin/trips");
     } else {
       onTabChange(value);

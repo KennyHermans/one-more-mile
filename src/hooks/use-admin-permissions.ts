@@ -9,7 +9,6 @@ export interface AdminPermissions {
   canManageSenseis: boolean;
   canViewCustomers: boolean;
   canManageFinances: boolean;
-  canManageRoles: boolean;
   userRole: PlatformRole | null;
 }
 
@@ -19,7 +18,6 @@ export const useAdminPermissions = () => {
     canManageSenseis: false,
     canViewCustomers: false,
     canManageFinances: false,
-    canManageRoles: false,
     userRole: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +30,6 @@ export const useAdminPermissions = () => {
         canManageSenseis: false,
         canViewCustomers: false,
         canManageFinances: false,
-        canManageRoles: false,
         userRole: null,
       });
       setIsLoading(false);
@@ -48,12 +45,11 @@ export const useAdminPermissions = () => {
       });
 
       // Check permissions
-      const [tripsResult, senseisResult, customersResult, financesResult, rolesResult] = await Promise.all([
+      const [tripsResult, senseisResult, customersResult, financesResult] = await Promise.all([
         supabase.rpc('can_manage_trips', { user_id: user.id }),
         supabase.rpc('can_manage_senseis', { user_id: user.id }),
         supabase.rpc('can_view_customers', { user_id: user.id }),
         supabase.rpc('can_manage_finances', { user_id: user.id }),
-        supabase.rpc('can_manage_roles', { user_id: user.id }),
       ]);
 
       setPermissions({
@@ -61,7 +57,6 @@ export const useAdminPermissions = () => {
         canManageSenseis: senseisResult.data === true,
         canViewCustomers: customersResult.data === true,
         canManageFinances: financesResult.data === true,
-        canManageRoles: rolesResult.data === true,
         userRole: roleData as PlatformRole,
       });
     } catch (error) {
@@ -71,7 +66,6 @@ export const useAdminPermissions = () => {
         canManageSenseis: false,
         canViewCustomers: false,
         canManageFinances: false,
-        canManageRoles: false,
         userRole: null,
       });
     } finally {

@@ -25,7 +25,8 @@ import {
   Calendar,
   CheckSquare,
   Settings,
-  Home
+  Home,
+  Crown
 } from "lucide-react";
 
 const sidebarItems = [
@@ -42,21 +43,37 @@ const sidebarItems = [
     icon: MapPin,
     group: "main"
   },
+  {
+    title: "Calendar",
+    value: "calendar",
+    icon: Calendar,
+    group: "main"
+  },
   
   // Professional Development
+  {
+    title: "Level & Progress",
+    value: "gamification",
+    icon: Crown,
+    group: "professional"
+  },
+  {
+    title: "Analytics",
+    value: "analytics", 
+    icon: BarChart3,
+    group: "professional"
+  },
+  {
+    title: "Goals",
+    value: "goals",
+    icon: Target,
+    group: "professional"
+  },
   {
     title: "Certificates",
     value: "certificates",
     icon: FileCheck,
     group: "professional"
-  },
-  
-  // Trip Management
-  {
-    title: "Trip Proposals",
-    value: "proposals",
-    icon: Edit3,
-    group: "trips"
   },
   
   // Communication
@@ -73,13 +90,21 @@ const sidebarItems = [
     group: "communication"
   },
   
-  // Applications & Settings
+  // Applications & Backup
   {
-    title: "My Applications",
+    title: "Applications",
     value: "applications",
     icon: FileText,
-    group: "settings"
+    group: "admin"
   },
+  {
+    title: "Backup Sensei",
+    value: "backup-sensei",
+    icon: Shield,
+    group: "admin"
+  },
+  
+  // Settings
   {
     title: "Availability",
     value: "availability",
@@ -90,9 +115,9 @@ const sidebarItems = [
 
 const sidebarGroups = [
   { key: "main", label: "Dashboard" },
-  { key: "professional", label: "Development" },
-  { key: "trips", label: "Trip Management" },
+  { key: "professional", label: "Professional" },
   { key: "communication", label: "Communication" },
+  { key: "admin", label: "Applications" },
   { key: "settings", label: "Settings" }
 ];
 

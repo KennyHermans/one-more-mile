@@ -239,10 +239,18 @@ export function AdminDashboardOverview({ stats, onTabChange }: AdminDashboardOve
 
         <Card>
           <CardHeader>
-            <CardTitle>Active Resources</CardTitle>
+            <CardTitle>Platform Health</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">              
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="font-medium text-green-900">System Status</span>
+                </div>
+                <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+              </div>
+              
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>

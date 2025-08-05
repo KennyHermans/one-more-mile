@@ -31,7 +31,7 @@ export type {
   SenseiCertificate,
   SenseiSkill,
   SenseiAchievement,
-  
+  SenseiPermissions
 } from './sensei';
 
 export type {

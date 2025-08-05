@@ -2,8 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-// SenseiLevelBadge component removed
-// SenseiMatchingInsights component removed for simplification
+import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { 
   TrendingUp, 
   MapPin, 
@@ -69,9 +68,10 @@ export function SenseiOverviewDashboard({
                 {senseiProfile.bio || "Ready to guide another adventure?"}
               </p>
             </div>
-            <Badge variant="secondary">
-              Sensei
-            </Badge>
+            <SenseiLevelBadge 
+              level={senseiProfile.sensei_level} 
+              size="lg" 
+            />
           </div>
         </CardHeader>
       </Card>
@@ -167,7 +167,7 @@ export function SenseiOverviewDashboard({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Current Level</span>
-                <Badge variant="secondary">Sensei</Badge>
+                <SenseiLevelBadge level={senseiProfile.sensei_level} />
               </div>
               
               <div className="space-y-2">
@@ -181,6 +181,14 @@ export function SenseiOverviewDashboard({
                 </div>
               </div>
 
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onTabChange('gamification')}
+                className="w-full"
+              >
+                View Full Progress
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -216,30 +224,6 @@ export function SenseiOverviewDashboard({
                 Manage All Trips
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Trip Focus Section - Simplified */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Trip Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Focus on creating quality trips that match your expertise and location
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Trip Recommendations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Create trips based on your specialties and customer demand
-            </p>
           </CardContent>
         </Card>
       </div>
