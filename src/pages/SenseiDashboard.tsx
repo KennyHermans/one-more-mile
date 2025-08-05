@@ -23,6 +23,7 @@ import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
+import { TripEditDialog } from "@/components/ui/trip-edit-dialog";
 import { SenseiTripCreationRequest } from "@/components/ui/sensei-trip-creation-request";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
@@ -1746,7 +1747,7 @@ const SenseiDashboard = () => {
                           <h3 className="text-lg font-semibold">{trip.title}</h3>
                           <p className="text-gray-600">{trip.destination} • {trip.dates}</p>
                         </div>
-                        <Dialog>
+                         <Dialog open={!!editingTrip && editingTrip.id === trip.id} onOpenChange={(open) => !open && setEditingTrip(null)}>
                           <DialogTrigger asChild>
                             <Button 
                               variant="outline" 
@@ -1912,15 +1913,25 @@ const SenseiDashboard = () => {
                               </div>
                             )}
                           </DialogContent>
-                        </Dialog>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                         </Dialog>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 ))}
+                 </div>
+              
+              <TripEditDialog
+                trip={editingTrip}
+                isOpen={!!editingTrip}
+                onClose={() => setEditingTrip(null)}
+                onSave={handleSaveTrip}
+                onTripChange={setEditingTrip}
+                canEdit={canEdit}
+                isSaving={isSaving}
+              />
               </div>
-            )}
-          </div>
-        );
+            </div>
+          );
 
       default:
         return <div>Tab not found</div>;

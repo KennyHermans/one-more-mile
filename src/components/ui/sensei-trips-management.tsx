@@ -41,8 +41,6 @@ export function SenseiTripsManagement({
   onViewTrip,
   onCancelTrip 
 }: SenseiTripsManagementProps) {
-  console.log('SenseiTripsManagement props:', { canCreateTrips, canEditTrips, isLoadingPermissions });
-  
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
