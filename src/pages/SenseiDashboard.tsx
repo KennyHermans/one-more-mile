@@ -1725,23 +1725,15 @@ const SenseiDashboard = () => {
               </Badge>
             </div>
 
-            {trips.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center">
-                  <p className="text-gray-600">No trips to edit.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {trips.map((trip) => (
-                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold">{trip.title}</h3>
-                          <p className="text-gray-600">{trip.destination} • {trip.dates}</p>
-                        </div>
-                         <Dialog open={!!editingTrip && editingTrip.id === trip.id} onOpenChange={(open) => !open && setEditingTrip(null)}>
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <h2 className="text-xl font-semibold mb-4">Trip Editor Moved</h2>
+                <p className="text-gray-600 mb-4">Trip editing is now available in the "Trips" tab for a better experience.</p>
+                <Button onClick={() => setActiveTab("trips")}>
+                  Go to Trips Tab
+                </Button>
+              </CardContent>
+            </Card>
                           <DialogTrigger asChild>
                             <Button 
                               variant="outline" 
@@ -1907,15 +1899,8 @@ const SenseiDashboard = () => {
                               </div>
                             )}
                           </DialogContent>
-                         </Dialog>
-                       </div>
-                     </CardContent>
-                   </Card>
-                 ))}
-                </div>
-              )}
-            </div>
-          );
+          </div>
+        );
 
       default:
         return <div>Tab not found</div>;
@@ -1930,6 +1915,148 @@ const SenseiDashboard = () => {
       onEditProfile={() => setEditProfileOpen(true)}
     >
       {renderTabContent()}
+
+      {/* Global Trip Edit Dialog */}
+      <Dialog open={!!editingTrip} onOpenChange={(open) => !open && setEditingTrip(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex justify-between items-center">
+              <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+              <Button
+                onClick={() => fetchTripPermissions(user.id)}
+                variant="outline"
+                size="sm"
+              >
+                Refresh Permissions
+              </Button>
+            </div>
+          </DialogHeader>
+          
+          {editingTrip && (
+            <div className="space-y-6">
+              {/* Title */}
+              <div>
+                <Label htmlFor="trip-title">Title</Label>
+                <Input
+                  id="trip-title"
+                  value={editingTrip.title}
+                  onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
+                  disabled={!canEdit(editingTrip.id, 'title')}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="trip-description">Description</Label>
+                <Textarea
+                  id="trip-description"
+                  value={editingTrip.description}
+                  onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
+                  disabled={!canEdit(editingTrip.id, 'description')}
+                  rows={4}
+                />
+              </div>
+
+              {/* Destination */}
+              <div>
+                <Label htmlFor="trip-destination">Destination</Label>
+                <Input
+                  id="trip-destination"
+                  value={editingTrip.destination}
+                  onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
+                  disabled={!canEdit(editingTrip.id, 'destination')}
+                />
+              </div>
+
+              {/* Theme */}
+              <div>
+                <Label htmlFor="trip-theme">Theme</Label>
+                <Input
+                  id="trip-theme"
+                  value={editingTrip.theme || ''}
+                  onChange={(e) => setEditingTrip({...editingTrip, theme: e.target.value})}
+                  disabled={!canEdit(editingTrip.id, 'theme')}
+                />
+              </div>
+
+              {/* Price */}
+              <div>
+                <Label htmlFor="trip-price">Price ($)</Label>
+                <Input
+                  id="trip-price"
+                  type="number"
+                  value={editingTrip.price}
+                  onChange={(e) => setEditingTrip({...editingTrip, price: e.target.value})}
+                  disabled={!canEdit(editingTrip.id, 'price')}
+                />
+              </div>
+
+              {/* Group Size */}
+              <div>
+                <Label htmlFor="trip-group-size">Maximum Group Size</Label>
+                <Input
+                  id="trip-group-size"
+                  type="number"
+                  value={editingTrip.max_participants}
+                  onChange={(e) => setEditingTrip({...editingTrip, max_participants: Number(e.target.value)})}
+                  disabled={!canEdit(editingTrip.id, 'group_size')}
+                />
+              </div>
+
+              {/* Program/Itinerary */}
+              {canEdit(editingTrip.id, 'program') && (
+                <div>
+                  <Label>Daily Program</Label>
+                  <div className="space-y-4 mt-2">
+                    {editingTrip.program?.map((day: ProgramDay, index: number) => (
+                      <Card key={index}>
+                        <CardContent className="pt-4">
+                          <div className="space-y-2">
+                            <div>
+                              <Label htmlFor={`day-${index}-title`}>Day {index + 1} Title</Label>
+                              <Input
+                                id={`day-${index}-title`}
+                                value={day.title}
+                                onChange={(e) => {
+                                  const newProgram = [...(editingTrip.program || [])];
+                                  newProgram[index] = {...day, title: e.target.value};
+                                  setEditingTrip({...editingTrip, program: newProgram});
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`day-${index}-description`}>Description</Label>
+                              <Textarea
+                                id={`day-${index}-description`}
+                                value={day.description}
+                                onChange={(e) => {
+                                  const newProgram = [...(editingTrip.program || [])];
+                                  newProgram[index] = {...day, description: e.target.value};
+                                  setEditingTrip({...editingTrip, program: newProgram});
+                                }}
+                                rows={3}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setEditingTrip(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveTrip}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Profile Dialog */}
       <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
