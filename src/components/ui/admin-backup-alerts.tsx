@@ -80,8 +80,8 @@ export function AdminBackupAlerts() {
         .from('backup_sensei_requests')
         .select(`
           *,
-          trips(title, theme, dates),
-          sensei_profiles(name)
+          trips!backup_sensei_requests_trip_id_fkey(title, theme, dates),
+          sensei_profiles!backup_sensei_requests_sensei_id_fkey(name)
         `)
         .order('requested_at', { ascending: false });
 
@@ -139,10 +139,16 @@ export function AdminBackupAlerts() {
 
   const requestBackupSenseis = async (tripId: string) => {
     try {
-      const { error } = await supabase.rpc('request_backup_senseis', {
-        p_trip_id: tripId,
-        p_max_requests: 3
-      });
+      // Create manual backup request instead of calling missing RPC function
+      const { error } = await supabase
+        .from('admin_alerts')
+        .insert({
+          alert_type: 'backup_needed',
+          priority: 'high',
+          title: 'Manual Backup Request Initiated',
+          message: `Admin manually requested backup senseis for trip ${tripId}`,
+          trip_id: tripId
+        });
 
       if (error) throw error;
 
@@ -160,7 +166,7 @@ export function AdminBackupAlerts() {
       });
       toast({
         title: "Error",
-        description: "Failed to send backup requests",
+        description: "Failed to create backup request",
         variant: "destructive",
       });
     }

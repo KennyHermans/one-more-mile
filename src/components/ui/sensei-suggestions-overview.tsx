@@ -44,13 +44,14 @@ interface SenseiSuggestion {
   match_score: number;
   matching_specialties: string[];
   matching_certifications: string[];
-  matching_skills: string[];
-  verified_certificates: string[];
-  missing_requirements: string[];
   location: string;
   rating: number;
   is_available: boolean;
-  requirements_met_percentage: number;
+  // Optional fields for enhanced functionality
+  matching_skills?: string[];
+  verified_certificates?: string[];
+  missing_requirements?: string[];
+  requirements_met_percentage?: number;
 }
 
 export function SenseiSuggestionsOverview() {
@@ -115,10 +116,9 @@ export function SenseiSuggestionsOverview() {
       const tripMonths: string[] = [];
       
       const { data, error } = await supabase
-        .rpc('suggest_senseis_for_trip_enhanced', {
+        .rpc('suggest_senseis_for_trip', {
           trip_theme: trip.theme,
-          trip_months: tripMonths,
-          trip_id: trip.id
+          trip_months: tripMonths
         });
 
       if (error) throw error;
@@ -341,17 +341,17 @@ export function SenseiSuggestionsOverview() {
                                 </div>
                               </div>
                               
-                              {suggestion.requirements_met_percentage < 100 && (
-                                <div className="mb-2">
-                                  <Badge className={getRequirementMetBadge(suggestion.requirements_met_percentage)}>
-                                    {suggestion.requirements_met_percentage.toFixed(0)}% requirements met
-                                  </Badge>
-                                </div>
-                              )}
+                               {suggestion.requirements_met_percentage && suggestion.requirements_met_percentage < 100 && (
+                                 <div className="mb-2">
+                                   <Badge className={getRequirementMetBadge(suggestion.requirements_met_percentage)}>
+                                     {suggestion.requirements_met_percentage.toFixed(0)}% requirements met
+                                   </Badge>
+                                 </div>
+                               )}
                             </div>
                             
                             <div className="space-y-2">
-                              {suggestion.verified_certificates.length > 0 && (
+                              {suggestion.verified_certificates && suggestion.verified_certificates.length > 0 && (
                                 <div>
                                   <strong className="text-green-700">Verified Certificates:</strong>
                                   <div className="flex flex-wrap gap-1 mt-1">
@@ -365,7 +365,7 @@ export function SenseiSuggestionsOverview() {
                                 </div>
                               )}
                               
-                              {suggestion.matching_skills.length > 0 && (
+                              {suggestion.matching_skills && suggestion.matching_skills.length > 0 && (
                                 <div>
                                   <strong className="text-blue-700">Matching Skills:</strong>
                                   <div className="flex flex-wrap gap-1 mt-1">
@@ -379,7 +379,7 @@ export function SenseiSuggestionsOverview() {
                                 </div>
                               )}
                               
-                              {suggestion.missing_requirements.length > 0 && (
+                              {suggestion.missing_requirements && suggestion.missing_requirements.length > 0 && (
                                 <div>
                                   <strong className="text-red-700">Missing Requirements:</strong>
                                   <div className="flex flex-wrap gap-1 mt-1">

@@ -147,8 +147,8 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
           sensei_id,
           status,
           applied_at,
-          sensei_profiles(name, location, rating),
-          trips(title, destination)
+          sensei_profiles!backup_sensei_applications_sensei_id_fkey(name, location, rating),
+          trips!backup_sensei_applications_trip_id_fkey(title, destination)
         `)
         .order('applied_at', { ascending: false });
 
@@ -177,8 +177,8 @@ export const BackupSenseiManagement: React.FC<BackupSenseiManagementProps> = ({ 
           sensei_id,
           status,
           applied_at,
-          sensei_profiles(name, location, rating),
-          trips(title, destination)
+          sensei_profiles!backup_sensei_applications_sensei_id_fkey(name, location, rating),
+          trips!backup_sensei_applications_trip_id_fkey(title, destination)
         `)
         .eq('user_id', user.id)
         .order('applied_at', { ascending: false });
