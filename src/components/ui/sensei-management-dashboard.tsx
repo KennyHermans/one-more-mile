@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { AdminSenseiOverview } from "./admin-sensei-overview";
 
-import { AdminSenseiLevelManagement } from "./admin-sensei-level-management";
+
 import { AdminApplicationsView } from "./admin-applications-view";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";

@@ -7,13 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Star, MapPin, Users, AlertCircle, CheckCircle, RefreshCw, Award, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { SenseiLevelBadge } from '@/components/ui/sensei-level-badge';
+
 import { useRealtimeSenseiOverview } from '@/hooks/use-realtime-sensei-overview';
 
 interface EnhancedSenseiStatus {
   sensei_id: string;
   sensei_name: string;
-  sensei_level: 'apprentice' | 'journey_guide' | 'master_sensei';
+  // basic sensei level removed
   level_achieved_at: string;
   trips_led: number;
   is_linked_to_trip: boolean;

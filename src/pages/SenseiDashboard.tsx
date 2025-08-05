@@ -17,7 +17,7 @@ import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
-import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
+
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 
