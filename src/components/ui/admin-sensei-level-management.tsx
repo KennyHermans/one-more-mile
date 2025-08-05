@@ -110,6 +110,48 @@ export const AdminSenseiLevelManagement = () => {
     }
   };
 
+  const performDirectUpdate = async (): Promise<boolean> => {
+    console.log('Performing direct database update...');
+    
+    // Update sensei level directly
+    const { error: directUpdateError } = await supabase
+      .from('sensei_profiles')
+      .update({
+        sensei_level: newLevel,
+        level_achieved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', selectedSensei!.id);
+
+    if (directUpdateError) {
+      console.error('Direct update error:', directUpdateError);
+      throw new Error(`Failed to update sensei profile: ${directUpdateError.message}`);
+    }
+
+    // Add level history entry
+    const { error: historyError } = await supabase
+      .from('sensei_level_history')
+      .insert({
+        sensei_id: selectedSensei!.id,
+        previous_level: selectedSensei!.sensei_level,
+        new_level: newLevel,
+        change_reason: adminOverride ? `${reason} (Admin Override)` : reason,
+        requirements_met: {
+          timestamp: new Date().toISOString(),
+          updated_by: 'admin',
+          admin_override: adminOverride
+        }
+      });
+
+    if (historyError) {
+      console.error('History insert error:', historyError);
+      // Don't fail the whole operation for history error, just log it
+    }
+
+    console.log('Direct update successful');
+    return true;
+  };
+
   const updateSenseiLevel = async () => {
     if (!selectedSensei || !reason.trim()) {
       toast({
@@ -132,65 +174,48 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: adminOverride
       });
 
-      // Try using the RPC function first
-      const { data, error: updateError } = await supabase
-        .rpc('upgrade_sensei_level', {
-          p_sensei_id: selectedSensei.id,
-          p_new_level: newLevel,
-          p_reason: reason
-        });
+      let updateSuccessful = false;
 
-      console.log('RPC response:', { data, updateError });
+      // If admin override is enabled, skip RPC and go straight to direct update
+      if (adminOverride) {
+        console.log('Admin override enabled - using direct database update');
+        updateSuccessful = await performDirectUpdate();
+      } else {
+        // Try RPC function first for non-admin override cases
+        console.log('Attempting RPC function call...');
+        try {
+          const { data, error: updateError } = await supabase
+            .rpc('upgrade_sensei_level', {
+              p_sensei_id: selectedSensei.id,
+              p_new_level: newLevel,
+              p_reason: reason
+            });
 
-      if (updateError) {
-        console.error('RPC error:', updateError);
-        throw new Error(updateError.message);
-      }
+          console.log('RPC response:', { data, updateError });
 
-      // Check if the response contains an error
-      if (data && typeof data === 'object' && 'error' in data) {
-        console.error('Function returned error:', data.error);
-        throw new Error(String(data.error));
-      }
-
-      // If RPC failed or admin override is enabled, try direct database update
-      if (!data || (typeof data === 'object' && !('success' in data)) || adminOverride) {
-        console.log('Using direct database update approach...');
-        
-        // Update sensei level directly
-        const { error: directUpdateError } = await supabase
-          .from('sensei_profiles')
-          .update({
-            sensei_level: newLevel,
-            level_achieved_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', selectedSensei.id);
-
-        if (directUpdateError) {
-          console.error('Direct update error:', directUpdateError);
-          throw new Error(directUpdateError.message);
-        }
-
-        // Add level history entry
-        const { error: historyError } = await supabase
-          .from('sensei_level_history')
-          .insert({
-            sensei_id: selectedSensei.id,
-            previous_level: selectedSensei.sensei_level,
-            new_level: newLevel,
-            change_reason: adminOverride ? `${reason} (Admin Override)` : reason,
-            requirements_met: {
-              timestamp: new Date().toISOString(),
-              updated_by: 'admin',
-              admin_override: adminOverride
+          // Check if RPC was successful
+          if (!updateError && data && typeof data === 'object' && 'success' in data && data.success) {
+            console.log('RPC update successful');
+            updateSuccessful = true;
+          } else {
+            // Log the RPC failure but don't throw - we'll use fallback
+            if (updateError) {
+              console.log('RPC failed with error:', updateError.message);
             }
-          });
-
-        if (historyError) {
-          console.error('History insert error:', historyError);
-          // Don't fail the whole operation for history error
+            if (data && typeof data === 'object' && 'error' in data) {
+              console.log('RPC returned error:', data.error);
+            }
+            throw new Error('RPC_FAILED'); // Signal to use fallback
+          }
+        } catch (rpcError) {
+          // RPC failed, fall back to direct update
+          console.log('RPC failed, attempting direct update fallback...');
+          updateSuccessful = await performDirectUpdate();
         }
+      }
+
+      if (!updateSuccessful) {
+        throw new Error('Failed to update sensei level through all available methods');
       }
 
       toast({
@@ -204,10 +229,11 @@ export const AdminSenseiLevelManagement = () => {
       setReason('');
       setAdminOverride(false);
     } catch (err) {
-      console.error('Unexpected error:', err);
+      console.error('Update failed with error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "An unexpected error occurred while updating the level",
+        description: `Failed to update sensei level: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
