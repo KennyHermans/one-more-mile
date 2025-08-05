@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PersonalizedDashboard } from "@/components/ui/personalized-dashboard";
 import { ProfileCompletionIndicator } from "@/components/ui/profile-completion-indicator";
-import { GettingStartedChecklist } from "@/components/ui/getting-started-checklist";
+
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, CheckSquare, Star, TrendingUp } from "lucide-react";
 import { TripBooking } from '@/types/trip';
@@ -76,14 +76,9 @@ export function CustomerOverviewDashboard({
             documents={documents}
             className="order-1"
           />
-          <GettingStartedChecklist
-            userId={userId}
-            userProfile={profile}
-            userBookings={bookings}
-            userDocuments={documents}
-            userReviews={userReviews}
-            className="order-2"
-          />
+          <div className="order-2 p-6 border rounded-lg bg-muted/50">
+            <p className="text-muted-foreground text-center">Getting started guide temporarily unavailable</p>
+          </div>
         </div>
       )}
 
@@ -157,16 +152,6 @@ export function CustomerOverviewDashboard({
         <PersonalizedDashboard userId={userId} />
       )}
 
-      {/* Getting Started Checklist for Existing Users with Incomplete Actions */}
-      {!isNewUser && (userReviews.length === 0 || documents.length === 0) && (
-        <GettingStartedChecklist
-          userId={userId}
-          userProfile={profile}
-          userBookings={bookings}
-          userDocuments={documents}
-          userReviews={userReviews}
-        />
-      )}
     </div>
   );
 }

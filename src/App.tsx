@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 import { EnhancedMobileNavigation } from "@/components/ui/enhanced-mobile-navigation";
-import { ContextualHelp } from "@/components/ui/contextual-help";
+
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Senseis from "./pages/Senseis";
@@ -66,7 +66,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
           </Routes>
-          <ContextualHelp />
+          
         </div>
       </BrowserRouter>
     </TooltipProvider>
