@@ -185,14 +185,8 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
       'sensei-levels': 'management'
     };
     
-    // First activate sensei-management tab, then let dashboard handle sub-tab
-    onTabChange('sensei-management');
-    
-    // Use a small delay to ensure the dashboard renders before setting the sub-tab
-    setTimeout(() => {
-      const mappedTab = tabMapping[value] || value;
-      onTabChange(`sensei-management-${mappedTab}`);
-    }, 50);
+    const mappedTab = tabMapping[value] || value;
+    onTabChange(`sensei-management-${mappedTab}`);
   };
 
   const toggleExpanded = (value: string) => {
@@ -212,8 +206,8 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
   };
 
   const isSubItemActive = (parentValue: string, subValue: string) => {
-    return activeTab.startsWith(`${parentValue}-`) && 
-           (activeTab.includes(subValue) || (subValue === 'overview' && activeTab === 'sensei-management'));
+    if (activeTab === parentValue) return subValue === 'overview';
+    return activeTab === `${parentValue}-${subValue}`;
   };
 
   const hasPermission = (requiredPermission: string | null) => {
@@ -280,11 +274,11 @@ export function AdminSidebar({ activeTab, onTabChange, pendingApplications }: Ad
                                   <SidebarMenuSubItem key={subItem.title}>
                                     <SidebarMenuSubButton 
                                       onClick={() => handleSubItemClick(subItem.value)}
-                                      className={`cursor-pointer transition-colors ${
-                                        isSubItemActive(item.value, subItem.value.split('-').pop() || '') 
-                                          ? "bg-accent text-accent-foreground font-medium" 
-                                          : "hover:bg-muted/50"
-                                      }`}
+                                       className={`cursor-pointer transition-colors ${
+                                         isSubItemActive(item.value, subItem.value.replace('sensei-', '')) 
+                                           ? "bg-accent text-accent-foreground font-medium" 
+                                           : "hover:bg-muted/50"
+                                       }`}
                                     >
                                       <subItem.icon className="h-4 w-4" />
                                       <span className="flex items-center justify-between w-full">
