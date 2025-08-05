@@ -15,6 +15,9 @@ interface MatchingInsights {
   low_match_trips: number;
   missing_skills: string[];
   recommended_certifications: string[];
+  contextual_recommendations?: string[];
+  language_opportunities?: string[];
+  destination_gaps?: string[];
   last_calculated: string;
 }
 
@@ -196,8 +199,8 @@ export function SenseiMatchingInsights({ senseiId }: SenseiMatchingInsightsProps
         </CardContent>
       </Card>
 
-      {/* Improvement Opportunities */}
-      {(insights.missing_skills.length > 0 || insights.recommended_certifications.length > 0) && (
+      {/* Enhanced Improvement Opportunities */}
+      {(insights.missing_skills.length > 0 || insights.recommended_certifications.length > 0 || (insights.contextual_recommendations && insights.contextual_recommendations.length > 0)) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -205,10 +208,30 @@ export function SenseiMatchingInsights({ senseiId }: SenseiMatchingInsightsProps
               Improvement Opportunities
             </CardTitle>
             <CardDescription>
-              Add these skills and certifications to improve your trip matching
+              Intelligent recommendations based on destination analysis and trip demand
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Contextual Recommendations - New enhanced feature */}
+            {insights.contextual_recommendations && insights.contextual_recommendations.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
+                  Smart Destination Insights
+                </h4>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Language and cultural skills that would boost your matching for specific destinations
+                </p>
+                <div className="space-y-2">
+                  {insights.contextual_recommendations.map((rec, index) => (
+                    <div key={index} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <p className="text-sm text-emerald-800">{rec}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {insights.missing_skills.length > 0 && (
               <div>
                 <h4 className="font-medium text-sm mb-2 flex items-center gap-2">

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
+import { SenseiMatchingInsights } from "@/components/ui/sensei-matching-insights";
+import { EnhancedMatchingRecommendations } from "@/components/ui/enhanced-matching-recommendations";
 import { 
   TrendingUp, 
   MapPin, 
@@ -226,6 +228,12 @@ export function SenseiOverviewDashboard({
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Enhanced Trip Matching Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SenseiMatchingInsights senseiId={senseiProfile.id} />
+        <EnhancedMatchingRecommendations senseiId={senseiProfile.id} />
       </div>
     </div>
   );
