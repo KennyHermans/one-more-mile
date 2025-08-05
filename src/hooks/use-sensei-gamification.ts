@@ -60,11 +60,11 @@ export const useSenseiGamification = (senseiId?: string) => {
       
       // Combine current level with eligibility data
       if (profileData) {
-        setLevel({
-          eligible_level: profileData.sensei_level,
-          requirements_met: profileData.level_requirements_met || {},
-          next_level_requirements: levelData?.[0]?.next_level_requirements || {}
-        });
+      setLevel({
+        eligible_level: (profileData.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei') || 'apprentice',
+        requirements_met: profileData.level_requirements_met || {},
+        next_level_requirements: levelData?.[0]?.next_level_requirements || {}
+      });
       }
 
       // Get permissions based on actual current level
@@ -114,7 +114,6 @@ export const useSenseiGamification = (senseiId?: string) => {
         .rpc('upgrade_sensei_level', {
           p_sensei_id: senseiId,
           p_new_level: newLevel,
-          p_changed_by: null, // Will be set by function if admin
           p_reason: reason || 'Manual upgrade'
         });
       

@@ -56,7 +56,14 @@ export const AdminSenseiLevelManagement = () => {
         .order('name');
 
       if (error) throw error;
-      setSenseis(data || []);
+      
+      // Map data to ensure sensei_level matches our enum
+      const mappedData = (data || []).map(sensei => ({
+        ...sensei,
+        sensei_level: (sensei.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei') || 'apprentice'
+      }));
+      
+      setSenseis(mappedData);
     } catch (error) {
       handleError(error, {
         component: 'AdminSenseiLevelManagement',
@@ -103,9 +110,7 @@ export const AdminSenseiLevelManagement = () => {
         .rpc('upgrade_sensei_level', {
           p_sensei_id: selectedSensei.id,
           p_new_level: newLevel,
-          p_changed_by: null, // Will be determined by the function
-          p_reason: reason,
-          p_admin_override: adminOverride
+          p_reason: reason
         });
 
       if (error) throw error;

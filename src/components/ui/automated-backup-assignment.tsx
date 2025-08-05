@@ -191,8 +191,7 @@ export function AutomatedBackupAssignment() {
       for (const trip of trips || []) {
         try {
           const { error: rpcError } = await supabase.rpc('request_backup_senseis', {
-            p_trip_id: trip.id,
-            p_max_requests: settings.maxRequestsPerTrip
+            p_trip_id: trip.id
           });
 
           if (!rpcError) {

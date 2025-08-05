@@ -20,7 +20,7 @@ export interface SenseiProfile {
   trips_led: number;
   rating: number;
   can_create_trips: boolean;
-  trip_creation_requested: boolean;
+  trip_creation_requested?: boolean;
   trip_creation_request_date?: string;
   level_achieved_at?: string;
   level_requirements_met?: Record<string, any>;

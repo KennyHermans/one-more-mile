@@ -48,9 +48,27 @@ export function AdminSenseiOverview() {
 
   const fetchSenseiStatus = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_sensei_trip_status');
+      const { data, error } = await supabase
+        .from('sensei_profiles')
+        .select('id, name, trips_led, rating, sensei_level')
+        .eq('is_active', true);
+      
       if (error) throw error;
-      setSenseis(data || []);
+      
+      // Transform data to match SenseiStatus interface
+      const transformedData = (data || []).map(sensei => ({
+        sensei_id: sensei.id,
+        sensei_name: sensei.name,
+        is_linked_to_trip: false, // Will be calculated separately if needed
+        current_trip_count: sensei.trips_led,
+        is_available: true,
+        specialties: [],
+        certifications: [],
+        location: '',
+        rating: sensei.rating
+      }));
+      
+      setSenseis(transformedData);
     } catch (error) {
       // Handle error silently or with toast notification
       toast.error('Failed to load sensei overview');
