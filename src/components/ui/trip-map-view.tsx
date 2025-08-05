@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Map, List, MapPin, Star, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
 
 import { TripListItem } from '@/types/trip';
 
@@ -168,7 +169,28 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
         /* List View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
+            <FeaturedTripCard 
+              key={trip.id}
+              id={trip.id}
+              title={trip.title}
+              destination={trip.destination}
+              description={trip.title} // Using title as fallback for description
+              price={trip.price}
+              dates={trip.dates}
+              groupSize={`${trip.max_participants} people max`} // Constructed from max_participants
+              sensei={trip.sensei_name}
+              image={trip.image_url}
+              theme={trip.theme}
+              current_participants={trip.current_participants || 0}
+              max_participants={trip.max_participants}
+              difficulty_level={trip.difficulty_level}
+              duration_days={undefined} // Not available in TripListItem
+              rating={trip.rating || 0}
+              review_count={0} // Not available in TripListItem
+              sensei_image={undefined} // Not available in TripListItem
+              sensei_specialties={[]} // Not available in TripListItem
+              sensei_location={undefined} // Not available in TripListItem
+            />
           ))}
         </div>
       ) : (
