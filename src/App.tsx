@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { GlobalErrorProvider } from "@/components/ui/global-error-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -35,40 +36,43 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="min-h-screen bg-background">
-          <EnhancedMobileNavigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/trip/:tripId" element={<TripDetail />} />
-            <Route path="/senseis" element={<Senseis />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/become-sensei" element={<BecomeSensei />} />
-            <Route path="/admin/dashboard" element={<AdminAccessGuard><AdminDashboard /></AdminAccessGuard>} />
-            <Route path="/admin/applications" element={<AdminAccessGuard><AdminApplications /></AdminAccessGuard>} />
-            <Route path="/admin/trips" element={<AdminAccessGuard><AdminTrips /></AdminAccessGuard>} />
-            <Route path="/sensei/dashboard" element={<DashboardAccessGuard requiredRole="sensei"><SenseiDashboard /></DashboardAccessGuard>} />
-            <Route path="/customer/dashboard" element={<DashboardAccessGuard requiredRole="customer"><CustomerDashboard /></DashboardAccessGuard>} />
-            <Route path="/customer/profile" element={<CustomerProfile />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/sensei-profile" element={<SenseiProfile />} />
-            <Route path="/senseis/:senseiId" element={<SenseiPublicProfile />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-cancel" element={<PaymentCancel />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </TooltipProvider>
+    <GlobalErrorProvider>
+      <TooltipProvider>
+        <ErrorBoundary>
+          <Toaster />
+          <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <EnhancedMobileNavigation />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route path="/trip/:tripId" element={<TripDetail />} />
+                <Route path="/senseis" element={<Senseis />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/become-sensei" element={<BecomeSensei />} />
+                <Route path="/admin/dashboard" element={<AdminAccessGuard><AdminDashboard /></AdminAccessGuard>} />
+                <Route path="/admin/applications" element={<AdminAccessGuard><AdminApplications /></AdminAccessGuard>} />
+                <Route path="/admin/trips" element={<AdminAccessGuard><AdminTrips /></AdminAccessGuard>} />
+                <Route path="/sensei/dashboard" element={<DashboardAccessGuard requiredRole="sensei"><SenseiDashboard /></DashboardAccessGuard>} />
+                <Route path="/customer/dashboard" element={<DashboardAccessGuard requiredRole="customer"><CustomerDashboard /></DashboardAccessGuard>} />
+                <Route path="/customer/profile" element={<CustomerProfile />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/sensei-profile" element={<SenseiProfile />} />
+                <Route path="/senseis/:senseiId" element={<SenseiPublicProfile />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </ErrorBoundary>
+      </TooltipProvider>
+    </GlobalErrorProvider>
   </QueryClientProvider>
 );
 

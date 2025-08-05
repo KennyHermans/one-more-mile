@@ -32,7 +32,9 @@ export function RealTimeNotifications({ userId, onNotificationCount }: RealTimeN
 
   useEffect(() => {
     fetchNotifications();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    
+    return cleanup;
   }, [userId]);
 
   useEffect(() => {
