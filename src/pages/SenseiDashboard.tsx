@@ -1973,6 +1973,3 @@ export default SenseiDashboard;
   );
 };
 
-export default SenseiDashboard;
-
-export default SenseiDashboard;
