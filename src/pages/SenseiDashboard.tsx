@@ -23,7 +23,6 @@ import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
-import { TripEditDialog } from "@/components/ui/trip-edit-dialog";
 import { SenseiTripCreationRequest } from "@/components/ui/sensei-trip-creation-request";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
@@ -1003,11 +1002,6 @@ const SenseiDashboard = () => {
 
 
       case "trips":
-        console.log('Trips tab - Permission debugging:', {
-          senseiPermissionsLoading,
-          senseiPermissions,
-          canEditTrips: !senseiPermissionsLoading && (senseiPermissions?.can_edit_trips || false)
-        });
         return (
           <SenseiTripsManagement
             trips={trips}
@@ -1918,18 +1912,8 @@ const SenseiDashboard = () => {
                      </CardContent>
                    </Card>
                  ))}
-                 </div>
-              
-              <TripEditDialog
-                trip={editingTrip}
-                isOpen={!!editingTrip}
-                onClose={() => setEditingTrip(null)}
-                onSave={handleSaveTrip}
-                onTripChange={setEditingTrip}
-                canEdit={canEdit}
-                isSaving={isSaving}
-              />
-              </div>
+                </div>
+              )}
             </div>
           );
 
