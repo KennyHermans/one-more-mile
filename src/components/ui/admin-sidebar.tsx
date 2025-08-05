@@ -42,12 +42,6 @@ const sidebarGroups = [
         icon: Home,
         requiresPermission: null
       },
-      {
-        title: "System Health",
-        value: "system-health", 
-        icon: BarChart3,
-        requiresPermission: null
-      }
     ]
   },
   {

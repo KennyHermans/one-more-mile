@@ -93,29 +93,6 @@ export interface AdminActionContext {
   metadata?: Record<string, any>;
 }
 
-export interface SystemHealth {
-  database: {
-    status: 'healthy' | 'warning' | 'critical';
-    connections: number;
-    slowQueries: number;
-    lastBackup?: string;
-  };
-  realtime: {
-    status: 'healthy' | 'warning' | 'critical';
-    activeSubscriptions: number;
-    latency?: number;
-  };
-  storage: {
-    status: 'healthy' | 'warning' | 'critical';
-    usagePercentage: number;
-    totalSize: string;
-  };
-  functions: {
-    status: 'healthy' | 'warning' | 'critical';
-    activeRequests: number;
-    errorRate: number;
-  };
-}
 
 // Analytics interfaces
 export interface AdminAnalytics {
