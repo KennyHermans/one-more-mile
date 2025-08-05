@@ -1012,6 +1012,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_level_field_permissions: {
+        Row: {
+          can_edit: boolean
+          created_at: string
+          field_name: string
+          id: string
+          sensei_level: string
+          updated_at: string
+        }
+        Insert: {
+          can_edit?: boolean
+          created_at?: string
+          field_name: string
+          id?: string
+          sensei_level: string
+          updated_at?: string
+        }
+        Update: {
+          can_edit?: boolean
+          created_at?: string
+          field_name?: string
+          id?: string
+          sensei_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sensei_level_history: {
         Row: {
           change_reason: string | null
@@ -1042,6 +1069,51 @@ export type Database = {
           previous_level?: string | null
           requirements_met?: Json | null
           sensei_id?: string
+        }
+        Relationships: []
+      }
+      sensei_level_permissions: {
+        Row: {
+          can_apply_backup: boolean
+          can_create_trips: boolean
+          can_edit_profile: boolean
+          can_edit_trips: boolean
+          can_modify_pricing: boolean
+          can_publish_trips: boolean
+          can_use_ai_builder: boolean
+          can_view_trips: boolean
+          created_at: string
+          id: string
+          sensei_level: string
+          updated_at: string
+        }
+        Insert: {
+          can_apply_backup?: boolean
+          can_create_trips?: boolean
+          can_edit_profile?: boolean
+          can_edit_trips?: boolean
+          can_modify_pricing?: boolean
+          can_publish_trips?: boolean
+          can_use_ai_builder?: boolean
+          can_view_trips?: boolean
+          created_at?: string
+          id?: string
+          sensei_level: string
+          updated_at?: string
+        }
+        Update: {
+          can_apply_backup?: boolean
+          can_create_trips?: boolean
+          can_edit_profile?: boolean
+          can_edit_trips?: boolean
+          can_modify_pricing?: boolean
+          can_publish_trips?: boolean
+          can_use_ai_builder?: boolean
+          can_view_trips?: boolean
+          created_at?: string
+          id?: string
+          sensei_level?: string
+          updated_at?: string
         }
         Relationships: []
       }
