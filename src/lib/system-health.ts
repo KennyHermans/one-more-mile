@@ -33,7 +33,6 @@ class SystemHealthMonitor {
 
   async startHealthMonitoring(intervalMs: number = 60000) {
     if (this.isMonitoring) {
-      console.warn('Health monitoring already started');
       return;
     }
 

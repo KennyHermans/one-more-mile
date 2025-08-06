@@ -60,11 +60,9 @@ export function useSystemHealth(autoRefresh = true, refreshInterval = 30000) {
     }
 
     return () => {
-      if (isMonitoring) {
-        stopMonitoring();
-      }
+      stopMonitoring();
     };
-  }, [autoRefresh, startMonitoring, stopMonitoring, refreshHealth]);
+  }, [autoRefresh]);
 
   const getHealthSummary = useCallback(() => {
     if (!health) return null;
