@@ -1986,7 +1986,9 @@ export type Database = {
         Returns: undefined
       }
       request_backup_senseis: {
-        Args: { p_trip_id: string }
+        Args:
+          | { p_trip_id: string }
+          | { p_trip_id: string; p_max_requests?: number }
         Returns: Json
       }
       revoke_admin_role: {

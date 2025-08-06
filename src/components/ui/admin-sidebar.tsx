@@ -119,6 +119,12 @@ const sidebarGroups = [
     label: "Automation & Alerts",
     items: [
       {
+        title: "Backup Management",
+        value: "backup-dashboard",
+        icon: Shield,
+        requiresPermission: null
+      },
+      {
         title: "Backup Alerts",
         value: "alerts",
         icon: AlertTriangle,

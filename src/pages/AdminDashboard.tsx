@@ -37,6 +37,7 @@ import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
 import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
+import { AdminBackupDashboard } from "@/components/ui/admin-backup-dashboard";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
@@ -1056,6 +1057,12 @@ const AdminDashboard = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Sensei Management</h2>
                 <AdminSenseiOverview />
+              </div>
+            )}
+            
+            {activeTab === "backup-dashboard" && (
+              <div className="space-y-6">
+                <AdminBackupDashboard />
               </div>
             )}
             
