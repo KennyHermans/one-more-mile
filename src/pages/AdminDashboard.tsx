@@ -36,8 +36,7 @@ import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dial
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
 import { SenseiAssignmentManagement } from "@/components/ui/sensei-assignment-management";
-import { AdminBackupAlerts } from "@/components/ui/admin-backup-alerts";
-import { AdminBackupDashboard } from "@/components/ui/admin-backup-dashboard";
+import { ComprehensiveBackupDashboard } from "@/components/ui/comprehensive-backup-dashboard";
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
@@ -1060,17 +1059,7 @@ const AdminDashboard = () => {
               </div>
             )}
             
-            {activeTab === "backup-dashboard" && (
-              <div className="space-y-6">
-                <AdminBackupDashboard />
-              </div>
-            )}
-            
-            {activeTab === "alerts" && (
-              <div className="space-y-6">
-                <AdminBackupAlerts />
-              </div>
-            )}
+            {activeTab === "backup-dashboard" && <ComprehensiveBackupDashboard />}
             
             {activeTab === "advanced-analytics" && (
               <AdvancedAnalyticsReporting />

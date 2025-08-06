@@ -125,12 +125,6 @@ const sidebarGroups = [
         requiresPermission: null
       },
       {
-        title: "Backup Alerts",
-        value: "alerts",
-        icon: AlertTriangle,
-        requiresPermission: null
-      },
-      {
         title: "Automation",
         value: "automation",
         icon: Bot,
