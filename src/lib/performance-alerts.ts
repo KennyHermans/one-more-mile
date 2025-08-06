@@ -54,8 +54,8 @@ class PerformanceAlertSystem {
     },
     {
       metric: 'cache_hit_rate',
-      warning_threshold: 70,
-      critical_threshold: 50,
+      warning_threshold: 70, // Alert when hit rate drops BELOW 70%
+      critical_threshold: 50, // Alert when hit rate drops BELOW 50%
       unit: '%',
       check_interval: 300000
     }
@@ -89,42 +89,84 @@ class PerformanceAlertSystem {
       const alertId = `${threshold.metric}_${threshold.critical_threshold}`;
       const existingAlert = this.alerts.get(alertId);
 
-      // Check for critical threshold
-      if (currentValue >= threshold.critical_threshold) {
-        if (!existingAlert || existingAlert.resolved) {
-          this.createAlert({
-            id: alertId,
-            metric: threshold.metric,
-            current_value: currentValue,
-            threshold_value: threshold.critical_threshold,
-            severity: 'critical',
-            message: `${threshold.metric} exceeded critical threshold: ${currentValue}${threshold.unit} >= ${threshold.critical_threshold}${threshold.unit}`,
-            timestamp: Date.now(),
-            resolved: false
-          });
+      // Special handling for cache hit rate (lower is worse)
+      if (threshold.metric === 'cache_hit_rate') {
+        // Check for critical threshold (hit rate below critical threshold)
+        if (currentValue <= threshold.critical_threshold) {
+          if (!existingAlert || existingAlert.resolved) {
+            this.createAlert({
+              id: alertId,
+              metric: threshold.metric,
+              current_value: currentValue,
+              threshold_value: threshold.critical_threshold,
+              severity: 'critical',
+              message: `${threshold.metric} below critical threshold: ${currentValue}${threshold.unit} <= ${threshold.critical_threshold}${threshold.unit}`,
+              timestamp: Date.now(),
+              resolved: false
+            });
+          }
         }
-      }
-      // Check for warning threshold
-      else if (currentValue >= threshold.warning_threshold) {
-        const warningAlertId = `${threshold.metric}_${threshold.warning_threshold}`;
-        const existingWarningAlert = this.alerts.get(warningAlertId);
-        
-        if (!existingWarningAlert || existingWarningAlert.resolved) {
-          this.createAlert({
-            id: warningAlertId,
-            metric: threshold.metric,
-            current_value: currentValue,
-            threshold_value: threshold.warning_threshold,
-            severity: 'warning',
-            message: `${threshold.metric} exceeded warning threshold: ${currentValue}${threshold.unit} >= ${threshold.warning_threshold}${threshold.unit}`,
-            timestamp: Date.now(),
-            resolved: false
-          });
+        // Check for warning threshold (hit rate below warning threshold)
+        else if (currentValue <= threshold.warning_threshold) {
+          const warningAlertId = `${threshold.metric}_${threshold.warning_threshold}`;
+          const existingWarningAlert = this.alerts.get(warningAlertId);
+          
+          if (!existingWarningAlert || existingWarningAlert.resolved) {
+            this.createAlert({
+              id: warningAlertId,
+              metric: threshold.metric,
+              current_value: currentValue,
+              threshold_value: threshold.warning_threshold,
+              severity: 'warning',
+              message: `${threshold.metric} below warning threshold: ${currentValue}${threshold.unit} <= ${threshold.warning_threshold}${threshold.unit}`,
+              timestamp: Date.now(),
+              resolved: false
+            });
+          }
         }
-      }
-      // Resolve existing alerts if value is back to normal
-      else {
-        this.resolveAlertsForMetric(threshold.metric);
+        // Resolve existing alerts if value is back to normal
+        else {
+          this.resolveAlertsForMetric(threshold.metric);
+        }
+      } else {
+        // Standard handling for other metrics (higher is worse)
+        // Check for critical threshold
+        if (currentValue >= threshold.critical_threshold) {
+          if (!existingAlert || existingAlert.resolved) {
+            this.createAlert({
+              id: alertId,
+              metric: threshold.metric,
+              current_value: currentValue,
+              threshold_value: threshold.critical_threshold,
+              severity: 'critical',
+              message: `${threshold.metric} exceeded critical threshold: ${currentValue}${threshold.unit} >= ${threshold.critical_threshold}${threshold.unit}`,
+              timestamp: Date.now(),
+              resolved: false
+            });
+          }
+        }
+        // Check for warning threshold
+        else if (currentValue >= threshold.warning_threshold) {
+          const warningAlertId = `${threshold.metric}_${threshold.warning_threshold}`;
+          const existingWarningAlert = this.alerts.get(warningAlertId);
+          
+          if (!existingWarningAlert || existingWarningAlert.resolved) {
+            this.createAlert({
+              id: warningAlertId,
+              metric: threshold.metric,
+              current_value: currentValue,
+              threshold_value: threshold.warning_threshold,
+              severity: 'warning',
+              message: `${threshold.metric} exceeded warning threshold: ${currentValue}${threshold.unit} >= ${threshold.warning_threshold}${threshold.unit}`,
+              timestamp: Date.now(),
+              resolved: false
+            });
+          }
+        }
+        // Resolve existing alerts if value is back to normal
+        else {
+          this.resolveAlertsForMetric(threshold.metric);
+        }
       }
     } catch (error) {
       console.error(`Error checking threshold for ${threshold.metric}:`, error);
@@ -158,8 +200,10 @@ class PerformanceAlertSystem {
         return totalMetrics > 0 ? (errorMetrics.length / totalMetrics) * 100 : 0;
       
       case 'cache_hit_rate':
-        // This would come from cache manager stats
-        return 85; // Placeholder - would integrate with actual cache stats
+        // Get actual cache hit rate from cache manager
+        const { cacheManager } = await import('./cache-manager');
+        const stats = cacheManager.getStats();
+        return stats.hitRate * 100; // Convert to percentage
       
       default:
         return null;
