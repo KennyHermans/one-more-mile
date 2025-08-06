@@ -827,6 +827,45 @@ export type Database = {
         }
         Relationships: []
       }
+      production_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sensei_achievements: {
         Row: {
           achievement_description: string | null
@@ -1951,6 +1990,10 @@ export type Database = {
         Args: { p_sensei_id: string }
         Returns: Json
       }
+      get_comprehensive_system_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_customer_travel_stats: {
         Args: { _user_id: string }
         Returns: {
@@ -1988,6 +2031,16 @@ export type Database = {
           new_values?: Json
         }
         Returns: undefined
+      }
+      log_production_alert: {
+        Args: {
+          p_alert_type: string
+          p_severity: string
+          p_title: string
+          p_message: string
+          p_metadata?: Json
+        }
+        Returns: string
       }
       request_backup_senseis: {
         Args:

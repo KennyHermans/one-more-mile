@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { SecurityDashboard } from "@/components/ui/security-dashboard";
 import { ProductionMonitoringDashboard } from "@/components/ui/production-monitoring-dashboard";
 import { ProductionValidationDashboard } from "@/components/ui/production-validation-dashboard";
+import { ProductionLaunchDashboard } from "@/components/ui/production-launch-dashboard";
 import { DeploymentDashboard } from "@/components/ui/deployment-dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -1127,6 +1128,10 @@ const AdminDashboard = () => {
 
             {activeTab === "deployment" && (
               <DeploymentDashboard />
+            )}
+
+            {activeTab === "launch" && (
+              <ProductionLaunchDashboard />
             )}
           </main>
         </div>
