@@ -413,6 +413,42 @@ export type Database = {
           },
         ]
       }
+      configurable_level_requirements: {
+        Row: {
+          additional_criteria: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          level_name: string
+          rating_required: number
+          trips_required: number
+          updated_at: string
+        }
+        Insert: {
+          additional_criteria?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          level_name: string
+          rating_required?: number
+          trips_required?: number
+          updated_at?: string
+        }
+        Update: {
+          additional_criteria?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          level_name?: string
+          rating_required?: number
+          trips_required?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customer_documents: {
         Row: {
           document_name: string
@@ -636,6 +672,36 @@ export type Database = {
           region?: string | null
           skill_weights?: Json | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      milestone_achievements: {
+        Row: {
+          achieved_at: string
+          id: string
+          metadata: Json | null
+          milestone_type: string
+          progress_percentage: number
+          sensei_id: string
+          target_level: string
+        }
+        Insert: {
+          achieved_at?: string
+          id?: string
+          metadata?: Json | null
+          milestone_type: string
+          progress_percentage: number
+          sensei_id: string
+          target_level: string
+        }
+        Update: {
+          achieved_at?: string
+          id?: string
+          metadata?: Json | null
+          milestone_type?: string
+          progress_percentage?: number
+          sensei_id?: string
+          target_level?: string
         }
         Relationships: []
       }
@@ -1005,6 +1071,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sensei_field_permissions_config: {
+        Row: {
+          can_edit: boolean
+          can_view: boolean
+          conditions: Json | null
+          created_at: string
+          field_category: string
+          field_name: string
+          id: string
+          sensei_level: string
+          updated_at: string
+        }
+        Insert: {
+          can_edit?: boolean
+          can_view?: boolean
+          conditions?: Json | null
+          created_at?: string
+          field_category: string
+          field_name: string
+          id?: string
+          sensei_level: string
+          updated_at?: string
+        }
+        Update: {
+          can_edit?: boolean
+          can_view?: boolean
+          conditions?: Json | null
+          created_at?: string
+          field_category?: string
+          field_name?: string
+          id?: string
+          sensei_level?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       sensei_goals: {
         Row: {
