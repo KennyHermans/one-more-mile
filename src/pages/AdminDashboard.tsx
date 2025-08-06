@@ -40,6 +40,7 @@ import { ComprehensiveBackupDashboard } from "@/components/ui/comprehensive-back
 import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
+import { SystemHealthMonitor } from "@/components/ui/system-health-monitor";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -700,6 +701,9 @@ const AdminDashboard = () => {
                     // Real-time stats are handled within the component
                   }}
                 />
+                
+                {/* System Health Monitor */}
+                <SystemHealthMonitor />
                 
                 {/* Database optimization utility */}
                 <DatabaseOptimization />

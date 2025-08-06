@@ -1,12 +1,15 @@
-import { StrictMode } from "react";
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 import { EnhancedMobileNavigation } from "@/components/ui/enhanced-mobile-navigation";
+import { queryClient } from "@/lib/query-client";
+import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
+import { performanceMonitor } from "@/lib/performance-monitor";
 
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -32,17 +35,27 @@ import Privacy from "./pages/Privacy";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="min-h-screen bg-background">
-          <EnhancedMobileNavigation />
-          <Routes>
+
+const App = () => {
+  // Initialize performance monitoring
+  React.useEffect(() => {
+    // Track initial page load
+    performanceMonitor.measureFunction('app-initialization', () => {
+      console.log('App initialized with performance monitoring');
+    });
+  }, []);
+
+  return (
+    <PerformanceErrorBoundary enablePerformanceTracking={true}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <EnhancedMobileNavigation />
+              <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/trip/:tripId" element={<TripDetail />} />
@@ -67,12 +80,14 @@ const App = () => (
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-          </Routes>
-          
-        </div>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+              </Routes>
+              
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </PerformanceErrorBoundary>
+  );
+};
 
 export default App;
