@@ -1943,6 +1943,10 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      check_backup_requirements: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       check_sensei_level_eligibility: {
         Args: { p_sensei_id: string }
         Returns: Json
