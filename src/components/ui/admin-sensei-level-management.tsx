@@ -180,6 +180,14 @@ export const AdminSenseiLevelManagement = () => {
       const p_reason = String(validatedInputs.reason || '').trim();
       const p_admin_override = Boolean(validatedInputs.override);
 
+      // ✅ FINAL SAFETY CHECK: Throw error if ANY parameter is an object
+      const params = { p_sensei_id, p_new_level, p_reason, p_admin_override };
+      for (const [key, value] of Object.entries(params)) {
+        if (typeof value === 'object' && value !== null) {
+          throw new Error(`Parameter ${key} is an object, must be primitive. Value: ${JSON.stringify(value)}`);
+        }
+      }
+
       // Validate UUID format for sensei_id
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(p_sensei_id)) {
@@ -192,29 +200,11 @@ export const AdminSenseiLevelManagement = () => {
         throw new Error(`Invalid level: ${p_new_level}. Must be one of: ${validLevels.join(', ')}`);
       }
 
-      const payload = {
-        p_sensei_id,
-        p_new_level,
-        p_reason,
-        p_admin_override
-      };
-
-      console.log('[Sensei Level Update] Payload:', {
-        ...payload,
-        types: {
-          p_sensei_id: typeof payload.p_sensei_id,
-          p_new_level: typeof payload.p_new_level,
-          p_reason: typeof payload.p_reason,
-          p_admin_override: typeof payload.p_admin_override
-        }
-      });
-
-      // 🔥 DETAILED RPC LOGGING
-      console.log('🚀 About to call supabase.rpc with:', {
-        function_name: 'admin_update_sensei_level',
-        payload: payload,
-        payload_json: JSON.stringify(payload),
-        payload_stringified: String(payload)
+      console.log('✅ FINAL PAYLOAD VERIFICATION:', {
+        p_sensei_id: `"${p_sensei_id}" (${typeof p_sensei_id})`,
+        p_new_level: `"${p_new_level}" (${typeof p_new_level})`,
+        p_reason: `"${p_reason}" (${typeof p_reason})`,
+        p_admin_override: `${p_admin_override} (${typeof p_admin_override})`
       });
 
       // Call the secure admin function with EXPLICIT type forcing at RPC call
