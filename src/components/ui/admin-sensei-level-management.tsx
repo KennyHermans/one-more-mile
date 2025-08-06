@@ -112,27 +112,32 @@ export const AdminSenseiLevelManagement = () => {
 
   // Removed performDirectUpdate function as it's not being used and was causing JSON parsing issues
 
-  // Input validation helper
+  // Input validation helper - Returns ONLY primitive values
   const validateInputs = () => {
     // Validate sensei selection
     if (!selectedSensei?.id) {
       throw new Error('No sensei selected');
     }
 
+    // 🚨 Extract ONLY primitive values directly from state - no object references
+    const senseiId = String(selectedSensei.id).trim();
+    const level = String(newLevel).trim();
+    const cleanReason = String(reason || '').trim();
+    const override = Boolean(adminOverride);
+
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(selectedSensei.id)) {
+    if (!uuidRegex.test(senseiId)) {
       throw new Error('Invalid sensei ID format');
     }
 
     // Validate level
     const validLevels = ['apprentice', 'journey_guide', 'master_sensei'];
-    if (!validLevels.includes(newLevel)) {
+    if (!validLevels.includes(level)) {
       throw new Error('Invalid sensei level selected');
     }
 
     // Validate reason - ensure it's a clean string
-    const cleanReason = reason.trim();
     if (!cleanReason || cleanReason.length < 3) {
       throw new Error('Please provide a meaningful reason (at least 3 characters)');
     }
@@ -142,12 +147,25 @@ export const AdminSenseiLevelManagement = () => {
       throw new Error('Reason contains invalid characters');
     }
 
-    return {
-      senseiId: selectedSensei.id,
-      level: newLevel,
-      reason: cleanReason,
-      override: Boolean(adminOverride)
-    };
+    // 🔍 Final validation - ensure all return values are primitives
+    const result = { senseiId, level, reason: cleanReason, override };
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'object' && value !== null) {
+        throw new Error(`validateInputs() returned object for ${key}: ${JSON.stringify(value)}`);
+      }
+    }
+
+    console.log('✅ validateInputs() returning primitives only:', {
+      ...result,
+      types: {
+        senseiId: typeof senseiId,
+        level: typeof level,
+        reason: typeof cleanReason,
+        override: typeof override
+      }
+    });
+
+    return result;
   };
 
   const updateSenseiLevel = async () => {
@@ -181,6 +199,16 @@ export const AdminSenseiLevelManagement = () => {
       }
       if (typeof payload.p_admin_override !== 'boolean') {
         throw new Error('Invalid admin override: must be boolean, got ' + typeof payload.p_admin_override);
+      }
+
+      // 🔍 JSON Serialization Test - catch serialization errors early
+      try {
+        const serialized = JSON.stringify(payload);
+        const parsed = JSON.parse(serialized);
+        console.log('✅ JSON serialization test passed. Serialized payload:', serialized);
+        console.log('✅ Parsed back:', parsed);
+      } catch (jsonError) {
+        throw new Error(`Payload contains non-JSON-serializable values: ${jsonError}`);
       }
 
       console.log('✅ Payload being sent to RPC:', payload);
