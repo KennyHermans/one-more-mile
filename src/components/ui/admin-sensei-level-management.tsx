@@ -166,27 +166,26 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: validatedInputs.override
       });
 
-      // 🚨 PAYLOAD DEBUG: Log exactly what we're sending to Supabase RPC
-      console.log('Payload sent to Supabase RPC:', {
-        p_sensei_id: validatedInputs.senseiId,
-        p_new_level: validatedInputs.level,
-        p_reason: validatedInputs.reason,
-        p_admin_override: validatedInputs.override
-      });
-      console.log('Parameter types:', {
-        p_sensei_id: typeof validatedInputs.senseiId,
-        p_new_level: typeof validatedInputs.level, 
-        p_reason: typeof validatedInputs.reason,
-        p_admin_override: typeof validatedInputs.override
+      // 🚨 Hard-fix payload to enforce primitive types
+      const payload = {
+        p_sensei_id: String(validatedInputs.senseiId),
+        p_new_level: String(validatedInputs.level),
+        p_reason: String(validatedInputs.reason),
+        p_admin_override: Boolean(validatedInputs.override)
+      };
+
+      console.log('[Sensei Level Update] Payload:', {
+        ...payload,
+        types: {
+          p_sensei_id: typeof payload.p_sensei_id,
+          p_new_level: typeof payload.p_new_level,
+          p_reason: typeof payload.p_reason,
+          p_admin_override: typeof payload.p_admin_override
+        }
       });
 
       // Call the secure admin function with validated inputs
-      const { data, error } = await supabase.rpc('admin_update_sensei_level', {
-        p_sensei_id: validatedInputs.senseiId,
-        p_new_level: validatedInputs.level,
-        p_reason: validatedInputs.reason,
-        p_admin_override: validatedInputs.override
-      });
+      const { data, error } = await supabase.rpc('admin_update_sensei_level', payload);
 
       console.log('🔥 RPC RESPONSE - Data:', data);
       console.log('🔥 RPC RESPONSE - Error:', error);
