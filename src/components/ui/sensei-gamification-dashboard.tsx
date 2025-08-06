@@ -2,7 +2,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { SenseiLevelProgress } from "@/components/ui/sensei-level-progress";
 import { SenseiAchievements } from "@/components/ui/sensei-achievements";
+import { SenseiMilestoneAchievements } from "@/components/ui/sensei-milestone-achievements";
 import { useSenseiGamification } from "@/hooks/use-sensei-gamification";
+import { useMilestoneTracker } from "@/hooks/use-milestone-tracker";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface SenseiGamificationDashboardProps {
@@ -18,6 +20,8 @@ export const SenseiGamificationDashboard = ({ senseiId }: SenseiGamificationDash
     getLevelDisplayName,
     getProgressToNextLevel
   } = useSenseiGamification(senseiId);
+
+  const { milestones, checkAndAwardMilestones } = useMilestoneTracker(senseiId);
 
   if (isLoading) {
     return (
@@ -107,11 +111,14 @@ export const SenseiGamificationDashboard = ({ senseiId }: SenseiGamificationDash
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Level Progress */}
         <SenseiLevelProgress senseiId={senseiId} />
 
-        {/* Achievements */}
+        {/* Milestone Achievements */}
+        <SenseiMilestoneAchievements senseiId={senseiId} />
+
+        {/* Traditional Achievements */}
         <SenseiAchievements
           achievements={achievements}
           isLoading={isLoading}
