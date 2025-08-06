@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { SenseiSuggestionsOverview } from "./sensei-suggestions-overview";
 import { BackupSenseiManagement } from "./backup-sensei-management";
-import { AdminBackupAlerts } from "./admin-backup-alerts";
+import { ComprehensiveBackupDashboard } from "./comprehensive-backup-dashboard";
 import { UserCheck, UserPlus, Search, AlertTriangle } from "lucide-react";
 import { Button } from "./button";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,7 +73,7 @@ export function SenseiAssignmentManagement() {
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-6 mt-6">
-          <AdminBackupAlerts />
+          <ComprehensiveBackupDashboard />
         </TabsContent>
       </Tabs>
     </div>
