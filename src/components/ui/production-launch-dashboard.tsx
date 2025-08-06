@@ -12,7 +12,8 @@ import {
   Activity,
   Zap,
   Eye,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 import { useProductionLaunch } from '@/hooks/use-production-launch';
 
@@ -157,15 +158,26 @@ export function ProductionLaunchDashboard({ className }: ProductionLaunchDashboa
                 Load Testing
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <Button
-                onClick={runLoadTesting}
+                onClick={() => runLoadTesting('quick')}
                 disabled={loading}
                 variant="outline"
                 size="sm"
                 className="w-full"
               >
-                Run Load Test
+                <Zap className="h-3 w-3 mr-1" />
+                Quick Test (10s)
+              </Button>
+              <Button
+                onClick={() => runLoadTesting('full')}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                Full Test (30s)
               </Button>
             </CardContent>
           </Card>

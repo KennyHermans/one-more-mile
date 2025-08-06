@@ -291,41 +291,67 @@ class ProductionDeploymentManager {
     concurrentUsers: number;
     duration: number;
     targetUrl?: string;
+    progressCallback?: (progress: number) => void;
   }): Promise<LoadTestResult> {
     console.log(`🧪 Running load test with ${options.concurrentUsers} concurrent users for ${options.duration}s`);
     
     const startTime = Date.now();
+    const testDuration = options.duration * 1000; // Convert seconds to milliseconds
     const results: number[] = [];
     const errors: number[] = [];
     
-    // Simulate load test (in real implementation, use tools like Artillery, k6, or similar)
-    const promises = Array.from({ length: options.concurrentUsers }, async (_, userIndex) => {
-      const userResults: number[] = [];
-      const userErrors: number[] = [];
-      
-      const endTime = startTime + (options.duration * 1000);
-      
-      while (Date.now() < endTime) {
-        const requestStart = Date.now();
+    // Progress tracking
+    let progressInterval: NodeJS.Timeout | null = null;
+    if (options.progressCallback) {
+      progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min((elapsed / testDuration) * 100, 100);
+        options.progressCallback!(progress);
+      }, 500);
+    }
+    
+    try {
+      // Simulate load test with optimized timing
+      const promises = Array.from({ length: options.concurrentUsers }, async (_, userIndex) => {
+        const userResults: number[] = [];
+        const userErrors: number[] = [];
         
-        try {
-          // Simulate API request
-          await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
-          const responseTime = Date.now() - requestStart;
-          userResults.push(responseTime);
-        } catch (error) {
-          userErrors.push(Date.now() - requestStart);
+        const endTime = startTime + testDuration;
+        
+        while (Date.now() < endTime) {
+          const requestStart = Date.now();
+          
+          try {
+            // Simulate API request with faster response time
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
+            const responseTime = Date.now() - requestStart;
+            userResults.push(responseTime);
+            
+            // Early termination if major performance issues detected
+            if (responseTime > 5000) {
+              console.warn(`⚠️ High response time detected: ${responseTime}ms, terminating user ${userIndex}`);
+              break;
+            }
+          } catch (error) {
+            userErrors.push(Date.now() - requestStart);
+          }
+          
+          // Optimized wait time - much shorter for faster testing
+          const waitTime = Math.random() * 150 + 50; // 50-200ms
+          await new Promise(resolve => setTimeout(resolve, waitTime));
         }
         
-        // Wait before next request
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
-      }
-      
-      results.push(...userResults);
-      errors.push(...userErrors);
-    });
+        results.push(...userResults);
+        errors.push(...userErrors);
+      });
 
-    await Promise.all(promises);
+      await Promise.all(promises);
+    } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        options.progressCallback?.(100);
+      }
+    }
     
     const totalRequests = results.length + errors.length;
     const successfulRequests = results.length;

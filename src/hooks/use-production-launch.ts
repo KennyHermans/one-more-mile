@@ -160,18 +160,30 @@ export function useProductionLaunch() {
     }
   }, [updateStatus, logProductionAlert]);
 
-  const runLoadTesting = useCallback(async () => {
+  const runLoadTesting = useCallback(async (mode: 'quick' | 'full' = 'quick') => {
     updateStatus({
       phase: 'load_testing',
       progress: 60,
-      message: 'Running load testing...'
+      message: `Running ${mode} load testing...`
     });
 
     try {
-      // Run a production-safe load test
+      // Quick test for launch validation, full test for comprehensive testing
+      const testConfig = mode === 'quick' 
+        ? { concurrentUsers: 5, duration: 10 }  // Quick: 5 users, 10 seconds
+        : { concurrentUsers: 10, duration: 30 }; // Full: 10 users, 30 seconds
+
+      // Progress callback for real-time updates
+      const progressCallback = (progress: number) => {
+        updateStatus({
+          progress: 60 + (progress * 0.15), // Scale to 60-75% range
+          message: `Load testing... ${Math.round(progress)}% complete`
+        });
+      };
+
       const loadTestResult = await productionDeployment.runLoadTest({
-        concurrentUsers: 10, // Conservative for initial launch
-        duration: 30000 // 30 seconds
+        ...testConfig,
+        progressCallback
       });
 
       // Check if performance meets minimum requirements
@@ -187,7 +199,7 @@ export function useProductionLaunch() {
 
       updateStatus({
         progress: 75,
-        message: 'Load testing completed'
+        message: `${mode === 'quick' ? 'Quick' : 'Full'} load testing completed`
       });
 
       return loadTestResult;
