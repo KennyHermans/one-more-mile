@@ -168,57 +168,6 @@ export const AdminSenseiLevelManagement = () => {
     return result;
   };
 
-  // 🧪 HARDCODED TEST FUNCTION - Completely bypass frontend logic
-  const testHardcodedRPC = async () => {
-    setIsUpdating(true);
-    try {
-      console.log('🧪 TESTING: Hardcoded RPC call with primitive values only');
-      
-      // Completely hardcoded primitive values - no frontend state involved
-      const hardcodedPayload = {
-        p_sensei_id: "73b08295-9535-4d7e-9829-b1f418274576", // Joost's ID from database
-        p_new_level: "journey_guide",
-        p_reason: "Hardcoded test",
-        p_admin_override: true
-      };
-
-      console.log('🧪 Hardcoded payload:', hardcodedPayload);
-      console.log('🧪 Hardcoded payload types:', {
-        p_sensei_id: typeof hardcodedPayload.p_sensei_id,
-        p_new_level: typeof hardcodedPayload.p_new_level,
-        p_reason: typeof hardcodedPayload.p_reason,
-        p_admin_override: typeof hardcodedPayload.p_admin_override
-      });
-
-      const { data, error } = await supabase.rpc('admin_update_sensei_level', hardcodedPayload);
-
-      if (error) {
-        console.error('🧪 HARDCODED TEST FAILED:', error);
-        toast({
-          title: "Hardcoded Test Failed",
-          description: `Same error with hardcoded values: ${error.message}`,
-          variant: "destructive",
-        });
-      } else {
-        console.log('🧪 HARDCODED TEST SUCCESS:', data);
-        toast({
-          title: "Hardcoded Test Success",
-          description: "RPC works with hardcoded values - issue is in frontend logic",
-        });
-        await fetchSenseis();
-      }
-    } catch (error: any) {
-      console.error('🧪 HARDCODED TEST ERROR:', error);
-      toast({
-        title: "Hardcoded Test Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const updateSenseiLevel = async () => {
     try {
       setIsUpdating(true);
@@ -394,31 +343,6 @@ export const AdminSenseiLevelManagement = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Test Button */}
-        <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-blue-900">🧪 Hardcoded Test</h3>
-              <p className="text-xs text-blue-700">Test RPC with hardcoded values to isolate the JSON error</p>
-            </div>
-            <Button
-              onClick={testHardcodedRPC}
-              disabled={isUpdating}
-              variant="outline"
-              size="sm"
-            >
-              {isUpdating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                'Run Test'
-              )}
-            </Button>
-          </div>
-        </div>
-
         {/* Search */}
         <div>
           <Label htmlFor="search">Search Senseis</Label>
