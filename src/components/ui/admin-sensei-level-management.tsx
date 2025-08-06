@@ -209,8 +209,13 @@ export const AdminSenseiLevelManagement = () => {
         payload_stringified: String(payload)
       });
 
-      // Call the secure admin function with validated inputs
-      const { data, error } = await supabase.rpc('admin_update_sensei_level', payload);
+      // Call the secure admin function with EXPLICIT type forcing at RPC call
+      const { data, error } = await supabase.rpc('admin_update_sensei_level', {
+        p_sensei_id: String(p_sensei_id),
+        p_new_level: String(p_new_level),
+        p_reason: String(p_reason),
+        p_admin_override: Boolean(p_admin_override)
+      });
 
       console.log('🔥 RPC RESPONSE - Data:', data);
       console.log('🔥 RPC RESPONSE - Error:', error);
