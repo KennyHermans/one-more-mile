@@ -2084,12 +2084,20 @@ export type Database = {
         Args: { user_id?: string }
         Returns: boolean
       }
+      check_and_award_milestones: {
+        Args: { p_sensei_id: string }
+        Returns: undefined
+      }
       check_backup_requirements: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       check_sensei_level_eligibility: {
         Args: { p_sensei_id: string }
+        Returns: Json
+      }
+      enhanced_auto_upgrade_sensei_levels: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_basic_health_status: {
@@ -2099,6 +2107,16 @@ export type Database = {
       get_comprehensive_system_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_configurable_requirements: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          level_name: string
+          trips_required: number
+          rating_required: number
+          additional_criteria: Json
+          is_active: boolean
+        }[]
       }
       get_customer_travel_stats: {
         Args: { _user_id: string }
@@ -2110,6 +2128,16 @@ export type Database = {
           avg_rating_given: number
           reviews_written: number
           preferred_themes: string[]
+        }[]
+      }
+      get_sensei_field_permissions: {
+        Args: { p_sensei_id: string }
+        Returns: {
+          field_category: string
+          field_name: string
+          can_view: boolean
+          can_edit: boolean
+          conditions: Json
         }[]
       }
       get_sensei_permissions: {
