@@ -27,7 +27,10 @@ import {
   Home,
   Edit,
   Bot,
-  Brain
+  Brain,
+  Monitor,
+  CheckCircle,
+  Rocket
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAdminPermissions } from "@/hooks/use-admin-permissions";
@@ -187,6 +190,35 @@ const sidebarGroups = [
         value: "settings",
         icon: Settings,
         requiresPermission: "canManageFinances"
+      }
+    ]
+  },
+  {
+    label: "Production & Deployment",
+    items: [
+      {
+        title: "Production Monitoring",
+        value: "production",
+        icon: Monitor,
+        requiresPermission: null
+      },
+      {
+        title: "Production Validation",
+        value: "validation",
+        icon: CheckCircle,
+        requiresPermission: null
+      },
+      {
+        title: "Deployment Management",
+        value: "deployment",
+        icon: Rocket,
+        requiresPermission: null
+      },
+      {
+        title: "Security Dashboard",
+        value: "security",
+        icon: Shield,
+        requiresPermission: null
       }
     ]
   }

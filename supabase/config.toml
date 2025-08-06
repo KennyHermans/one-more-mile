@@ -35,8 +35,14 @@ verify_jwt = true
 [functions.handle-payment-success]
 verify_jwt = true
 
+[functions.health-check]
+verify_jwt = false
+
 [functions.process-installment-payment]
 verify_jwt = false
 
 [functions.send-trip-update-notifications]
 verify_jwt = true
+
+[functions.system-status]
+verify_jwt = false
