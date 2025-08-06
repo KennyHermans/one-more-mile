@@ -158,62 +158,40 @@ export const AdminSenseiLevelManagement = () => {
       // Validate all inputs before proceeding
       const validatedInputs = validateInputs();
       
-      // 🔍 CHECK FOR OBJECT CONTAMINATION - Log raw values to catch objects
-      console.log('🚨 RAW VALUES CHECK:', {
-        senseiId_raw: validatedInputs.senseiId,
-        senseiId_type: typeof validatedInputs.senseiId,
-        senseiId_isObject: typeof validatedInputs.senseiId === 'object',
-        level_raw: validatedInputs.level,
-        level_type: typeof validatedInputs.level,
-        level_isObject: typeof validatedInputs.level === 'object',
-        reason_raw: validatedInputs.reason,
-        reason_type: typeof validatedInputs.reason,
-        reason_isObject: typeof validatedInputs.reason === 'object',
-        override_raw: validatedInputs.override,
-        override_type: typeof validatedInputs.override,
-        override_isObject: typeof validatedInputs.override === 'object'
-      });
+      // 🚨 PRE-FLIGHT PAYLOAD VALIDATION - Clean everything explicitly
+      const senseiId = validatedInputs.senseiId;
+      const selectedLevel = validatedInputs.level;
+      const reason = validatedInputs.reason;
+      const adminOverride = validatedInputs.override;
 
-      // 🚨 ENFORCE PRIMITIVE TYPES - Absolutely ensure each param is correct type
-      const p_sensei_id = String(validatedInputs.senseiId).trim();
-      const p_new_level = String(validatedInputs.level).trim();
-      const p_reason = String(validatedInputs.reason || '').trim();
-      const p_admin_override = Boolean(validatedInputs.override);
+      // ✅ Explicit payload construction with guaranteed primitive types
+      const payload = {
+        p_sensei_id: String(senseiId), // ensure it's a string
+        p_new_level: String(selectedLevel),
+        p_reason: String(reason || ''),
+        p_admin_override: Boolean(adminOverride),
+      };
 
-      // ✅ FINAL SAFETY CHECK: Throw error if ANY parameter is an object
-      const params = { p_sensei_id, p_new_level, p_reason, p_admin_override };
-      for (const [key, value] of Object.entries(params)) {
-        if (typeof value === 'object' && value !== null) {
-          throw new Error(`Parameter ${key} is an object, must be primitive. Value: ${JSON.stringify(value)}`);
-        }
+      // 🔍 Pre-flight validation - check for malformed values
+      if (!payload.p_sensei_id || payload.p_sensei_id === 'undefined' || payload.p_sensei_id === 'null') {
+        throw new Error('Invalid sensei ID: cannot be empty, undefined, or null');
+      }
+      if (!payload.p_new_level || payload.p_new_level === 'undefined') {
+        throw new Error('Invalid level: cannot be empty or undefined');
+      }
+      if (typeof payload.p_admin_override !== 'boolean') {
+        throw new Error('Invalid admin override: must be boolean, got ' + typeof payload.p_admin_override);
       }
 
-      // Validate UUID format for sensei_id
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(p_sensei_id)) {
-        throw new Error(`Invalid UUID format for sensei_id: ${p_sensei_id}`);
-      }
-
-      // Validate level is one of expected values
-      const validLevels = ['apprentice', 'journey_guide', 'master_sensei'];
-      if (!validLevels.includes(p_new_level)) {
-        throw new Error(`Invalid level: ${p_new_level}. Must be one of: ${validLevels.join(', ')}`);
-      }
-
-      console.log('✅ FINAL PAYLOAD VERIFICATION:', {
-        p_sensei_id: `"${p_sensei_id}" (${typeof p_sensei_id})`,
-        p_new_level: `"${p_new_level}" (${typeof p_new_level})`,
-        p_reason: `"${p_reason}" (${typeof p_reason})`,
-        p_admin_override: `${p_admin_override} (${typeof p_admin_override})`
+      console.log('✅ Payload being sent to RPC:', payload);
+      console.log('✅ Payload types:', {
+        p_sensei_id: typeof payload.p_sensei_id,
+        p_new_level: typeof payload.p_new_level,
+        p_reason: typeof payload.p_reason,
+        p_admin_override: typeof payload.p_admin_override
       });
 
-      // Call the secure admin function with EXPLICIT type forcing at RPC call
-      const { data, error } = await supabase.rpc('admin_update_sensei_level', {
-        p_sensei_id: String(p_sensei_id),
-        p_new_level: String(p_new_level),
-        p_reason: String(p_reason),
-        p_admin_override: Boolean(p_admin_override)
-      });
+      const { data, error } = await supabase.rpc('admin_update_sensei_level', payload);
 
       console.log('🔥 RPC RESPONSE - Data:', data);
       console.log('🔥 RPC RESPONSE - Error:', error);
