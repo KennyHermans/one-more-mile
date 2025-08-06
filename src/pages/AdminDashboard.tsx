@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 
+import { SecurityDashboard } from "@/components/ui/security-dashboard";
+import { ProductionMonitoringDashboard } from "@/components/ui/production-monitoring-dashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Navigation } from "@/components/ui/navigation";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
@@ -1102,6 +1106,18 @@ const AdminDashboard = () => {
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <AdminPaymentSettings />
+              </div>
+            )}
+
+            {activeTab === "security" && (
+              <div className="space-y-6">
+                <SecurityDashboard />
+              </div>
+            )}
+
+            {activeTab === "production" && (
+              <div className="space-y-6">
+                <ProductionMonitoringDashboard />
               </div>
             )}
           </main>
