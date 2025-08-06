@@ -1990,6 +1990,10 @@ export type Database = {
         Args: { p_sensei_id: string }
         Returns: Json
       }
+      get_basic_health_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_comprehensive_system_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
