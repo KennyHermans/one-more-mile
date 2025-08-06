@@ -184,6 +184,14 @@ export const AdminSenseiLevelManagement = () => {
         }
       });
 
+      // 🔥 DETAILED RPC LOGGING
+      console.log('🚀 About to call supabase.rpc with:', {
+        function_name: 'admin_update_sensei_level',
+        payload: payload,
+        payload_json: JSON.stringify(payload),
+        payload_stringified: String(payload)
+      });
+
       // Call the secure admin function with validated inputs
       const { data, error } = await supabase.rpc('admin_update_sensei_level', payload);
 
