@@ -41,6 +41,7 @@ import { AdminRoleManagement } from "@/components/ui/admin-role-management";
 import { AdminSenseiLevelManagement } from "@/components/ui/admin-sensei-level-management";
 import { AdminPaymentSettings } from "@/components/ui/admin-payment-settings";
 import { SystemHealthMonitor } from "@/components/ui/system-health-monitor";
+import { PerformanceDashboard } from "@/components/ui/performance-dashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
