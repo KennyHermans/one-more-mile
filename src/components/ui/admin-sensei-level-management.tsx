@@ -184,11 +184,33 @@ export const AdminSenseiLevelManagement = () => {
         throw new Error('Invalid response from database function');
       }
 
-      const response = data as { success?: boolean; error?: string; previous_level?: string; new_level?: string; message?: string };
+      const response = data as { 
+        success?: boolean; 
+        error?: string; 
+        previous_level?: string; 
+        new_level?: string; 
+        message?: string;
+        debug_info?: any;
+        details?: any;
+      };
+
+      console.log('Full database response:', response);
 
       if (response.error) {
         console.error('Function returned error:', response.error);
-        throw new Error(response.error);
+        
+        // Include debug information in error message if available
+        let errorMessage = response.error;
+        if (response.debug_info) {
+          console.error('Debug info:', response.debug_info);
+          errorMessage += ` (Debug: ${JSON.stringify(response.debug_info)})`;
+        }
+        if (response.details) {
+          console.error('Error details:', response.details);
+          errorMessage += ` (Details: ${JSON.stringify(response.details)})`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (response.success) {
