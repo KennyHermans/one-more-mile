@@ -197,6 +197,12 @@ const sidebarGroups = [
     label: "Production & Deployment",
     items: [
       {
+        title: "Launch Control",
+        value: "launch",
+        icon: Rocket,
+        requiresPermission: null
+      },
+      {
         title: "Production Monitoring",
         value: "production",
         icon: Monitor,
