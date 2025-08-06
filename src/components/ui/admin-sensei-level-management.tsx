@@ -110,47 +110,7 @@ export const AdminSenseiLevelManagement = () => {
     }
   };
 
-  const performDirectUpdate = async (): Promise<boolean> => {
-    console.log('Performing direct database update...');
-    
-    // Update sensei level directly
-    const { error: directUpdateError } = await supabase
-      .from('sensei_profiles')
-      .update({
-        sensei_level: newLevel,
-        level_achieved_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', selectedSensei!.id);
-
-    if (directUpdateError) {
-      console.error('Direct update error:', directUpdateError);
-      throw new Error(`Failed to update sensei profile: ${directUpdateError.message}`);
-    }
-
-    // Add level history entry
-    const { error: historyError } = await supabase
-      .from('sensei_level_history')
-      .insert({
-        sensei_id: selectedSensei!.id,
-        previous_level: selectedSensei!.sensei_level,
-        new_level: newLevel,
-        change_reason: adminOverride ? `${reason} (Admin Override)` : reason,
-        requirements_met: {
-          timestamp: new Date().toISOString(),
-          updated_by: 'admin',
-          admin_override: adminOverride
-        }
-      });
-
-    if (historyError) {
-      console.error('History insert error:', historyError);
-      // Don't fail the whole operation for history error, just log it
-    }
-
-    console.log('Direct update successful');
-    return true;
-  };
+  // Removed performDirectUpdate function as it's not being used and was causing JSON parsing issues
 
   const updateSenseiLevel = async () => {
     if (!selectedSensei || !reason.trim()) {
