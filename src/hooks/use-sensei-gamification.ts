@@ -62,11 +62,12 @@ export const useSenseiGamification = (senseiId?: string) => {
       
       // Combine current level with eligibility data
       if (profileData) {
-      setLevel({
-        eligible_level: (profileData.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei') || 'apprentice',
-        requirements_met: profileData.level_requirements_met || {},
-        next_level_requirements: levelData?.[0]?.next_level_requirements || {}
-      });
+        const eligibilityData = levelData as any;
+        setLevel({
+          eligible_level: (profileData.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei') || 'apprentice',
+          requirements_met: profileData.level_requirements_met || {},
+          next_level_requirements: eligibilityData?.next_level || {}
+        });
       }
 
       // Get permissions based on actual current level

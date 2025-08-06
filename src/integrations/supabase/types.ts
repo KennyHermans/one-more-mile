@@ -1989,7 +1989,7 @@ export type Database = {
         Args: {
           p_sensei_id: string
           p_new_level: string
-          p_reason: string
+          p_reason?: string
           p_admin_override?: boolean
         }
         Returns: Json

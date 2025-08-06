@@ -98,13 +98,15 @@ export const AdminSenseiLevelConfiguration = () => {
   const runAutoUpgrade = async () => {
     setIsRunningAutoUpgrade(true);
     try {
-      const { data, error } = await supabase.rpc('auto_upgrade_sensei_levels');
+      const { data, error } = await supabase.rpc('enhanced_auto_upgrade_sensei_levels');
 
       if (error) throw error;
 
+      const result = data as { upgrades_performed: number; success: boolean };
+      
       toast({
         title: "Auto-upgrade Complete",
-        description: `${data || 0} senseis were automatically upgraded`,
+        description: `${result?.upgrades_performed || 0} senseis were automatically upgraded`,
       });
     } catch (error) {
       console.error('Error running auto-upgrade:', error);
