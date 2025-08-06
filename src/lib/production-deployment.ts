@@ -201,12 +201,14 @@ class ProductionDeploymentManager {
     
     const config = productionConfig.getMonitoringConfig();
     
-    // Configure performance alerts
+    // Configure performance alerts (using browser-compatible environment variables)
+    const slackWebhookUrl = import.meta.env.VITE_SLACK_WEBHOOK_URL;
+    
     monitoringIntegrations.configureAlert('performance', {
       channel: 'slack',
-      enabled: true,
+      enabled: !!slackWebhookUrl,
       threshold: 'warning',
-      webhookUrl: process.env.SLACK_WEBHOOK_URL
+      webhookUrl: slackWebhookUrl
     });
 
     monitoringIntegrations.configureAlert('performance', {
