@@ -626,49 +626,64 @@ class ProductionValidationService {
     const startTime = Date.now();
     
     try {
-      // Test internal monitoring services instead of external ones
-      const services = ['system_health', 'performance_alerts'];
       const results = [];
+      let configuredServices = 0;
       
-      for (const service of services) {
-        try {
-          if (service === 'system_health') {
-            // Check if system health monitoring is working
-            const { systemHealth } = await import('./system-health');
-            const health = systemHealth.getSystemHealth();
-            results.push({ 
-              service: 'System Health Monitor', 
-              configured: health.checks.length > 0,
-              status: health.overall_status,
-              checks: health.checks.length
-            });
-          } else if (service === 'performance_alerts') {
-            // Check if performance alerts are working
-            const { performanceAlerts } = await import('./performance-alerts');
-            const summary = performanceAlerts.getAlertsSummary();
-            results.push({ 
-              service: 'Performance Alerts', 
-              configured: true,
-              total_alerts: summary.total_alerts,
-              active_alerts: summary.active_alerts
-            });
-          }
-        } catch (error) {
-          results.push({ 
-            service: service === 'system_health' ? 'System Health Monitor' : 'Performance Alerts', 
-            configured: false, 
-            error: String(error) 
-          });
-        }
+      // Test System Health Monitor
+      try {
+        const { systemHealth } = await import('./system-health');
+        const health = systemHealth.getSystemHealth();
+        const healthValid = health && health.checks && health.checks.length > 0;
+        
+        results.push({ 
+          service: 'System Health Monitor', 
+          configured: healthValid,
+          status: healthValid ? health.overall_status : 'unknown',
+          checks: healthValid ? health.checks.length : 0,
+          details: healthValid ? `${health.summary.healthy_count}/${health.summary.total_checks} checks healthy` : 'No health data'
+        });
+        
+        if (healthValid) configuredServices++;
+      } catch (error) {
+        results.push({ 
+          service: 'System Health Monitor', 
+          configured: false, 
+          error: String(error)
+        });
       }
       
-      const configuredServices = results.filter(r => r.configured);
+      // Test Performance Alerts
+      try {
+        const { performanceAlerts } = await import('./performance-alerts');
+        const summary = performanceAlerts.getAlertsSummary();
+        const alertsValid = summary !== null && typeof summary === 'object';
+        
+        results.push({ 
+          service: 'Performance Alerts', 
+          configured: alertsValid,
+          total_alerts: alertsValid ? summary.total_alerts : 0,
+          active_alerts: alertsValid ? summary.active_alerts : 0,
+          details: alertsValid ? `${summary.active_alerts} active of ${summary.total_alerts} total alerts` : 'No alert data'
+        });
+        
+        if (alertsValid) configuredServices++;
+      } catch (error) {
+        results.push({ 
+          service: 'Performance Alerts', 
+          configured: false, 
+          error: String(error) 
+        });
+      }
+      
+      const totalServices = 2;
+      const status = configuredServices === totalServices ? 'passed' : 
+                   configuredServices > 0 ? 'warning' : 'failed';
       
       return {
         id: 'monitoring_services',
         name: 'Monitoring Services',
-        status: configuredServices.length === services.length ? 'passed' : 'warning',
-        message: `${configuredServices.length}/${services.length} monitoring services configured`,
+        status,
+        message: `${configuredServices}/${totalServices} monitoring services configured and operational`,
         duration: Date.now() - startTime,
         timestamp: Date.now(),
         details: results
@@ -678,7 +693,7 @@ class ProductionValidationService {
         id: 'monitoring_services',
         name: 'Monitoring Services',
         status: 'failed',
-        message: `Monitoring services test failed: ${error}`,
+        message: `Monitoring services validation failed: ${error}`,
         duration: Date.now() - startTime,
         timestamp: Date.now()
       };
