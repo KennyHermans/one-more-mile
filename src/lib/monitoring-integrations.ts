@@ -39,7 +39,7 @@ class MonitoringIntegrations {
         channel: 'slack',
         enabled: true,
         threshold: 'critical',
-        webhookUrl: process.env.SLACK_WEBHOOK_URL
+        webhookUrl: import.meta.env.VITE_SLACK_WEBHOOK_URL
       }
     ]);
 
@@ -65,7 +65,7 @@ class MonitoringIntegrations {
         channel: 'slack',
         enabled: true,
         threshold: 'warning',
-        webhookUrl: process.env.SLACK_WEBHOOK_URL
+        webhookUrl: import.meta.env.VITE_SLACK_WEBHOOK_URL
       }
     ]);
   }
@@ -108,7 +108,7 @@ class MonitoringIntegrations {
   private async sendToDataDog(metrics: MonitoringMetric[]) {
     // DataDog integration
     try {
-      const apiKey = process.env.DATADOG_API_KEY;
+      const apiKey = import.meta.env.VITE_DATADOG_API_KEY;
       if (!apiKey) return;
 
       const payload = {
@@ -135,14 +135,14 @@ class MonitoringIntegrations {
   private async sendToCustomEndpoint(metrics: MonitoringMetric[]) {
     // Custom monitoring endpoint
     try {
-      const endpoint = process.env.CUSTOM_MONITORING_ENDPOINT;
+      const endpoint = import.meta.env.VITE_CUSTOM_MONITORING_ENDPOINT;
       if (!endpoint) return;
 
       await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.MONITORING_API_TOKEN}`
+          'Authorization': `Bearer ${import.meta.env.VITE_MONITORING_API_TOKEN}`
         },
         body: JSON.stringify({ metrics })
       });
@@ -152,7 +152,7 @@ class MonitoringIntegrations {
   }
 
   private logToConsole(metrics: MonitoringMetric[]) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.group('📊 Monitoring Metrics');
       metrics.forEach(metric => {
         console.log(`${metric.name}: ${metric.value} (${new Date(metric.timestamp).toISOString()})`);
