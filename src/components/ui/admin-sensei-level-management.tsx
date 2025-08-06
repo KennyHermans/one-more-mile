@@ -112,63 +112,101 @@ export const AdminSenseiLevelManagement = () => {
 
   // Removed performDirectUpdate function as it's not being used and was causing JSON parsing issues
 
-  const updateSenseiLevel = async () => {
-    if (!selectedSensei || !reason.trim()) {
-      toast({
-        title: "Error",
-        description: "Please select a sensei and provide a reason",
-        variant: "destructive"
-      });
-      return;
+  // Input validation helper
+  const validateInputs = () => {
+    // Validate sensei selection
+    if (!selectedSensei?.id) {
+      throw new Error('No sensei selected');
     }
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(selectedSensei.id)) {
+      throw new Error('Invalid sensei ID format');
+    }
+
+    // Validate level
+    const validLevels = ['apprentice', 'journey_guide', 'master_sensei'];
+    if (!validLevels.includes(newLevel)) {
+      throw new Error('Invalid sensei level selected');
+    }
+
+    // Validate reason - ensure it's a clean string
+    const cleanReason = reason.trim();
+    if (!cleanReason || cleanReason.length < 3) {
+      throw new Error('Please provide a meaningful reason (at least 3 characters)');
+    }
+
+    // Check for potentially problematic characters that could cause JSON issues
+    if (cleanReason.includes('\0') || cleanReason.includes('\b') || cleanReason.includes('\f')) {
+      throw new Error('Reason contains invalid characters');
+    }
+
+    return {
+      senseiId: selectedSensei.id,
+      level: newLevel,
+      reason: cleanReason,
+      override: Boolean(adminOverride)
+    };
+  };
+
+  const updateSenseiLevel = async () => {
     try {
       setIsUpdating(true);
       setError(null);
       
-      console.log('Using secure admin function to update sensei level:', {
-        sensei_id: selectedSensei.id,
+      // Validate all inputs before proceeding
+      const validatedInputs = validateInputs();
+      
+      console.log('Validated inputs for sensei level update:', {
+        sensei_id: validatedInputs.senseiId,
         current_level: selectedSensei.sensei_level,
-        new_level: newLevel,
-        reason: reason,
-        admin_override: adminOverride
+        new_level: validatedInputs.level,
+        reason: validatedInputs.reason,
+        admin_override: validatedInputs.override
       });
 
-      // Use the new secure admin function that handles permissions properly
+      // Call the secure admin function with validated inputs
       const { data, error } = await supabase.rpc('admin_update_sensei_level', {
-        p_sensei_id: selectedSensei.id,
-        p_new_level: newLevel,
-        p_reason: reason,
-        p_admin_override: adminOverride
+        p_sensei_id: validatedInputs.senseiId,
+        p_new_level: validatedInputs.level,
+        p_reason: validatedInputs.reason,
+        p_admin_override: validatedInputs.override
       });
 
       if (error) {
-        console.error('Admin update function error:', error);
-        throw new Error(`Database error: ${error.message}`);
+        console.error('RPC call error:', error);
+        throw new Error(`Database function error: ${error.message}`);
       }
 
-      // Type the response data properly
-      const response = data as any;
+      // Ensure we have valid JSON response
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from database function');
+      }
 
-      if (response?.error) {
+      const response = data as { success?: boolean; error?: string; previous_level?: string; new_level?: string; message?: string };
+
+      if (response.error) {
         console.error('Function returned error:', response.error);
         throw new Error(response.error);
       }
 
-      if (response?.success) {
+      if (response.success) {
         console.log('Level update successful:', response);
         toast({
           title: "Success",
-          description: `Sensei level updated from ${response.previous_level} to ${response.new_level}`,
+          description: response.message || `Sensei level updated from ${response.previous_level} to ${response.new_level}`,
         });
 
         // Refresh data
         await fetchSenseis();
-        await fetchLevelHistory(selectedSensei.id);
+        if (selectedSensei) {
+          await fetchLevelHistory(selectedSensei.id);
+        }
         setReason('');
         setAdminOverride(false);
       } else {
-        throw new Error('Unexpected response from update function');
+        throw new Error('Unexpected response format from database function');
       }
     } catch (err) {
       console.error('Update failed with error:', err);
