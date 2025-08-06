@@ -26,72 +26,94 @@ class PerformanceMonitor {
 
   // Initialize performance observers
   private initializeObservers() {
+    // Check if PerformanceObserver is supported
+    if (!('PerformanceObserver' in window)) {
+      console.warn('PerformanceObserver not supported in this browser');
+      return;
+    }
+
     // Largest Contentful Paint (LCP)
-    if ('PerformanceObserver' in window) {
-      try {
-        const lcpObserver = new PerformanceObserver((entryList) => {
+    try {
+      const lcpObserver = new PerformanceObserver((entryList) => {
+        try {
           const entries = entryList.getEntries();
           const lastEntry = entries[entries.length - 1] as any;
           
-          this.recordWebVital({
-            name: 'LCP',
-            value: lastEntry.startTime,
-            rating: this.getRating('LCP', lastEntry.startTime),
-            timestamp: Date.now(),
-          });
-        });
-        
-        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-        this.observers.push(lcpObserver);
-      } catch (e) {
-        console.warn('LCP observer not supported');
-      }
-
-      // First Input Delay (FID)
-      try {
-        const fidObserver = new PerformanceObserver((entryList) => {
-          const entries = entryList.getEntries();
-          entries.forEach((entry: any) => {
+          if (lastEntry) {
             this.recordWebVital({
-              name: 'FID',
-              value: entry.processingStart - entry.startTime,
-              rating: this.getRating('FID', entry.processingStart - entry.startTime),
+              name: 'LCP',
+              value: lastEntry.startTime,
+              rating: this.getRating('LCP', lastEntry.startTime),
               timestamp: Date.now(),
             });
-          });
-        });
-        
-        fidObserver.observe({ entryTypes: ['first-input'] });
-        this.observers.push(fidObserver);
-      } catch (e) {
-        console.warn('FID observer not supported');
-      }
+          }
+        } catch (error) {
+          console.warn('Error processing LCP entry:', error);
+        }
+      });
+      
+      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      this.observers.push(lcpObserver);
+    } catch (e) {
+      console.warn('LCP observer not supported:', e);
+    }
 
-      // Cumulative Layout Shift (CLS)
-      try {
-        const clsObserver = new PerformanceObserver((entryList) => {
+    // First Input Delay (FID)
+    try {
+      const fidObserver = new PerformanceObserver((entryList) => {
+        try {
+          const entries = entryList.getEntries();
+          entries.forEach((entry: any) => {
+            if (entry.processingStart && entry.startTime) {
+              this.recordWebVital({
+                name: 'FID',
+                value: entry.processingStart - entry.startTime,
+                rating: this.getRating('FID', entry.processingStart - entry.startTime),
+                timestamp: Date.now(),
+              });
+            }
+          });
+        } catch (error) {
+          console.warn('Error processing FID entry:', error);
+        }
+      });
+      
+      fidObserver.observe({ entryTypes: ['first-input'] });
+      this.observers.push(fidObserver);
+    } catch (e) {
+      console.warn('FID observer not supported:', e);
+    }
+
+    // Cumulative Layout Shift (CLS)
+    try {
+      const clsObserver = new PerformanceObserver((entryList) => {
+        try {
           let clsValue = 0;
           const entries = entryList.getEntries();
           
           entries.forEach((entry: any) => {
-            if (!entry.hadRecentInput) {
+            if (!entry.hadRecentInput && typeof entry.value === 'number') {
               clsValue += entry.value;
             }
           });
           
-          this.recordWebVital({
-            name: 'CLS',
-            value: clsValue,
-            rating: this.getRating('CLS', clsValue),
-            timestamp: Date.now(),
-          });
-        });
-        
-        clsObserver.observe({ entryTypes: ['layout-shift'] });
-        this.observers.push(clsObserver);
-      } catch (e) {
-        console.warn('CLS observer not supported');
-      }
+          if (clsValue > 0) {
+            this.recordWebVital({
+              name: 'CLS',
+              value: clsValue,
+              rating: this.getRating('CLS', clsValue),
+              timestamp: Date.now(),
+            });
+          }
+        } catch (error) {
+          console.warn('Error processing CLS entry:', error);
+        }
+      });
+      
+      clsObserver.observe({ entryTypes: ['layout-shift'] });
+      this.observers.push(clsObserver);
+    } catch (e) {
+      console.warn('CLS observer not supported:', e);
     }
   }
 

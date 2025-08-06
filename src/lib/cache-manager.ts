@@ -64,17 +64,20 @@ class CacheManager {
     const entry = this.cache.get(key);
     
     if (!entry) {
+      this.trackMiss();
       return null;
     }
 
     // Check if entry has expired
     if (Date.now() - entry.timestamp > entry.ttl) {
       this.delete(key);
+      this.trackMiss();
       return null;
     }
 
     // Update access time
     this.accessTimes.set(key, Date.now());
+    this.trackHit();
     
     return entry.data as T;
   }
@@ -201,6 +204,8 @@ class CacheManager {
 
   // Save to localStorage
   private saveToLocalStorage(key: string, entry: CacheEntry): void {
+    if (!this.isLocalStorageAvailable()) return;
+    
     try {
       localStorage.setItem(`cache_${key}`, JSON.stringify(entry));
     } catch (error) {
@@ -208,8 +213,22 @@ class CacheManager {
     }
   }
 
+  // Check if localStorage is available
+  private isLocalStorageAvailable(): boolean {
+    try {
+      const test = '__cache_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // Load from localStorage
   private loadFromLocalStorage(): void {
+    if (!this.isLocalStorageAvailable()) return;
+    
     try {
       Object.keys(localStorage)
         .filter(key => key.startsWith('cache_'))
@@ -231,7 +250,11 @@ class CacheManager {
             }
           } catch (error) {
             console.warn(`Failed to load cache entry from localStorage:`, error);
-            localStorage.removeItem(storageKey);
+            try {
+              localStorage.removeItem(storageKey);
+            } catch {
+              // Ignore cleanup errors
+            }
           }
         });
     } catch (error) {
@@ -249,11 +272,23 @@ class CacheManager {
     };
   }
 
-  // Calculate cache hit rate (simplified)
+  private hits = 0;
+  private misses = 0;
+
+  // Calculate cache hit rate (real implementation)
   private calculateHitRate(): number {
-    // This is a simplified implementation
-    // In a real app, you'd track hits/misses over time
-    return this.cache.size > 0 ? 0.85 : 0; // Placeholder
+    const total = this.hits + this.misses;
+    if (total === 0) return 0;
+    return (this.hits / total) * 100;
+  }
+
+  // Track cache hits/misses
+  private trackHit() {
+    this.hits++;
+  }
+
+  private trackMiss() {
+    this.misses++;
   }
 }
 
