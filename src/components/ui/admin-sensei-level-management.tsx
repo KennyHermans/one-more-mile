@@ -166,11 +166,18 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: validatedInputs.override
       });
 
-      console.log('🔥 CALLING admin_update_sensei_level with:', {
+      // 🚨 PAYLOAD DEBUG: Log exactly what we're sending to Supabase RPC
+      console.log('Payload sent to Supabase RPC:', {
         p_sensei_id: validatedInputs.senseiId,
         p_new_level: validatedInputs.level,
         p_reason: validatedInputs.reason,
         p_admin_override: validatedInputs.override
+      });
+      console.log('Parameter types:', {
+        p_sensei_id: typeof validatedInputs.senseiId,
+        p_new_level: typeof validatedInputs.level, 
+        p_reason: typeof validatedInputs.reason,
+        p_admin_override: typeof validatedInputs.override
       });
 
       // Call the secure admin function with validated inputs
