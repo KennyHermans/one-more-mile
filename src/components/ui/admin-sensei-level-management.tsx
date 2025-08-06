@@ -166,12 +166,29 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: validatedInputs.override
       });
 
-      // 🚨 Hard-fix payload to enforce primitive types
+      // 🚨 ENFORCE PRIMITIVE TYPES - Absolutely ensure each param is correct type
+      const p_sensei_id = String(validatedInputs.senseiId).trim();
+      const p_new_level = String(validatedInputs.level).trim();
+      const p_reason = String(validatedInputs.reason || '').trim();
+      const p_admin_override = Boolean(validatedInputs.override);
+
+      // Validate UUID format for sensei_id
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(p_sensei_id)) {
+        throw new Error(`Invalid UUID format for sensei_id: ${p_sensei_id}`);
+      }
+
+      // Validate level is one of expected values
+      const validLevels = ['apprentice', 'journey_guide', 'master_sensei'];
+      if (!validLevels.includes(p_new_level)) {
+        throw new Error(`Invalid level: ${p_new_level}. Must be one of: ${validLevels.join(', ')}`);
+      }
+
       const payload = {
-        p_sensei_id: String(validatedInputs.senseiId),
-        p_new_level: String(validatedInputs.level),
-        p_reason: String(validatedInputs.reason),
-        p_admin_override: Boolean(validatedInputs.override)
+        p_sensei_id,
+        p_new_level,
+        p_reason,
+        p_admin_override
       };
 
       console.log('[Sensei Level Update] Payload:', {
