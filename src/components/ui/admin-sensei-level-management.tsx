@@ -158,12 +158,20 @@ export const AdminSenseiLevelManagement = () => {
       // Validate all inputs before proceeding
       const validatedInputs = validateInputs();
       
-      console.log('Validated inputs for sensei level update:', {
-        sensei_id: validatedInputs.senseiId,
-        current_level: selectedSensei.sensei_level,
-        new_level: validatedInputs.level,
-        reason: validatedInputs.reason,
-        admin_override: validatedInputs.override
+      // 🔍 CHECK FOR OBJECT CONTAMINATION - Log raw values to catch objects
+      console.log('🚨 RAW VALUES CHECK:', {
+        senseiId_raw: validatedInputs.senseiId,
+        senseiId_type: typeof validatedInputs.senseiId,
+        senseiId_isObject: typeof validatedInputs.senseiId === 'object',
+        level_raw: validatedInputs.level,
+        level_type: typeof validatedInputs.level,
+        level_isObject: typeof validatedInputs.level === 'object',
+        reason_raw: validatedInputs.reason,
+        reason_type: typeof validatedInputs.reason,
+        reason_isObject: typeof validatedInputs.reason === 'object',
+        override_raw: validatedInputs.override,
+        override_type: typeof validatedInputs.override,
+        override_isObject: typeof validatedInputs.override === 'object'
       });
 
       // 🚨 ENFORCE PRIMITIVE TYPES - Absolutely ensure each param is correct type
