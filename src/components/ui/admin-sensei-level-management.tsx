@@ -166,6 +166,13 @@ export const AdminSenseiLevelManagement = () => {
         admin_override: validatedInputs.override
       });
 
+      console.log('🔥 CALLING admin_update_sensei_level with:', {
+        p_sensei_id: validatedInputs.senseiId,
+        p_new_level: validatedInputs.level,
+        p_reason: validatedInputs.reason,
+        p_admin_override: validatedInputs.override
+      });
+
       // Call the secure admin function with validated inputs
       const { data, error } = await supabase.rpc('admin_update_sensei_level', {
         p_sensei_id: validatedInputs.senseiId,
@@ -173,6 +180,9 @@ export const AdminSenseiLevelManagement = () => {
         p_reason: validatedInputs.reason,
         p_admin_override: validatedInputs.override
       });
+
+      console.log('🔥 RPC RESPONSE - Data:', data);
+      console.log('🔥 RPC RESPONSE - Error:', error);
 
       if (error) {
         console.error('RPC call error:', error);
