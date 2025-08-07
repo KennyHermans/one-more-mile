@@ -26,6 +26,7 @@ import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
+import { SenseiLevelProvider } from "@/contexts/SenseiLevelContext";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 
 // Enhanced Loading Components
@@ -1044,7 +1045,7 @@ const SenseiDashboard = () => {
               location: senseiProfile.location,
               rating: senseiProfile.rating,
               trips_led: senseiProfile.trips_led,
-              sensei_level: 'apprentice', // Default level since not in profile
+              sensei_level: senseiProfile.sensei_level, // Use actual level from profile
               can_create_trips: senseiProfile.can_create_trips
             }}
             stats={{
@@ -2076,13 +2077,14 @@ const SenseiDashboard = () => {
   };
 
   return (
-    <SenseiDashboardLayout
-      senseiName={senseiProfile.name}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      onEditProfile={() => setEditProfileOpen(true)}
-    >
-      {renderTabContent()}
+    <SenseiLevelProvider senseiId={senseiProfile.id}>
+      <SenseiDashboardLayout
+        senseiName={senseiProfile.name}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onEditProfile={() => setEditProfileOpen(true)}
+      >
+        {renderTabContent()}
 
       {/* Edit Profile Dialog */}
       <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
@@ -2220,7 +2222,8 @@ const SenseiDashboard = () => {
           />
         </DialogContent>
       </Dialog>
-    </SenseiDashboardLayout>
+      </SenseiDashboardLayout>
+    </SenseiLevelProvider>
   );
 };
 

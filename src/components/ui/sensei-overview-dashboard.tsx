@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
+import { useSenseiLevel } from "@/contexts/SenseiLevelContext";
 import { 
   TrendingUp, 
   MapPin, 
@@ -54,6 +55,9 @@ export function SenseiOverviewDashboard({
   quickActions,
   onTabChange 
 }: SenseiOverviewDashboardProps) {
+  // Use context level with fallback to profile level
+  const { currentLevel } = useSenseiLevel();
+  const displayLevel = (currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei') || senseiProfile.sensei_level;
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -69,7 +73,7 @@ export function SenseiOverviewDashboard({
               </p>
             </div>
             <SenseiLevelBadge 
-              level={senseiProfile.sensei_level} 
+              level={displayLevel} 
               size="lg" 
             />
           </div>
@@ -167,7 +171,7 @@ export function SenseiOverviewDashboard({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Current Level</span>
-                <SenseiLevelBadge level={senseiProfile.sensei_level} />
+                <SenseiLevelBadge level={displayLevel} />
               </div>
               
               <div className="space-y-2">
