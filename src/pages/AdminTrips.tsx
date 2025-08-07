@@ -208,6 +208,147 @@ const AdminTrips = () => {
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
+  // Auto-create the Mongolia trip
+  const createMongoliaTrip = async () => {
+    const mongoliaProgram = [
+      {
+        day: 1,
+        title: "Arrival in Ulaanbaatar",
+        description: "Airport pickup, UB Grand Hotel, gear fitting, safety briefing, welcome dinner",
+        activities: ["Airport pickup", "Hotel check-in", "Gear fitting", "Safety briefing", "Welcome dinner"]
+      },
+      {
+        day: 2,
+        title: "Baga Gazar Rocks (280km)",
+        description: "Granitic formations at 1751m, granite canyon exploration in the heart of the steppe",
+        activities: ["280km ride", "Granite canyon exploration", "Rock formation photography", "Steppe camping"]
+      },
+      {
+        day: 3,
+        title: "White Stupa (230km)", 
+        description: "Tsagaan Suvarga limestone formations, 400m long ancient ocean floor formations",
+        activities: ["230km ride", "White limestone exploration", "Ancient ocean floor viewing", "Erosion formation study"]
+      },
+      {
+        day: 4,
+        title: "Ongi Monastery (220km)",
+        description: "Historic monastery ruins housing over 1000 monks, sacred mountain hiking",
+        activities: ["220km ride", "Monastery ruins exploration", "Sacred mountain hiking", "Historical site visit"]
+      },
+      {
+        day: 5,
+        title: "Husky Lodge - Sand Dunes (265km)",
+        description: "Magical Husky Lodge in Elsen Tasarkhai, 80km long sand dunes exploration",
+        activities: ["265km ride", "Sand dune exploration", "Husky Lodge accommodation", "Desert wildlife viewing"]
+      },
+      {
+        day: 6,
+        title: "Husky Lodge Loop (90km)",
+        description: "Sand dune edge exploration, bonfire evening, optional camel/horseback riding",
+        activities: ["90km loop ride", "Dune edge exploration", "Bonfire evening", "Camel/horse riding"]
+      },
+      {
+        day: 7,
+        title: "Hustai National Park (250km)",
+        description: "Przewalski's Horse sanctuary, nomadic family visit, rock formations camping",
+        activities: ["250km ride", "Wild horse viewing", "Nomadic family visit", "Traditional lifestyle experience"]
+      },
+      {
+        day: 8,
+        title: "Return to Ulaanbaatar (160km)",
+        description: "Return to city, hotel rest, cashmere shopping, farewell hot pot dinner",
+        activities: ["160km return ride", "Hotel shower & rest", "Cashmere shopping", "Farewell dinner"]
+      },
+      {
+        day: 9,
+        title: "Departure",
+        description: "Airport transfer and departure",
+        activities: ["Airport transfer", "Departure assistance", "Safe travels"]
+      }
+    ];
+
+    try {
+      const tripData = {
+        title: "Mongolia Gobi Desert Adventure - 9 Day Motorcycle Tour",
+        destination: "Gobi Desert, Mongolia",
+        description: "The Gobi desert is one of the most beautiful places to visit in Mongolia. You will enjoy a combination of big sand hills, rocky mountains with old canyons, as well as wide forests consisting of small saxaul trees, riding all the way back to Ulaanbaatar through endless steppes. The Gobi is the fifth biggest desert in the world and is home to a wide range of animals such as antelopes and Bactrian camels. Experience dinosaur fossil sites, stunning sunrises, and hidden 'WHITE STUPA' rock formations millions of years old.",
+        price: "€4,240",
+        dates: "Available year-round",
+        group_size: "Small groups",
+        sensei_name: "",
+        sensei_id: null,
+        backup_sensei_id: null,
+        requires_backup_sensei: true,
+        image_url: "/lovable-uploads/gobi-desert-placeholder.jpg",
+        theme: "Adventure Motorcycle Tour",
+        rating: 0,
+        duration_days: 9,
+        difficulty_level: "Challenging",
+        max_participants: 12,
+        current_participants: 0,
+        is_active: true,
+        trip_status: "approved",
+        program: JSON.stringify(mongoliaProgram),
+        included_amenities: [
+          "Airport pickup service",
+          "Private support team", 
+          "All meals during trip",
+          "All camping gear",
+          "Hotel night in Ulaanbaatar",
+          "Ger camp costs",
+          "National park entrance fees",
+          "2 support vehicles (Toyota Land Cruiser)",
+          "Guide, mechanic, chef, 2 assistants",
+          "Husqvarna FE450 motorbike rent",
+          "Gas, water, drinks, snacks"
+        ],
+        excluded_items: [
+          "Flight expenses",
+          "Visa cost", 
+          "Health insurance",
+          "Protective gear (€25/day rental available)"
+        ],
+        requirements: [
+          "Valid motorcycle license",
+          "Adventure riding experience",
+          "Good physical fitness",
+          "Valid passport",
+          "Travel insurance recommended"
+        ]
+      };
+
+      const { error } = await supabase
+        .from('trips')
+        .insert([tripData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Mongolia Gobi Desert Adventure trip created successfully!",
+      });
+      
+      fetchTrips();
+    } catch (error: any) {
+      console.error('Error creating Mongolia trip:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create trip. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Auto-create on component mount (only once)  
+  useEffect(() => {
+    if (user && trips.length === 0) {
+      const timer = setTimeout(() => {
+        createMongoliaTrip();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, trips]);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
