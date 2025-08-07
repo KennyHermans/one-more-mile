@@ -180,17 +180,41 @@ export const useAdminTripManagement = () => {
     }
   }, [fetchTrips, toast]);
 
-  // Delete trip
+  // Delete trip with RLS-aware error handling
   const deleteTrip = useCallback(async (tripId: string) => {
     try {
       setError(null);
 
-      const { error } = await supabase
+      // First check if user is authenticated and has admin privileges
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('You must be logged in to delete trips');
+      }
+
+      // Check admin status
+      const { data: isAdminResult, error: adminError } = await supabase.rpc('is_admin', {
+        user_id: user.id
+      });
+
+      if (adminError) {
+        throw new Error(`Authentication check failed: ${adminError.message}`);
+      }
+
+      if (!isAdminResult) {
+        throw new Error('You must be an admin to delete trips');
+      }
+
+      const { data, error, count } = await supabase
         .from('trips')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', tripId);
 
       if (error) throw error;
+
+      // Check if any rows were actually deleted
+      if (count === 0) {
+        throw new Error('Trip not found or you do not have permission to delete it');
+      }
 
       toast({
         title: "Trip deleted",
