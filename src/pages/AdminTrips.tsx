@@ -424,7 +424,10 @@ const AdminTrips = () => {
     try {
       const { data, error } = await supabase
         .from('trips')
-        .select('*')
+        .select(`
+          *,
+          sensei_profiles!trips_sensei_id_fkey(id, name, sensei_level, image_url)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -1061,9 +1064,19 @@ const AdminTrips = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Primary Sensei:</span>
-                      <span className="font-medium">
-                        {trip.sensei_name || <Badge variant="outline" className="text-xs">Unassigned</Badge>}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {trip.sensei_profiles ? (
+                          <>
+                            <span className="font-medium">{trip.sensei_profiles.name}</span>
+                            <SenseiLevelBadge 
+                              level={trip.sensei_profiles.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei'}
+                              size="sm"
+                            />
+                          </>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">Unassigned</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
 

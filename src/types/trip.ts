@@ -54,6 +54,12 @@ export interface Trip {
   cancelled_at: string | null;
   created_at: string;
   updated_at: string;
+  sensei_profiles?: {
+    id: string;
+    name: string;
+    sensei_level: string;
+    image_url?: string;
+  } | null;
 }
 
 // Minimal Trip interface for lists and cards
@@ -181,7 +187,7 @@ export const getTripAvailability = (trip: Trip | TripListItem) => {
 };
 
 // Transform database trip to Trip interface
-export const transformDbTrip = (dbTrip: DbTrip): Trip => {
+export const transformDbTrip = (dbTrip: any): Trip => {
   try {
     // Handle program field parsing with validation
     let programData: ProgramDay[] | null = null;
@@ -213,6 +219,7 @@ export const transformDbTrip = (dbTrip: DbTrip): Trip => {
       included_amenities: Array.isArray(dbTrip.included_amenities) ? dbTrip.included_amenities : [],
       excluded_items: Array.isArray(dbTrip.excluded_items) ? dbTrip.excluded_items : [],
       requirements: Array.isArray(dbTrip.requirements) ? dbTrip.requirements : [],
+      sensei_profiles: dbTrip.sensei_profiles || null,
     };
   } catch (error) {
     console.error('Error transforming database trip:', error);
@@ -225,6 +232,7 @@ export const transformDbTrip = (dbTrip: DbTrip): Trip => {
       included_amenities: [],
       excluded_items: [],
       requirements: [],
+      sensei_profiles: null,
     };
   }
 };
