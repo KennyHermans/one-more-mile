@@ -45,6 +45,46 @@ export const AdminTripSpecificPermissions = () => {
 
   const fetchPermissions = async () => {
     try {
+      setIsLoading(true);
+      console.log('Fetching trip-specific permissions...');
+      
+      // First verify admin status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to access this feature",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check admin status using RPC
+      const { data: isAdminResult, error: adminError } = await supabase
+        .rpc('is_admin', { user_id: user.id });
+
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+        toast({
+          title: "Permission Error",
+          description: "Unable to verify admin permissions",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!isAdminResult) {
+        console.error('User is not an admin');
+        toast({
+          title: "Access Denied",
+          description: "You do not have permission to access this feature",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Now fetch the permissions with the updated RLS policy
       const { data, error } = await supabase
         .from('trip_specific_permissions')
         .select(`
@@ -55,7 +95,31 @@ export const AdminTripSpecificPermissions = () => {
         .eq('is_active', true)
         .order('granted_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching permissions:', error);
+        
+        // Provide more specific error messages
+        if (error.code === 'PGRST116') {
+          toast({
+            title: "Access Denied",
+            description: "Row Level Security policy blocked access. Please ensure you have admin permissions.",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes('JWT')) {
+          toast({
+            title: "Authentication Error", 
+            description: "Session expired. Please refresh and try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Database Error",
+            description: `Failed to fetch trip-specific permissions: ${error.message}`,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
       
       // Filter out any records where the joins failed
       const validPermissions = (data || []).filter(
@@ -66,12 +130,13 @@ export const AdminTripSpecificPermissions = () => {
           permission.trips.title
       );
       
+      console.log('Fetched permissions:', validPermissions);
       setPermissions(validPermissions as unknown as TripSpecificPermission[]);
     } catch (error) {
-      console.error('Error fetching permissions:', error);
+      console.error('Unexpected error:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch trip-specific permissions",
+        title: "Error", 
+        description: "An unexpected error occurred while fetching permissions",
         variant: "destructive",
       });
     } finally {
