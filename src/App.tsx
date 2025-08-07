@@ -10,6 +10,7 @@ import { EnhancedMobileNavigation } from "@/components/ui/enhanced-mobile-naviga
 import { queryClient } from "@/lib/query-client";
 import { PerformanceErrorBoundary } from "@/components/ui/performance-error-boundary";
 import { performanceMonitor } from "@/lib/performance-monitor";
+import { SkipToContent, useKeyboardNavigation, useHighContrastMode, useReducedMotion } from "@/components/ui/accessibility-improvements";
 
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -46,6 +47,11 @@ const App = () => {
     });
   }, []);
 
+  // Initialize accessibility features
+  useKeyboardNavigation();
+  useHighContrastMode();
+  useReducedMotion();
+
   return (
     <PerformanceErrorBoundary enablePerformanceTracking={true}>
       <QueryClientProvider client={queryClient}>
@@ -54,8 +60,10 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <div className="min-h-screen bg-background">
+              <SkipToContent />
               <EnhancedMobileNavigation />
-              <Routes>
+              <main id="main-content">
+                <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/trip/:tripId" element={<TripDetail />} />
@@ -80,7 +88,8 @@ const App = () => {
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </main>
               
             </div>
           </BrowserRouter>

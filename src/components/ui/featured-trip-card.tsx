@@ -71,11 +71,11 @@ export function FeaturedTripCard({
         
         {/* Top badges */}
         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-          <Badge variant="secondary" className="bg-white/90 text-primary backdrop-blur-sm">
+          <Badge variant="secondary" className="bg-card/90 text-primary backdrop-blur-sm">
             {theme}
           </Badge>
           {difficulty_level && (
-            <Badge variant={getDifficultyColor(difficulty_level)} className="bg-white/90 backdrop-blur-sm gap-1">
+            <Badge variant={getDifficultyColor(difficulty_level)} className="bg-card/90 backdrop-blur-sm gap-1">
               {getDifficultyIcon(difficulty_level)}
               {difficulty_level}
             </Badge>
@@ -85,7 +85,7 @@ export function FeaturedTripCard({
         {/* Top right indicators */}
         <div className="absolute top-4 right-4 flex flex-col gap-2">
           {rating > 0 && (
-            <div className="flex items-center gap-1 bg-black/50 text-white px-2 py-1 rounded-full text-xs backdrop-blur-sm">
+            <div className="flex items-center gap-1 bg-overlay-dark/50 text-primary-foreground px-2 py-1 rounded-full text-xs backdrop-blur-sm">
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               <span>{rating}</span>
               {review_count > 0 && <span className="opacity-75">({review_count})</span>}
@@ -98,7 +98,7 @@ export function FeaturedTripCard({
             </Badge>
           )}
           {rating >= 4.5 && review_count >= 10 && (
-            <Badge className="bg-yellow-500 text-white text-xs">
+            <Badge className="bg-warning text-warning-foreground text-xs">
               <Award className="h-3 w-3 mr-1" />
               Popular
             </Badge>
@@ -106,7 +106,7 @@ export function FeaturedTripCard({
         </div>
 
         {/* Bottom location and duration */}
-        <div className="absolute bottom-4 left-4 text-white space-y-1">
+        <div className="absolute bottom-4 left-4 text-primary-foreground space-y-1">
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
             <span className="text-sm font-medium">{destination}</span>
@@ -120,8 +120,8 @@ export function FeaturedTripCard({
         </div>
 
         {/* Heart wishlist button */}
-        <button className="absolute bottom-4 right-4 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors group/heart">
-          <Heart className="h-4 w-4 text-white group-hover/heart:fill-red-500 group-hover/heart:text-red-500 transition-colors" />
+        <button className="absolute bottom-4 right-4 p-2 bg-card/20 backdrop-blur-sm rounded-full hover:bg-card/30 transition-colors group/heart">
+          <Heart className="h-4 w-4 text-primary-foreground group-hover/heart:fill-destructive group-hover/heart:text-destructive transition-colors" />
         </button>
       </div>
       

@@ -27,7 +27,7 @@ const Index = () => {
       description: "Transform your fitness journey with expert trainers and nutritionists in breathtaking locations.",
       icon: Dumbbell,
       image: "https://images.unsplash.com/photo-1458668383970-8ddd3927deed?w=600&h=400&fit=crop",
-      link: "/explore?theme=culinary"
+      link: "/explore?theme=sports"
     },
     {
       title: "Wellness Reboot Journeys",
@@ -143,7 +143,7 @@ const Index = () => {
               <span className="inline-block px-4 py-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-primary-foreground/20 text-primary-foreground">
                 ✨ Transformative Travel Experiences
               </span>
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-green-300/30 text-green-200">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-success/20 backdrop-blur-sm rounded-full text-sm font-sans font-medium border border-success/30 text-success-foreground">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -164,7 +164,7 @@ const Index = () => {
                       className="pl-12 w-full bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/70 font-sans h-12 rounded-xl backdrop-blur-sm px-4"
                     />
                   </div>
-                  <button className="font-sans font-semibold bg-accent hover:bg-accent/90 text-white px-6 h-12 rounded-xl transition-all duration-300 hover:scale-105">
+                  <button className="font-sans font-semibold bg-accent hover:bg-accent/90 text-accent-foreground px-6 h-12 rounded-xl transition-all duration-300 hover:scale-105">
                     Join Us
                   </button>
                 </div>

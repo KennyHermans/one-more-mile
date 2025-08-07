@@ -173,7 +173,7 @@ export const EnhancedMobileNavigation = () => {
           </Sheet>
 
           <Link to="/" className="font-bold text-lg">
-            SenseiTrip
+            One More Mile
           </Link>
 
           <div className="flex items-center gap-2">

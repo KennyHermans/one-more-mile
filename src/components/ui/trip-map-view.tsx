@@ -75,7 +75,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
       </div>
       
       {/* Price badge */}
-      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-2 py-1 shadow-lg border">
+      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card rounded-full px-2 py-1 shadow-lg border">
         <span className="text-xs font-semibold">{trip.price}</span>
       </div>
     </div>
@@ -227,7 +227,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
               ))}
               
               {/* Map Controls */}
-              <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-2">
+              <div className="absolute top-4 right-4 bg-card rounded-lg shadow-lg p-2">
                 <div className="text-xs text-muted-foreground">Interactive Map View</div>
                 <div className="text-xs text-muted-foreground">Click markers for details</div>
               </div>
@@ -256,7 +256,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
 
       {/* Selected Trip Details Modal */}
       {selectedTrip && viewMode === 'map' && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-overlay-dark/50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-md w-full max-h-[80vh] overflow-y-auto">
             <div className="relative">
               <img 
@@ -267,7 +267,7 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="absolute top-2 right-2 bg-white/90"
+                className="absolute top-2 right-2 bg-card/90"
                 onClick={() => setSelectedTrip(null)}
               >
                 ×

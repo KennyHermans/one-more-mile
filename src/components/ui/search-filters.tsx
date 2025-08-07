@@ -142,7 +142,7 @@ export function SearchFilters({ filters, onFiltersChange, resultsCount, classNam
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           placeholder="Search destinations, activities, or senseis..."
-          className="pl-12 pr-12 h-12 text-lg bg-white shadow-sm border-2 border-muted focus:border-primary"
+          className="pl-12 pr-12 h-12 text-lg bg-card shadow-sm border-2 border-muted focus:border-primary"
           value={filters.searchQuery}
           onChange={(e) => updateFilters({ searchQuery: e.target.value })}
         />
