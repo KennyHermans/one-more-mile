@@ -521,32 +521,43 @@ const TripDetail = () => {
                                       {day.day}
                                     </div>
                                     <div>
-                                      <h3 className="font-serif text-lg font-bold">
-                                        Day {day.day}: {day.location}
-                                      </h3>
-                                       <p className="text-sm text-muted-foreground">
-                                         {String(day.activities || '').substring(0, 100)}...
-                                       </p>
-                                    </div>
-                                  </div>
-                                  {expandedDay === day.day ? 
-                                    <ChevronUp className="h-5 w-5" /> : 
-                                    <ChevronDown className="h-5 w-5" />
-                                  }
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="mt-2">
-                            <Card>
-                              <CardContent className="p-6 bg-muted/50">
-                                <h4 className="font-semibold mb-3">Full Day Activities</h4>
-                                <div className="font-sans text-muted-foreground leading-relaxed">
-                                  {day.activities.map((activity, index) => (
-                                    <div key={index} className="mb-2">
-                                      {typeof activity === 'string' ? activity : activity.name}
-                                    </div>
-                                  ))}
+                                       <h3 className="font-serif text-lg font-bold">
+                                         Day {day.day}: {day.location}
+                                       </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                          {Array.isArray(day.activities) 
+                                            ? day.activities.slice(0, 2).map(act => 
+                                                typeof act === 'string' ? act : act.name || act
+                                              ).join(', ') + (day.activities.length > 2 ? '...' : '')
+                                            : String(day.activities || 'Activities to be announced').substring(0, 100) + '...'
+                                          }
+                                        </p>
+                                     </div>
+                                   </div>
+                                   {expandedDay === day.day ? 
+                                     <ChevronUp className="h-5 w-5" /> : 
+                                     <ChevronDown className="h-5 w-5" />
+                                   }
+                                 </div>
+                               </CardContent>
+                             </Card>
+                           </CollapsibleTrigger>
+                           <CollapsibleContent className="mt-2">
+                             <Card>
+                               <CardContent className="p-6 bg-muted/50">
+                                 <h4 className="font-semibold mb-3">Full Day Activities</h4>
+                                 <div className="font-sans text-muted-foreground leading-relaxed">
+                                    {Array.isArray(day.activities) ? (
+                                      day.activities.map((activity, index) => (
+                                        <div key={index} className="mb-2">
+                                          {typeof activity === 'string' ? activity : (activity?.name || String(activity))}
+                                        </div>
+                                      ))
+                                    ) : (
+                                     <div className="mb-2">
+                                       {String(day.activities || 'Activities to be announced')}
+                                     </div>
+                                   )}
                                 </div>
                               </CardContent>
                             </Card>
