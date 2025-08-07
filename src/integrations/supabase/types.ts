@@ -2381,6 +2381,14 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_assign_backup_senseis: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      auto_assign_unassigned_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       auto_upgrade_sensei_levels: {
         Args: Record<PropertyKey, never>
         Returns: number

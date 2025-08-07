@@ -24,6 +24,7 @@ import {
   Clock
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SenseiCardSkeleton } from '@/components/ui/sensei-card-skeleton';
 
 export const AdminSenseiManagement: React.FC = () => {
   const {
@@ -81,19 +82,7 @@ export const AdminSenseiManagement: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-              </CardContent>
-            </Card>
+            <SenseiCardSkeleton key={i} />
           ))}
         </div>
       </div>
@@ -241,9 +230,12 @@ export const AdminSenseiManagement: React.FC = () => {
                               Manage
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent className="max-w-2xl" aria-describedby="sensei-management-description">
                             <DialogHeader>
                               <DialogTitle>Manage {sensei.name}</DialogTitle>
+                              <p id="sensei-management-description" className="text-sm text-muted-foreground">
+                                Update sensei level, status, and view permissions for {sensei.name}
+                              </p>
                             </DialogHeader>
                             <div className="space-y-6">
                               {/* Level Management */}

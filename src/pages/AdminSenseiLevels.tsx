@@ -3,7 +3,7 @@ import { AdminSenseiLevelConfiguration } from "@/components/ui/admin-sensei-leve
 import { EnhancedAdminSenseiLevelOverview } from "@/components/ui/enhanced-admin-sensei-level-overview";
 import { AdminLevelRequirementsConfig } from "@/components/ui/admin-level-requirements-config";
 import { AdminPermissionFieldEditor } from "@/components/ui/admin-permission-field-editor";
-import { SmartNotificationSystem } from "@/components/ui/smart-notification-system";
+import { AutomatedAssignmentSystem } from "@/components/ui/automated-assignment-system";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 
 const AdminSenseiLevels = () => {
@@ -24,7 +24,7 @@ const AdminSenseiLevels = () => {
               <TabsTrigger value="configuration">Level Configuration</TabsTrigger>
               <TabsTrigger value="requirements">Requirements Config</TabsTrigger>
               <TabsTrigger value="permissions">Field Permissions</TabsTrigger>
-              <TabsTrigger value="automation">Automation & Testing</TabsTrigger>
+              <TabsTrigger value="automation">Auto-Assignment</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -45,7 +45,7 @@ const AdminSenseiLevels = () => {
 
             <TabsContent value="automation" className="space-y-6">
               <div className="grid gap-6">
-                <SmartNotificationSystem />
+                <AutomatedAssignmentSystem />
               </div>
             </TabsContent>
           </Tabs>
