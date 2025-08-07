@@ -222,66 +222,84 @@ const AdminTrips = () => {
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
-  // Auto-create the Mongolia trip
+  // Auto-create the Mongolia trip only if it doesn't exist
   const createMongoliaTrip = async () => {
-    const mongoliaProgram = [
-      {
-        day: 1,
-        title: "Arrival in Ulaanbaatar",
-        description: "Airport pickup, UB Grand Hotel, gear fitting, safety briefing, welcome dinner",
-        activities: ["Airport pickup", "Hotel check-in", "Gear fitting", "Safety briefing", "Welcome dinner"]
-      },
-      {
-        day: 2,
-        title: "Baga Gazar Rocks (280km)",
-        description: "Granitic formations at 1751m, granite canyon exploration in the heart of the steppe",
-        activities: ["280km ride", "Granite canyon exploration", "Rock formation photography", "Steppe camping"]
-      },
-      {
-        day: 3,
-        title: "White Stupa (230km)", 
-        description: "Tsagaan Suvarga limestone formations, 400m long ancient ocean floor formations",
-        activities: ["230km ride", "White limestone exploration", "Ancient ocean floor viewing", "Erosion formation study"]
-      },
-      {
-        day: 4,
-        title: "Ongi Monastery (220km)",
-        description: "Historic monastery ruins housing over 1000 monks, sacred mountain hiking",
-        activities: ["220km ride", "Monastery ruins exploration", "Sacred mountain hiking", "Historical site visit"]
-      },
-      {
-        day: 5,
-        title: "Husky Lodge - Sand Dunes (265km)",
-        description: "Magical Husky Lodge in Elsen Tasarkhai, 80km long sand dunes exploration",
-        activities: ["265km ride", "Sand dune exploration", "Husky Lodge accommodation", "Desert wildlife viewing"]
-      },
-      {
-        day: 6,
-        title: "Husky Lodge Loop (90km)",
-        description: "Sand dune edge exploration, bonfire evening, optional camel/horseback riding",
-        activities: ["90km loop ride", "Dune edge exploration", "Bonfire evening", "Camel/horse riding"]
-      },
-      {
-        day: 7,
-        title: "Hustai National Park (250km)",
-        description: "Przewalski's Horse sanctuary, nomadic family visit, rock formations camping",
-        activities: ["250km ride", "Wild horse viewing", "Nomadic family visit", "Traditional lifestyle experience"]
-      },
-      {
-        day: 8,
-        title: "Return to Ulaanbaatar (160km)",
-        description: "Return to city, hotel rest, cashmere shopping, farewell hot pot dinner",
-        activities: ["160km return ride", "Hotel shower & rest", "Cashmere shopping", "Farewell dinner"]
-      },
-      {
-        day: 9,
-        title: "Departure",
-        description: "Airport transfer and departure",
-        activities: ["Airport transfer", "Departure assistance", "Safe travels"]
-      }
-    ];
-
     try {
+      // First check if Mongolia trip already exists
+      const { data: existingTrip, error: checkError } = await supabase
+        .from('trips')
+        .select('id')
+        .eq('title', 'Mongolia Gobi Desert Adventure - 9 Day Motorcycle Tour')
+        .limit(1);
+
+      if (checkError) {
+        console.error('Error checking for existing Mongolia trip:', checkError);
+        return;
+      }
+
+      // If trip already exists, don't create another one
+      if (existingTrip && existingTrip.length > 0) {
+        console.log('Mongolia trip already exists, skipping creation');
+        return;
+      }
+
+      const mongoliaProgram = [
+        {
+          day: 1,
+          title: "Arrival in Ulaanbaatar",
+          description: "Airport pickup, UB Grand Hotel, gear fitting, safety briefing, welcome dinner",
+          activities: ["Airport pickup", "Hotel check-in", "Gear fitting", "Safety briefing", "Welcome dinner"]
+        },
+        {
+          day: 2,
+          title: "Baga Gazar Rocks (280km)",
+          description: "Granitic formations at 1751m, granite canyon exploration in the heart of the steppe",
+          activities: ["280km ride", "Granite canyon exploration", "Rock formation photography", "Steppe camping"]
+        },
+        {
+          day: 3,
+          title: "White Stupa (230km)", 
+          description: "Tsagaan Suvarga limestone formations, 400m long ancient ocean floor formations",
+          activities: ["230km ride", "White limestone exploration", "Ancient ocean floor viewing", "Erosion formation study"]
+        },
+        {
+          day: 4,
+          title: "Ongi Monastery (220km)",
+          description: "Historic monastery ruins housing over 1000 monks, sacred mountain hiking",
+          activities: ["220km ride", "Monastery ruins exploration", "Sacred mountain hiking", "Historical site visit"]
+        },
+        {
+          day: 5,
+          title: "Husky Lodge - Sand Dunes (265km)",
+          description: "Magical Husky Lodge in Elsen Tasarkhai, 80km long sand dunes exploration",
+          activities: ["265km ride", "Sand dune exploration", "Husky Lodge accommodation", "Desert wildlife viewing"]
+        },
+        {
+          day: 6,
+          title: "Husky Lodge Loop (90km)",
+          description: "Sand dune edge exploration, bonfire evening, optional camel/horseback riding",
+          activities: ["90km loop ride", "Dune edge exploration", "Bonfire evening", "Camel/horse riding"]
+        },
+        {
+          day: 7,
+          title: "Hustai National Park (250km)",
+          description: "Przewalski's Horse sanctuary, nomadic family visit, rock formations camping",
+          activities: ["250km ride", "Wild horse viewing", "Nomadic family visit", "Traditional lifestyle experience"]
+        },
+        {
+          day: 8,
+          title: "Return to Ulaanbaatar (160km)",
+          description: "Return to city, hotel rest, cashmere shopping, farewell hot pot dinner",
+          activities: ["160km return ride", "Hotel shower & rest", "Cashmere shopping", "Farewell dinner"]
+        },
+        {
+          day: 9,
+          title: "Departure",
+          description: "Airport transfer and departure",
+          activities: ["Airport transfer", "Departure assistance", "Safe travels"]
+        }
+      ];
+
       const tripData = {
         title: "Mongolia Gobi Desert Adventure - 9 Day Motorcycle Tour",
         destination: "Gobi Desert, Mongolia",
@@ -337,19 +355,10 @@ const AdminTrips = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success!",
-        description: "Mongolia Gobi Desert Adventure trip created successfully!",
-      });
-      
+      console.log('Mongolia Gobi Desert Adventure trip created successfully');
       fetchTrips();
     } catch (error: any) {
       console.error('Error creating Mongolia trip:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create trip. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
