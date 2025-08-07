@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminSenseiLevelConfiguration } from "@/components/ui/admin-sensei-level-configuration";
-import { AdminSenseiLevelOverview } from "@/components/ui/admin-sensei-level-overview";
+import { EnhancedAdminSenseiLevelOverview } from "@/components/ui/enhanced-admin-sensei-level-overview";
 import { AdminLevelRequirementsConfig } from "@/components/ui/admin-level-requirements-config";
 import { AdminPermissionFieldEditor } from "@/components/ui/admin-permission-field-editor";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
@@ -27,7 +27,7 @@ const AdminSenseiLevels = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              <AdminSenseiLevelOverview />
+              <EnhancedAdminSenseiLevelOverview />
             </TabsContent>
 
             <TabsContent value="configuration" className="space-y-6">
