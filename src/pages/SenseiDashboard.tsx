@@ -28,6 +28,7 @@ import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboa
 import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 import { SenseiLevelProvider } from "@/contexts/SenseiLevelContext";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
+import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 
 // Enhanced Loading Components
 import { 
@@ -244,6 +245,9 @@ const SenseiDashboard = () => {
   });
   
   const { toast } = useToast();
+
+  // Get sensei permissions
+  const { permissions: senseiPermissions } = useSenseiPermissions(senseiProfile?.id);
 
   // Profile form data
   const [profileFormData, setProfileFormData] = useState({
@@ -1118,6 +1122,7 @@ const SenseiDashboard = () => {
           <SenseiTripsManagement
             trips={trips}
             canCreateTrips={senseiProfile.can_create_trips}
+            canEditTrips={senseiPermissions?.can_edit_trips || false}
             onCreateTrip={() => setCreateTripOpen(true)}
             onEditTrip={(trip) => {
               setEditingTrip({

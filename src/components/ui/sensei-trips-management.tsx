@@ -22,6 +22,7 @@ import { Trip, TripListItem } from '@/types/trip';
 interface SenseiTripsManagementProps {
   trips: Trip[];
   canCreateTrips: boolean;
+  canEditTrips: boolean; // Add this permission check
   onCreateTrip: () => void;
   onEditTrip: (trip: Trip) => void;
   onViewTrip: (trip: Trip) => void;
@@ -31,6 +32,7 @@ interface SenseiTripsManagementProps {
 export function SenseiTripsManagement({ 
   trips, 
   canCreateTrips,
+  canEditTrips,
   onCreateTrip,
   onEditTrip,
   onViewTrip,
@@ -107,7 +109,7 @@ export function SenseiTripsManagement({
                 <Eye className="h-3 w-3 mr-1" />
                 View
               </Button>
-              {trip.trip_status !== 'completed' && (
+              {trip.trip_status !== 'completed' && canEditTrips && (
                 <Button
                   size="sm"
                   variant="outline"
