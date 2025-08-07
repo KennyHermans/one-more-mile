@@ -231,6 +231,7 @@ const SenseiDashboard = () => {
   
   const [permissions, setPermissions] = useState<{ [key: string]: TripPermissions }>({});
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [editTripOpen, setEditTripOpen] = useState(false);
   
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [adminAnnouncements, setAdminAnnouncements] = useState<any[]>([]);
@@ -850,6 +851,7 @@ const SenseiDashboard = () => {
         trip.id === editingTrip.id ? editingTrip : trip
       ));
       setEditingTrip(null);
+      setEditTripOpen(false);
 
       toast({
         title: "Success",
@@ -1117,13 +1119,16 @@ const SenseiDashboard = () => {
             trips={trips}
             canCreateTrips={senseiProfile.can_create_trips}
             onCreateTrip={() => setCreateTripOpen(true)}
-            onEditTrip={(trip) => setEditingTrip({
-              ...trip,
-              program: ensureProgramIsArray(trip.program)
-            })}
+            onEditTrip={(trip) => {
+              setEditingTrip({
+                ...trip,
+                program: ensureProgramIsArray(trip.program)
+              });
+              setEditTripOpen(true);
+            }}
             onViewTrip={(trip) => {
-              // Implement view trip functionality
-              console.log('View trip:', trip);
+              // Navigate to trip detail page
+              window.location.href = `/trip/${trip.id}`;
             }}
             onCancelTrip={(trip) => {
               setSelectedTripForCancel(trip);
@@ -2222,7 +2227,87 @@ const SenseiDashboard = () => {
           />
         </DialogContent>
       </Dialog>
-      </SenseiDashboardLayout>
+
+      {/* Edit Trip Dialog */}
+      <Dialog open={editTripOpen} onOpenChange={setEditTripOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Trip: {editingTrip?.title}</DialogTitle>
+          </DialogHeader>
+          
+          {editingTrip && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-title">Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={editingTrip.title}
+                    onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-destination">Destination</Label>
+                  <Input
+                    id="edit-destination"
+                    value={editingTrip.destination}
+                    onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-dates">Dates</Label>
+                  <Input
+                    id="edit-dates"
+                    value={editingTrip.dates}
+                    onChange={(e) => setEditingTrip({...editingTrip, dates: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-price">Price</Label>
+                  <Input
+                    id="edit-price"
+                    value={editingTrip.price}
+                    onChange={(e) => setEditingTrip({...editingTrip, price: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingTrip.description}
+                  onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
+                  rows={4}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setEditTripOpen(false);
+                    setEditingTrip(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveTrip}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </SenseiDashboardLayout>
     </SenseiLevelProvider>
   );
 };

@@ -97,7 +97,7 @@ export function SenseiTripsManagement({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="font-medium text-primary">${trip.price}</span>
+            <span className="font-medium text-primary">{trip.price}</span>
             <div className="flex gap-2">
               <Button
                 size="sm"
