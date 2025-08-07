@@ -1537,7 +1537,7 @@ const SenseiDashboard = () => {
                     ))}
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         );
