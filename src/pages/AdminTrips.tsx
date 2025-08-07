@@ -1074,7 +1074,7 @@ const AdminTrips = () => {
                             />
                           </>
                         ) : (
-                          <Badge variant="outline" className="text-xs">Unassigned</Badge>
+                          <Badge variant="outline" className="text-xs">Will you be our Sensei?</Badge>
                         )}
                       </div>
                     </div>
