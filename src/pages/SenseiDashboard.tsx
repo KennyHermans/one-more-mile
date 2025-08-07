@@ -2301,7 +2301,159 @@ const SenseiDashboard = () => {
                     value={editingTrip.price}
                     onChange={(e) => setEditingTrip({...editingTrip, price: e.target.value})}
                   />
-                </EnhancedPermissionAwareField>
+              </EnhancedPermissionAwareField>
+
+              {/* Day-by-Day Program */}
+              <EnhancedPermissionAwareField
+                fieldName="program"
+                senseiId={senseiProfile?.id}
+                tripId={editingTrip.id}
+                label="Day-by-Day Program"
+                description="Detailed itinerary and daily activities for the trip"
+              >
+                <div className="space-y-4">
+                  {editingTrip.program && editingTrip.program.length > 0 ? (
+                    editingTrip.program.map((day, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">Day {day.day}</h4>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newProgram = [...(editingTrip.program || [])];
+                              newProgram.splice(index, 1);
+                              setEditingTrip({...editingTrip, program: newProgram});
+                            }}
+                          >
+                            Remove Day
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <Label>Day Title</Label>
+                            <Input
+                              value={day.title}
+                              onChange={(e) => {
+                                const newProgram = [...(editingTrip.program || [])];
+                                newProgram[index] = { ...day, title: e.target.value };
+                                setEditingTrip({...editingTrip, program: newProgram});
+                              }}
+                              placeholder="e.g., Arrival & City Tour"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label>Location</Label>
+                            <Input
+                              value={day.location || ''}
+                              onChange={(e) => {
+                                const newProgram = [...(editingTrip.program || [])];
+                                newProgram[index] = { ...day, location: e.target.value };
+                                setEditingTrip({...editingTrip, program: newProgram});
+                              }}
+                              placeholder="Location for this day"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea
+                            value={day.description}
+                            onChange={(e) => {
+                              const newProgram = [...(editingTrip.program || [])];
+                              newProgram[index] = { ...day, description: e.target.value };
+                              setEditingTrip({...editingTrip, program: newProgram});
+                            }}
+                            placeholder="Describe what happens on this day"
+                            rows={3}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Activities</Label>
+                          <div className="text-sm text-muted-foreground mb-2">
+                            {Array.isArray(day.activities) && day.activities.length > 0 ? (
+                              <ul className="list-disc list-inside space-y-1">
+                                {day.activities.map((activity, activityIndex) => (
+                                  <li key={activityIndex}>
+                                    {typeof activity === 'string' ? activity : activity.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span>No activities defined</span>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // For now, add a simple activity input - could be enhanced later
+                              const activity = prompt("Enter activity name:");
+                              if (activity) {
+                                const newProgram = [...(editingTrip.program || [])];
+                                const currentActivities = Array.isArray(day.activities) ? day.activities : [];
+                                newProgram[index] = { 
+                                  ...day, 
+                                  activities: [...currentActivities, activity] 
+                                };
+                                setEditingTrip({...editingTrip, program: newProgram});
+                              }
+                            }}
+                          >
+                            Add Activity
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
+                      <p className="text-muted-foreground mb-4">No program days defined</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const newDay: ProgramDay = {
+                            day: 1,
+                            title: '',
+                            description: '',
+                            activities: []
+                          };
+                          setEditingTrip({...editingTrip, program: [newDay]});
+                        }}
+                      >
+                        Add First Day
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {editingTrip.program && editingTrip.program.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const newDay: ProgramDay = {
+                          day: (editingTrip.program?.length || 0) + 1,
+                          title: '',
+                          description: '',
+                          activities: []
+                        };
+                        setEditingTrip({
+                          ...editingTrip, 
+                          program: [...(editingTrip.program || []), newDay]
+                        });
+                      }}
+                    >
+                      Add Another Day
+                    </Button>
+                  )}
+                </div>
+              </EnhancedPermissionAwareField>
               </div>
 
               <EnhancedPermissionAwareField
