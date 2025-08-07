@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  getFieldPermissionCategory, 
+  getFieldRequiredLevel, 
+  canEditField,
+  PERMISSION_CATEGORIES
+} from '@/lib/field-permission-mapping';
 
 interface PermissionValidationResult {
   canPerformAction: boolean;
@@ -66,33 +72,49 @@ export const usePermissionValidator = () => {
 
       if (permissionsError) throw permissionsError;
 
-      // Get field-specific permissions if needed
+      // Get sensei level for field permission mapping
+      const { data: senseiData, error: senseiError } = await supabase
+        .from('sensei_profiles')
+        .select('sensei_level')
+        .eq('id', context.senseiId)
+        .single();
+
+      let senseiLevel = senseiData?.sensei_level || 'apprentice';
+
+      // Build field permissions using the mapping system
       let fieldPermissions = {};
       if (context.fieldName) {
-        const { data: fieldData, error: fieldError } = await supabase
-          .rpc('get_sensei_field_permissions', {
-            p_sensei_id: context.senseiId,
-            p_field_name: context.fieldName
-          });
-
-        if (!fieldError && fieldData) {
-          const result = fieldData as any;
-          fieldPermissions = {
-            [context.fieldName]: {
-              canView: result.can_view || false,
-              canEdit: result.can_edit || false,
-              requiredLevel: result.required_level
-            }
-          };
-        }
+        // Check permission for specific field
+        const category = getFieldPermissionCategory(context.fieldName);
+        const requiredLevel = getFieldRequiredLevel(context.fieldName);
+        const canEdit = canEditField(senseiLevel, context.fieldName);
+        
+        fieldPermissions = {
+          [context.fieldName]: {
+            canView: true, // All fields are viewable
+            canEdit: canEdit,
+            requiredLevel: requiredLevel,
+            category: category
+          }
+        };
       } else {
-        // Get all field permissions
-        const { data: allFieldData, error: allFieldError } = await supabase
-          .rpc('get_sensei_field_permissions', { p_sensei_id: context.senseiId });
-
-        if (!allFieldError && allFieldData) {
-          const result = allFieldData as any;
-          fieldPermissions = result.field_permissions || {};
+        // Get permissions for all common fields
+        const commonFields = [
+          'title', 'destination', 'dates', 'description', 'price', 
+          'program', 'requirements', 'theme', 'max_participants'
+        ];
+        
+        for (const fieldName of commonFields) {
+          const category = getFieldPermissionCategory(fieldName);
+          const requiredLevel = getFieldRequiredLevel(fieldName);
+          const canEdit = canEditField(senseiLevel, fieldName);
+          
+          fieldPermissions[fieldName] = {
+            canView: true,
+            canEdit: canEdit,
+            requiredLevel: requiredLevel,
+            category: category
+          };
         }
       }
 
@@ -113,7 +135,7 @@ export const usePermissionValidator = () => {
       const permissions = permissionsData as any;
       const result: PermissionValidationResult = {
         canPerformAction,
-        senseiLevel: permissions?.sensei_level || null,
+        senseiLevel: senseiLevel,
         missingPermissions,
         fieldPermissions
       };
@@ -162,33 +184,62 @@ export const usePermissionValidator = () => {
 
     setIsValidating(true);
     try {
-      const { data, error } = await supabase
-        .rpc('get_trip_edit_permissions', {
-          p_sensei_id: context.senseiId,
-          p_trip_id: context.tripId
-        });
+      // Get sensei level for field permission mapping
+      const { data: senseiData, error: senseiError } = await supabase
+        .from('sensei_profiles')
+        .select('sensei_level')
+        .eq('id', context.senseiId)
+        .single();
 
-      if (error) throw error;
+      if (senseiError) throw senseiError;
 
-      let canPerformAction = true;
+      const senseiLevel = senseiData?.sensei_level || 'apprentice';
+
+      // Check if sensei is assigned to this trip
+      const { data: tripData, error: tripError } = await supabase
+        .from('trips')
+        .select('sensei_id, backup_sensei_id')
+        .eq('id', context.tripId)
+        .single();
+
+      if (tripError) throw tripError;
+
+      const isAssignedToTrip = tripData.sensei_id === context.senseiId || 
+                               tripData.backup_sensei_id === context.senseiId;
+
+      let canPerformAction = isAssignedToTrip;
       const missingPermissions: string[] = [];
 
-      if (context.action && data) {
-        const permissions = data as any;
-        if (permissions.hasOwnProperty(context.action)) {
-          canPerformAction = Boolean(permissions[context.action]);
-          if (!canPerformAction) {
-            missingPermissions.push(context.action);
-          }
-        }
+      if (!isAssignedToTrip) {
+        missingPermissions.push('not_assigned_to_trip');
+        canPerformAction = false;
       }
 
-      const permissions = data as any;
+      // Build field permissions using the mapping system
+      const commonFields = [
+        'title', 'destination', 'dates', 'description', 'price', 
+        'program', 'requirements', 'theme', 'max_participants'
+      ];
+      
+      const fieldPermissions = {};
+      for (const fieldName of commonFields) {
+        const category = getFieldPermissionCategory(fieldName);
+        const requiredLevel = getFieldRequiredLevel(fieldName);
+        const canEdit = canEditField(senseiLevel, fieldName) && isAssignedToTrip;
+        
+        fieldPermissions[fieldName] = {
+          canView: true,
+          canEdit: canEdit,
+          requiredLevel: requiredLevel,
+          category: category
+        };
+      }
+
       const result: PermissionValidationResult = {
         canPerformAction,
-        senseiLevel: permissions?.sensei_level || null,
+        senseiLevel: senseiLevel,
         missingPermissions,
-        fieldPermissions: permissions?.field_permissions || {}
+        fieldPermissions
       };
 
       setCachedPermissions(prev => new Map(prev.set(cacheKey, result)));
