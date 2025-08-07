@@ -29,6 +29,7 @@ import { SenseiTripsManagement } from "@/components/ui/sensei-trips-management";
 import { SenseiLevelProvider } from "@/contexts/SenseiLevelContext";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
+import { EnhancedPermissionAwareField } from "@/components/ui/enhanced-permission-aware-field";
 
 // Enhanced Loading Components
 import { 
@@ -2244,54 +2245,79 @@ const SenseiDashboard = () => {
             <div className="space-y-6">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-title">Title</Label>
+                <EnhancedPermissionAwareField
+                  fieldName="title"
+                  senseiId={senseiProfile?.id}
+                  tripId={editingTrip.id}
+                  label="Title"
+                  description="The title of your trip"
+                >
                   <Input
                     id="edit-title"
                     value={editingTrip.title}
                     onChange={(e) => setEditingTrip({...editingTrip, title: e.target.value})}
                   />
-                </div>
+                </EnhancedPermissionAwareField>
                 
-                <div>
-                  <Label htmlFor="edit-destination">Destination</Label>
+                <EnhancedPermissionAwareField
+                  fieldName="destination"
+                  senseiId={senseiProfile?.id}
+                  tripId={editingTrip.id}
+                  label="Destination"
+                  description="Where the trip will take place"
+                >
                   <Input
                     id="edit-destination"
                     value={editingTrip.destination}
                     onChange={(e) => setEditingTrip({...editingTrip, destination: e.target.value})}
                   />
-                </div>
+                </EnhancedPermissionAwareField>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-dates">Dates</Label>
+                <EnhancedPermissionAwareField
+                  fieldName="dates"
+                  senseiId={senseiProfile?.id}
+                  tripId={editingTrip.id}
+                  label="Dates"
+                  description="Trip duration and schedule"
+                >
                   <Input
                     id="edit-dates"
                     value={editingTrip.dates}
                     onChange={(e) => setEditingTrip({...editingTrip, dates: e.target.value})}
                   />
-                </div>
+                </EnhancedPermissionAwareField>
                 
-                <div>
-                  <Label htmlFor="edit-price">Price</Label>
+                <EnhancedPermissionAwareField
+                  fieldName="price"
+                  senseiId={senseiProfile?.id}
+                  tripId={editingTrip.id}
+                  label="Price"
+                  description="Trip pricing information"
+                >
                   <Input
                     id="edit-price"
                     value={editingTrip.price}
                     onChange={(e) => setEditingTrip({...editingTrip, price: e.target.value})}
                   />
-                </div>
+                </EnhancedPermissionAwareField>
               </div>
 
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
+              <EnhancedPermissionAwareField
+                fieldName="description"
+                senseiId={senseiProfile?.id}
+                tripId={editingTrip.id}
+                label="Description"
+                description="Detailed trip description and what participants can expect"
+              >
                 <Textarea
                   id="edit-description"
                   value={editingTrip.description}
                   onChange={(e) => setEditingTrip({...editingTrip, description: e.target.value})}
                   rows={4}
                 />
-              </div>
+              </EnhancedPermissionAwareField>
 
               <div className="flex justify-end gap-2">
                 <Button 
