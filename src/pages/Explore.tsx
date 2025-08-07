@@ -81,7 +81,7 @@ const Explore = () => {
           sensei_profiles!trips_sensei_id_fkey(id, name, sensei_level, image_url, location, specialties)
         `)
         .eq('is_active', true)
-        .eq('trip_status', 'approved')
+        .in('trip_status', ['approved', 'published'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
