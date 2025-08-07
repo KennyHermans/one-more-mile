@@ -30,6 +30,8 @@ import { SenseiLevelProvider } from "@/contexts/SenseiLevelContext";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 import { EnhancedPermissionAwareField } from "@/components/ui/enhanced-permission-aware-field";
+import { PermissionAwareAiTripBuilder } from "@/components/ui/permission-aware-ai-trip-builder";
+import { TripCreationManager } from "@/components/ui/trip-creation-manager";
 
 // Enhanced Loading Components
 import { 
@@ -68,7 +70,8 @@ import {
   Download,
   Megaphone,
   UserPlus,
-  Target
+  Target,
+  Wand2
 } from "lucide-react";
 
 
@@ -1065,10 +1068,10 @@ const SenseiDashboard = () => {
             quickActions={[
               {
                 title: "Create Trip",
-                description: senseiProfile.can_create_trips ? "Design your next adventure" : "Request permission from admin",
+                description: senseiPermissions?.can_create_trips ? "Design your next adventure" : "Reach higher level to unlock",
                 icon: Plus,
-                action: senseiProfile.can_create_trips ? () => setCreateTripOpen(true) : requestTripCreationPermission,
-                variant: senseiProfile.can_create_trips ? "default" : "outline"
+                action: senseiPermissions?.can_create_trips ? () => setActiveTab("create-trip") : () => setActiveTab("gamification"),
+                variant: senseiPermissions?.can_create_trips ? "default" : "outline"
               },
               {
                 title: "View Calendar",
@@ -1122,7 +1125,7 @@ const SenseiDashboard = () => {
         return (
           <SenseiTripsManagement
             trips={trips}
-            canCreateTrips={senseiProfile.can_create_trips}
+            canCreateTrips={senseiPermissions?.can_create_trips || false}
             canEditTrips={senseiPermissions?.can_edit_trips || false}
             onCreateTrip={() => setCreateTripOpen(true)}
             onEditTrip={(trip) => {
@@ -1141,6 +1144,86 @@ const SenseiDashboard = () => {
               setCancelTripOpen(true);
             }}
           />
+        );
+
+      case "create-trip":
+        return (
+          <div className="space-y-6">
+            {!senseiPermissions?.can_create_trips ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Trip Creation Permission Required</h3>
+                      <p className="text-muted-foreground mb-4">
+                        You need to reach a higher Sensei level to create trips. 
+                        {senseiProfile?.sensei_level === 'apprentice' 
+                          ? " Reach Journey Guide level to unlock trip creation."
+                          : " Continue improving your skills and ratings."
+                        }
+                      </p>
+                      <Badge variant="outline" className="px-4 py-2">
+                        Current Level: {senseiProfile?.sensei_level || 'Apprentice'}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <TripProposalForm 
+                onSuccess={() => {
+                  setCreateTripOpen(false);
+                  if (user) fetchSenseiTrips(user.id);
+                  toast({
+                    title: "Success",
+                    description: "Trip proposal created successfully!",
+                  });
+                }}
+                onCancel={() => setCreateTripOpen(false)}
+                senseiId={senseiProfile?.id}
+              />
+            )}
+          </div>
+        );
+
+      case "ai-builder":
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Wand2 className="h-6 w-6" />
+                  AI Trip Builder
+                </h2>
+                <p className="text-muted-foreground">Use AI to create amazing trip proposals effortlessly</p>
+              </div>
+              <Badge variant="secondary" className="text-sm">
+                Master Sensei Feature
+              </Badge>
+            </div>
+            
+            {senseiProfile?.id ? (
+              <PermissionAwareAiTripBuilder 
+                senseiId={senseiProfile.id}
+                onSuccess={() => {
+                  if (user) fetchSenseiTrips(user.id);
+                  toast({
+                    title: "Success",
+                    description: "AI-generated trip created successfully!",
+                  });
+                }}
+              />
+            ) : (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">Loading AI Trip Builder...</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         );
 
       case "messages":
@@ -1296,106 +1379,123 @@ const SenseiDashboard = () => {
       case "proposals":
         return (
           <div className="space-y-6">
-            {!senseiProfile?.can_create_trips ? (
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Trip Proposals</h2>
+              {senseiPermissions?.can_create_trips && (
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => setActiveTab("create-trip")}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Trip
+                  </Button>
+                  {senseiPermissions?.can_use_ai_builder && (
+                    <Button 
+                      onClick={() => setActiveTab("ai-builder")}
+                      className="flex items-center gap-2"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      AI Builder
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {!senseiPermissions?.can_create_trips ? (
               <Card>
                 <CardContent className="pt-6 text-center">
                   <div className="space-y-4">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                      <Plus className="w-8 h-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Trip Creation Permission Required</h3>
-                      <p className="text-gray-600 mb-4">
-                        You need admin permission to create trip proposals. 
-                        {senseiProfile?.trip_creation_requested 
-                          ? " Your request is pending admin review."
-                          : " Request permission to get started."
+                      <p className="text-muted-foreground mb-4">
+                        You need to reach a higher Sensei level to create trips. 
+                        {senseiProfile?.sensei_level === 'apprentice' 
+                          ? " Reach Journey Guide level to unlock trip creation."
+                          : " Continue improving your skills and ratings."
                         }
                       </p>
-                      {senseiProfile?.trip_creation_requested ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <Badge variant="secondary" className="px-4 py-2">
-                            Request Pending
-                          </Badge>
-                          {senseiProfile.trip_creation_request_date && (
-                            <p className="text-sm text-gray-500">
-                              Requested on {new Date(senseiProfile.trip_creation_request_date).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <Button onClick={requestTripCreationPermission}>
-                          Request Trip Creation Permission
+                      <Badge variant="outline" className="px-4 py-2">
+                        Current Level: {senseiProfile?.sensei_level || 'Apprentice'}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : trips.filter(trip => trip.created_by_sensei).length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                      <Plus className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Create Your First Trip</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start building amazing adventures for travelers.
+                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button onClick={() => setActiveTab("create-trip")}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Trip
                         </Button>
-                      )}
+                        {senseiPermissions?.can_use_ai_builder && (
+                          <Button variant="outline" onClick={() => setActiveTab("ai-builder")}>
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            Use AI Builder
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ) : (
-              <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Trip Proposals</h2>
-                  <Button 
-                    onClick={() => setCreateTripOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Create New Proposal
-                  </Button>
-                </div>
-
-                {trips.filter(trip => trip.created_by_sensei).length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 text-center">
-                      <p className="text-gray-600 mb-4">You haven't created any trip proposals yet.</p>
-                      <Button onClick={() => setCreateTripOpen(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Your First Proposal
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4">
-                    {trips.filter(trip => trip.created_by_sensei).map((trip) => (
-                      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between mb-4">
-                                <div>
-                                  <h3 className="text-lg font-semibold">{trip.title}</h3>
-                                  <p className="text-gray-600 flex items-center">
-                                    <MapPin className="w-4 h-4 mr-1" />
-                                    {trip.destination}
-                                  </p>
-                                  <p className="text-gray-600 flex items-center">
-                                    <CalendarIcon className="w-4 h-4 mr-1" />
-                                    {trip.dates}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge 
-                                    variant={
-                                      trip.trip_status === 'approved' ? 'default' :
-                                      trip.trip_status === 'pending_approval' ? 'secondary' :
-                                      trip.trip_status === 'draft' ? 'outline' : 'destructive'
-                                    }
-                                  >
-                                    {trip.trip_status === 'pending_approval' ? 'Pending Review' : 
-                                     trip.trip_status === 'approved' ? 'Approved' :
-                                     trip.trip_status === 'draft' ? 'Draft' : 'Rejected'}
-                                  </Badge>
-                                  {(trip.trip_status === 'draft' || trip.trip_status === 'pending_approval') && (
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => {/* Switch to trip-editor tab - functionality is in current page */}}
-                                    >
-                                      <Edit2 className="w-4 h-4" />
-                                    </Button>
-                                  )}
-                                </div>
+              <div className="grid gap-4">
+                {trips.filter(trip => trip.created_by_sensei).map((trip) => (
+                  <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{trip.title}</h3>
+                              <p className="text-muted-foreground flex items-center">
+                                <MapPin className="w-4 h-4 mr-1" />
+                                {trip.destination}
+                              </p>
+                              <p className="text-muted-foreground flex items-center">
+                                <CalendarIcon className="w-4 h-4 mr-1" />
+                                {trip.dates}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={
+                                  trip.trip_status === 'approved' ? 'default' :
+                                  trip.trip_status === 'pending_approval' ? 'secondary' :
+                                  trip.trip_status === 'draft' ? 'outline' : 'destructive'
+                                }
+                              >
+                                {trip.trip_status === 'pending_approval' ? 'Pending Review' : 
+                                 trip.trip_status === 'approved' ? 'Approved' :
+                                 trip.trip_status === 'draft' ? 'Draft' : 'Rejected'}
+                              </Badge>
+                              {(trip.trip_status === 'draft' || trip.trip_status === 'pending_approval') && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setActiveTab("trip-editor")}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                               </div>
                               
                               <div className="grid md:grid-cols-3 gap-4 mb-4">
@@ -1873,6 +1973,43 @@ const SenseiDashboard = () => {
           </div>
         );
 
+      case "ai-builder":
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Wand2 className="h-6 w-6" />
+                  AI Trip Builder
+                </h2>
+                <p className="text-muted-foreground">Use AI to create amazing trip proposals effortlessly</p>
+              </div>
+              <Badge variant="secondary" className="text-sm">
+                Master Sensei Feature
+              </Badge>
+            </div>
+            
+            {senseiProfile?.id ? (
+              <PermissionAwareAiTripBuilder 
+                senseiId={senseiProfile.id}
+                onSuccess={() => {
+                  if (user) fetchSenseiTrips(user.id);
+                  toast({
+                    title: "Success",
+                    description: "AI-generated trip created successfully!",
+                  });
+                }}
+              />
+            ) : (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">Loading AI Trip Builder...</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+
       case "backup-sensei":
         return (
           <div className="space-y-6">
@@ -2080,6 +2217,40 @@ const SenseiDashboard = () => {
               </div>
             )}
           </div>
+        );
+
+      case "create-trip":
+        return senseiProfile ? (
+          <TripCreationManager 
+            senseiId={senseiProfile.id}
+            mode="create-trip"
+            onSuccess={() => {
+              if (user) fetchSenseiTrips(user.id);
+              toast({
+                title: "Success",
+                description: "Trip created successfully!",
+              });
+            }}
+          />
+        ) : (
+          <div className="text-center py-8">Loading...</div>
+        );
+
+      case "ai-builder":
+        return senseiProfile ? (
+          <TripCreationManager 
+            senseiId={senseiProfile.id}
+            mode="ai-builder"
+            onSuccess={() => {
+              if (user) fetchSenseiTrips(user.id);
+              toast({
+                title: "Success",
+                description: "AI-generated trip created successfully!",
+              });
+            }}
+          />
+        ) : (
+          <div className="text-center py-8">Loading...</div>
         );
 
       default:

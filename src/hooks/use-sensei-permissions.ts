@@ -29,10 +29,10 @@ export const useSenseiPermissions = (senseiId?: string, tripId?: string) => {
     try {
       setIsLoading(true);
       
-      // Fetch sensei level first
+      // Fetch sensei profile data
       const { data: senseiData, error: senseiError } = await supabase
         .from('sensei_profiles')
-        .select('sensei_level')
+        .select('sensei_level, can_create_trips')
         .eq('id', senseiId)
         .single();
 
@@ -44,7 +44,7 @@ export const useSenseiPermissions = (senseiId?: string, tripId?: string) => {
       let elevatedLevelValue = null;
       
       if (tripId) {
-        // Use RPC call since table might not be in types yet
+        // Use RPC call for trip-specific permissions
         const { data: permissionData, error: permError } = await supabase
           .rpc('get_sensei_permissions_for_trip', {
             p_sensei_id: senseiId,
@@ -69,12 +69,47 @@ export const useSenseiPermissions = (senseiId?: string, tripId?: string) => {
       
       setHasElevatedPermissions(hasElevation);
       
-      // Fetch permissions using base level if no elevation
-      const { data, error } = await supabase
-        .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
+      // Fetch level-based permissions and prioritize them over profile flags
+      const { data: levelPermissions, error: levelError } = await supabase
+        .from('sensei_level_permissions')
+        .select('*')
+        .eq('sensei_level', senseiData.sensei_level)
+        .single();
 
-      if (error) throw error;
-      setPermissions(data as unknown as SenseiPermissions);
+      if (levelError) {
+        console.error('Error fetching level permissions:', levelError);
+        // Fallback to RPC call
+        const { data, error } = await supabase
+          .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
+
+        if (error) throw error;
+        setPermissions(data as unknown as SenseiPermissions);
+        return;
+      }
+
+      // Fetch field permissions for the sensei level
+      const { data: fieldPermissions, error: fieldError } = await supabase
+        .from('sensei_level_field_permissions')
+        .select('field_name')
+        .eq('sensei_level', senseiData.sensei_level)
+        .eq('can_edit', true);
+
+      const editableFields = fieldPermissions?.map(fp => fp.field_name) || [];
+
+      // Combine level-based permissions with some profile-specific overrides if needed
+      const combinedPermissions: SenseiPermissions = {
+        can_view_trips: levelPermissions.can_view_trips,
+        can_apply_backup: levelPermissions.can_apply_backup,
+        can_edit_profile: levelPermissions.can_edit_profile,
+        can_edit_trips: levelPermissions.can_edit_trips,
+        can_create_trips: levelPermissions.can_create_trips, // Prioritize level permissions
+        can_use_ai_builder: levelPermissions.can_use_ai_builder,
+        can_publish_trips: levelPermissions.can_publish_trips,
+        can_modify_pricing: levelPermissions.can_modify_pricing,
+        trip_edit_fields: editableFields
+      };
+
+      setPermissions(combinedPermissions);
     } catch (error) {
       console.error('Error fetching permissions:', error);
       setPermissions(null);
