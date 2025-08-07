@@ -2532,7 +2532,7 @@ export type Database = {
         Returns: Json
       }
       get_trip_edit_permissions: {
-        Args: { p_sensei_id: string; p_trip_id?: string }
+        Args: { p_sensei_id: string; p_trip_id: string }
         Returns: Json
       }
       get_user_platform_role: {

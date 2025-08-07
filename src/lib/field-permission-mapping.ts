@@ -113,5 +113,16 @@ export function canAccessFieldCategory(senseiLevel: string, category: string): b
  */
 export function canEditField(senseiLevel: string, fieldName: string): boolean {
   const category = getFieldPermissionCategory(fieldName);
-  return canAccessFieldCategory(senseiLevel, category);
+  const result = canAccessFieldCategory(senseiLevel, category);
+  
+  // Debug logging
+  console.log(`Field Permission Check:`, {
+    fieldName,
+    category,
+    senseiLevel,
+    canEdit: result,
+    requiredLevel: PERMISSION_CATEGORIES[category]?.requiredLevel
+  });
+  
+  return result;
 }

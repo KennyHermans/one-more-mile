@@ -73,6 +73,7 @@ export const usePermissionValidator = () => {
       if (permissionsError) throw permissionsError;
 
       // Get sensei level for field permission mapping
+      console.log(`Validating permissions for sensei: ${context.senseiId}, field: ${context.fieldName}`);
       const { data: senseiData, error: senseiError } = await supabase
         .from('sensei_profiles')
         .select('sensei_level')
