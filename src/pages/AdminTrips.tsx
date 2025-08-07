@@ -783,6 +783,7 @@ const AdminTrips = () => {
                           canEdit={canEditField('title')}
                           currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
+                          isAdmin={isAdmin}
                           label="Title *"
                         >
                           <Input
@@ -799,6 +800,7 @@ const AdminTrips = () => {
                           canEdit={canEditField('destination')}
                           currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
+                          isAdmin={isAdmin}
                           label="Destination *"
                         >
                           <LocationInput
@@ -814,6 +816,7 @@ const AdminTrips = () => {
                         canEdit={canEditField('description')}
                         currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                         requiredLevel="apprentice"
+                        isAdmin={isAdmin}
                         label="Description *"
                       >
                         <Textarea
@@ -832,6 +835,7 @@ const AdminTrips = () => {
                           canEdit={canEditField('price')}
                           currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="journey_guide"
+                          isAdmin={isAdmin}
                           label="Price *"
                         >
                           <Input
@@ -848,6 +852,7 @@ const AdminTrips = () => {
                           canEdit={canEditField('theme')}
                           currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
+                          isAdmin={isAdmin}
                           label="Theme"
                         >
                           <Input
@@ -897,6 +902,7 @@ const AdminTrips = () => {
                           canEdit={canEditField('group_size')}
                           currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
+                          isAdmin={isAdmin}
                           label="Max Participants"
                         >
                           <Input
