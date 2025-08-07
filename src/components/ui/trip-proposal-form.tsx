@@ -339,7 +339,7 @@ export function TripProposalForm({ onSuccess, onCancel, senseiId }: TripProposal
                 {day.activities.map((activity, activityIndex) => (
                   <div key={activityIndex} className="flex gap-2 mb-2">
                     <Input
-                      value={activity}
+                      value={typeof activity === 'string' ? activity : activity.name}
                       onChange={(e) => updateActivity(dayIndex, activityIndex, e.target.value)}
                       placeholder="Enter activity"
                     />

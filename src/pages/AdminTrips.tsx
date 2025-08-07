@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
+import { DragDropItineraryBuilder } from "@/components/ui/drag-drop-itinerary-builder";
+import { TripTemplateManager } from "@/components/ui/trip-template-manager";
+import { EnhancedMediaGallery } from "@/components/ui/enhanced-media-gallery";
+import { WorkflowStatusManager } from "@/components/ui/workflow-status-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

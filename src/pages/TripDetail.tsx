@@ -541,9 +541,13 @@ const TripDetail = () => {
                             <Card>
                               <CardContent className="p-6 bg-muted/50">
                                 <h4 className="font-semibold mb-3">Full Day Activities</h4>
-                                <p className="font-sans text-muted-foreground leading-relaxed">
-                                  {day.activities}
-                                </p>
+                                <div className="font-sans text-muted-foreground leading-relaxed">
+                                  {day.activities.map((activity, index) => (
+                                    <div key={index} className="mb-2">
+                                      {typeof activity === 'string' ? activity : activity.name}
+                                    </div>
+                                  ))}
+                                </div>
                               </CardContent>
                             </Card>
                           </CollapsibleContent>
