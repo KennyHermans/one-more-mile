@@ -2244,8 +2244,8 @@ const SenseiDashboard = () => {
             onSuccess={() => {
               if (user) fetchSenseiTrips(user.id);
               toast({
-                title: "Success",
-                description: "AI-generated trip created successfully!",
+                title: "Success", 
+                description: "AI trip created successfully!",
               });
             }}
           />
