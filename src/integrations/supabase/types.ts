@@ -2091,6 +2091,70 @@ export type Database = {
           },
         ]
       }
+      trip_specific_permissions: {
+        Row: {
+          created_at: string | null
+          elevated_level: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          granted_reason: string | null
+          id: string
+          is_active: boolean | null
+          sensei_id: string
+          trip_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          elevated_level: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          granted_reason?: string | null
+          id?: string
+          is_active?: boolean | null
+          sensei_id: string
+          trip_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          elevated_level?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          granted_reason?: string | null
+          id?: string
+          is_active?: boolean | null
+          sensei_id?: string
+          trip_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_specific_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_specific_permissions_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_specific_permissions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_templates: {
         Row: {
           category: string
@@ -2198,6 +2262,7 @@ export type Database = {
           created_at: string
           created_by_admin: string | null
           created_by_sensei: boolean
+          created_by_sensei_level: string | null
           created_by_user_id: string | null
           current_participants: number | null
           dates: string
@@ -2219,6 +2284,7 @@ export type Database = {
           program: Json | null
           rating: number | null
           replacement_needed: boolean | null
+          required_permission_level: string | null
           requirements: string[] | null
           requires_backup_sensei: boolean | null
           sensei_id: string | null
@@ -2245,6 +2311,7 @@ export type Database = {
           created_at?: string
           created_by_admin?: string | null
           created_by_sensei?: boolean
+          created_by_sensei_level?: string | null
           created_by_user_id?: string | null
           current_participants?: number | null
           dates: string
@@ -2266,6 +2333,7 @@ export type Database = {
           program?: Json | null
           rating?: number | null
           replacement_needed?: boolean | null
+          required_permission_level?: string | null
           requirements?: string[] | null
           requires_backup_sensei?: boolean | null
           sensei_id?: string | null
@@ -2292,6 +2360,7 @@ export type Database = {
           created_at?: string
           created_by_admin?: string | null
           created_by_sensei?: boolean
+          created_by_sensei_level?: string | null
           created_by_user_id?: string | null
           current_participants?: number | null
           dates?: string
@@ -2313,6 +2382,7 @@ export type Database = {
           program?: Json | null
           rating?: number | null
           replacement_needed?: boolean | null
+          required_permission_level?: string | null
           requirements?: string[] | null
           requires_backup_sensei?: boolean | null
           sensei_id?: string | null
@@ -2543,6 +2613,15 @@ export type Database = {
         Args: { user_id?: string }
         Returns: Database["public"]["Enums"]["platform_role"]
       }
+      grant_trip_specific_permission: {
+        Args: {
+          p_trip_id: string
+          p_sensei_id: string
+          p_elevated_level: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
@@ -2575,6 +2654,10 @@ export type Database = {
       }
       revoke_admin_role: {
         Args: { p_role_id: string; p_revoked_by?: string }
+        Returns: Json
+      }
+      revoke_trip_specific_permission: {
+        Args: { p_trip_id: string; p_sensei_id: string }
         Returns: Json
       }
       search_users_by_email: {
