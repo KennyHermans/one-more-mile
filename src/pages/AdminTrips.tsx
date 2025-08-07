@@ -15,6 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
+import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
+import { PermissionAwareField } from "@/components/ui/permission-aware-field";
+import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
+import { useTripPermissions } from "@/hooks/use-trip-permissions";
+import { useProfileManagement } from "@/hooks/use-profile-management";
 import { 
   Plus, 
   Edit2, 
@@ -26,7 +31,8 @@ import {
   Loader2,
   ChevronDown,
   Settings,
-  Copy
+  Copy,
+  Lock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -174,8 +180,15 @@ const AdminTrips = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedTripForPermissions, setSelectedTripForPermissions] = useState<string>("");
+  const [currentSenseiId, setCurrentSenseiId] = useState<string | null>(null);
+  const [currentSenseiLevel, setCurrentSenseiLevel] = useState<'apprentice' | 'journey_guide' | 'master_sensei' | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { profileStatus } = useProfileManagement();
+  
+  // Get sensei permissions
+  const { permissions: senseiPermissions, isLoading: permissionsLoading } = useSenseiPermissions(currentSenseiId || undefined);
+  const { permissions: tripPermissions, canEditField } = useTripPermissions(currentSenseiId || undefined, editingTrip?.id);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -381,8 +394,31 @@ const AdminTrips = () => {
     if (user) {
       fetchTrips();
       fetchSenseis();
+      fetchCurrentSensei();
     }
   }, [user]);
+
+  const fetchCurrentSensei = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('sensei_profiles')
+        .select('id, sensei_level')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching sensei profile:', error);
+        return;
+      }
+      
+      setCurrentSenseiId(data.id);
+      setCurrentSenseiLevel(data.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei');
+    } catch (error) {
+      console.error('Error in fetchCurrentSensei:', error);
+    }
+  };
 
   const fetchTrips = async () => {
     try {
@@ -541,6 +577,27 @@ const AdminTrips = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Check permissions before submitting
+    if (!senseiPermissions?.can_create_trips && !editingTrip) {
+      toast({
+        title: "Permission denied",
+        description: "You don't have permission to create trips",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!senseiPermissions?.can_edit_trips && editingTrip) {
+      toast({
+        title: "Permission denied", 
+        description: "You don't have permission to edit trips",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       let datesString = formData.dates;
       if (formData.start_date && formData.end_date) {
@@ -695,9 +752,18 @@ const AdminTrips = () => {
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="flex items-center gap-3">
                     {editingTrip ? 'Edit Trip' : 'Create New Trip'}
+                    {currentSenseiLevel && (
+                      <SenseiLevelBadge level={currentSenseiLevel} size="sm" />
+                    )}
                   </DialogTitle>
+                  {senseiPermissions && !senseiPermissions.can_edit_trips && (
+                    <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">
+                      <Lock className="h-4 w-4 inline mr-1" />
+                      Some fields may be restricted based on your Sensei level
+                    </div>
+                  )}
                 </DialogHeader>
 
                 <Tabs defaultValue="basic" className="w-full">
@@ -712,8 +778,13 @@ const AdminTrips = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <TabsContent value="basic" className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Title *</label>
+                        <PermissionAwareField
+                          fieldName="title"
+                          canEdit={canEditField('title')}
+                          currentLevel={currentSenseiLevel}
+                          requiredLevel="apprentice"
+                          label="Title *"
+                        >
                           <Input
                             name="title"
                             value={formData.title}
@@ -721,19 +792,30 @@ const AdminTrips = () => {
                             placeholder="Trip title"
                             required
                           />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Destination *</label>
+                        </PermissionAwareField>
+                        
+                        <PermissionAwareField
+                          fieldName="destination"
+                          canEdit={canEditField('destination')}
+                          currentLevel={currentSenseiLevel}
+                          requiredLevel="apprentice"
+                          label="Destination *"
+                        >
                           <LocationInput
                             value={formData.destination}
                             onChange={(location) => setFormData(prev => ({ ...prev, destination: location }))}
                             placeholder="Search destinations worldwide..."
                           />
-                        </div>
+                        </PermissionAwareField>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Description *</label>
+                      <PermissionAwareField
+                        fieldName="description"
+                        canEdit={canEditField('description')}
+                        currentLevel={currentSenseiLevel}
+                        requiredLevel="apprentice"
+                        label="Description *"
+                      >
                         <Textarea
                           name="description"
                           value={formData.description}
@@ -742,11 +824,16 @@ const AdminTrips = () => {
                           rows={3}
                           required
                         />
-                      </div>
+                      </PermissionAwareField>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Price *</label>
+                        <PermissionAwareField
+                          fieldName="price"
+                          canEdit={canEditField('price')}
+                          currentLevel={currentSenseiLevel}
+                          requiredLevel="journey_guide"
+                          label="Price *"
+                        >
                           <Input
                             name="price"
                             value={formData.price}
@@ -754,16 +841,23 @@ const AdminTrips = () => {
                             placeholder="$2,999"
                             required
                           />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Theme</label>
+                        </PermissionAwareField>
+                        
+                        <PermissionAwareField
+                          fieldName="theme"
+                          canEdit={canEditField('theme')}
+                          currentLevel={currentSenseiLevel}
+                          requiredLevel="apprentice"
+                          label="Theme"
+                        >
                           <Input
                             name="theme"
                             value={formData.theme}
                             onChange={handleInputChange}
                             placeholder="Adventure theme"
                           />
-                        </div>
+                        </PermissionAwareField>
+                        
                         <div>
                           <label className="block text-sm font-medium mb-2">Difficulty</label>
                           <select
@@ -797,8 +891,14 @@ const AdminTrips = () => {
                             ))}
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Max Participants</label>
+                        
+                        <PermissionAwareField
+                          fieldName="group_size"
+                          canEdit={canEditField('group_size')}
+                          currentLevel={currentSenseiLevel}
+                          requiredLevel="apprentice"
+                          label="Max Participants"
+                        >
                           <Input
                             name="max_participants"
                             type="number"
@@ -807,7 +907,7 @@ const AdminTrips = () => {
                             min="1"
                             max="50"
                           />
-                        </div>
+                        </PermissionAwareField>
                       </div>
 
                       <div className="flex items-center space-x-2">
@@ -872,7 +972,10 @@ const AdminTrips = () => {
                     </TabsContent>
 
                     <div className="flex gap-2 pt-4 border-t">
-                      <Button type="submit" disabled={isSubmitting}>
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmitting || (!senseiPermissions?.can_create_trips && !editingTrip) || (!senseiPermissions?.can_edit_trips && !!editingTrip)}
+                      >
                         {isSubmitting ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
