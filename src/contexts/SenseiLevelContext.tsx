@@ -105,7 +105,13 @@ export const SenseiLevelProvider: React.FC<SenseiLevelProviderProps> = ({
 export const useSenseiLevel = () => {
   const context = useContext(SenseiLevelContext);
   if (context === undefined) {
-    throw new Error('useSenseiLevel must be used within a SenseiLevelProvider');
+    // Return default values instead of throwing an error
+    return {
+      currentLevel: null,
+      isLevelChanging: false,
+      refreshPermissions: () => {},
+      lastLevelChange: null,
+    };
   }
   return context;
 };
