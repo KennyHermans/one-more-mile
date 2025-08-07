@@ -51,8 +51,14 @@ export const SenseiPermissionTester: React.FC = () => {
     setTestResults([]);
 
     try {
-      // Test 1: Get current permissions
-      addTestResult('Initial Check', true, `Starting test with sensei level: ${currentLevel}`);
+      // Test 1: Get current sensei data
+      const initialSensei = senseis.find(s => s.id === selectedSenseiId);
+      if (!initialSensei) {
+        addTestResult('Setup', false, 'Sensei not found in senseis list');
+        return;
+      }
+
+      addTestResult('Initial Check', true, `Starting test with sensei: ${initialSensei.name}, level: ${initialSensei.sensei_level}, trips: ${initialSensei.trips_led}, rating: ${initialSensei.rating}`);
       
       // Test 2: Check current permissions
       const initialPerms = permissions;
@@ -65,24 +71,34 @@ export const SenseiPermissionTester: React.FC = () => {
         `Initial permissions - Edit: ${canEditTripsInitially}, Create: ${canCreateTripsInitially}`
       );
 
-      // Test 3: Change level to journey_guide if apprentice, or to apprentice if higher
+      // Test 3: Change level (MANUALLY BY ADMIN - should override auto-upgrade)
+      const currentLevel = initialSensei.sensei_level;
       const newLevel = currentLevel === 'apprentice' ? 'journey_guide' : 'apprentice';
-      addTestResult('Level Change', true, `Changing level from ${currentLevel} to ${newLevel}`);
+      addTestResult('Level Change', true, `Admin changing level from ${currentLevel} to ${newLevel} (Manual override)`);
       
-      const updateResult = await updateSenseiLevel(selectedSenseiId, newLevel, 'Permission testing');
+      const updateResult = await updateSenseiLevel(selectedSenseiId, newLevel, 'ADMIN MANUAL LEVEL CHANGE - Permission testing - Should NOT be auto-reverted');
       
       if (!updateResult.success) {
         addTestResult('Level Change', false, `Failed to update level: ${updateResult.error}`);
         return;
       }
 
-      addTestResult('Level Change', true, `Successfully changed level to ${newLevel}`);
+      addTestResult('Level Change', true, `Admin successfully changed level to ${newLevel}`);
 
-      // Test 4: Wait and refresh permissions
+      // Test 4: Immediate check after update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const senseiAfterUpdate = senseis.find(s => s.id === selectedSenseiId);
+      addTestResult(
+        'Immediate Check', 
+        senseiAfterUpdate?.sensei_level === newLevel,
+        `Immediate check: Level is ${senseiAfterUpdate?.sensei_level} (expected: ${newLevel})`
+      );
+
+      // Test 5: Refresh permissions and check again
       await new Promise(resolve => setTimeout(resolve, 2000));
       await refreshPermissions();
 
-      // Test 5: Check if permissions changed
+      // Test 6: Check if permissions changed
       const newPerms = permissions;
       const canEditTripsAfter = newPerms?.can_edit_trips || false;
       const canCreateTripsAfter = newPerms?.can_create_trips || false;
@@ -97,7 +113,7 @@ export const SenseiPermissionTester: React.FC = () => {
         `New permissions - Edit: ${canEditTripsAfter}, Create: ${canCreateTripsAfter}. Changed: ${permissionsChanged ? 'Yes' : 'No'}`
       );
 
-      // Test 6: Test field-level permissions
+      // Test 7: Test field-level permissions
       try {
         const { data: fieldPermissions, error: fieldError } = await supabase
           .from('sensei_level_field_permissions')
@@ -116,20 +132,30 @@ export const SenseiPermissionTester: React.FC = () => {
         addTestResult('Field Permissions', false, `Failed to check field permissions: ${error}`);
       }
 
-      addTestResult('Test Complete', true, `Level change test completed. Sensei remains at ${newLevel} level.`);
+      // Test 8: Final verification - check multiple times to ensure persistence
+      for (let i = 1; i <= 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const finalSensei = senseis.find(s => s.id === selectedSenseiId);
+        const finalLevel = finalSensei?.sensei_level || 'unknown';
+        
+        const isPersistent = finalLevel === newLevel;
+        addTestResult(
+          `Persistence Check ${i}`,
+          isPersistent,
+          `Check ${i}: Sensei level is ${finalLevel}. ${isPersistent ? 'GOOD - Level persisted!' : 'WARNING - Level may have reverted!'}`
+        );
 
-      // Test 7: Final confirmation - wait a bit more and check if level stuck
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Check final level after longer wait
-      const finalSensei = senseis.find(s => s.id === selectedSenseiId);
-      const finalLevel = finalSensei?.sensei_level || 'unknown';
-      
-      addTestResult(
-        'Final Confirmation',
-        finalLevel === newLevel,
-        `Final check: Sensei level is ${finalLevel}. ${finalLevel === newLevel ? 'SUCCESS - Level change persisted!' : 'FAILED - Level reverted!'}`
-      );
+        if (!isPersistent) {
+          addTestResult(
+            'Auto-Upgrade Detected',
+            false,
+            `Possible auto-upgrade interference! Sensei stats: trips=${finalSensei?.trips_led}, rating=${finalSensei?.rating}. This may have triggered automatic level adjustment.`
+          );
+          break;
+        }
+      }
+
+      addTestResult('Test Complete', true, `ADMIN MANUAL LEVEL CHANGE TEST COMPLETED. Final level should remain: ${newLevel}`);
 
     } catch (error) {
       addTestResult('Test Error', false, `Unexpected error: ${error}`);
