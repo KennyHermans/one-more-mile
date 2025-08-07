@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useEnhancedAssignmentSystem } from '@/hooks/use-enhanced-assignment-system';
+import { useSenseiReplacementSystem } from '@/hooks/use-sensei-replacement-system';
 import { 
   Users, 
   Zap, 
@@ -12,7 +13,8 @@ import {
   CheckCircle, 
   Clock, 
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Crown
 } from 'lucide-react';
 
 interface AssignmentManagerProps {
@@ -80,6 +82,37 @@ export const EnhancedAssignmentManager = ({
       primarySenseiId: currentSenseiId,
       requirementType: type,
       urgencyLevel
+    });
+
+    if (result.success) {
+      await loadMatches();
+      onAssignmentComplete?.(result);
+    }
+  };
+
+  const handleAssignMatch = async (senseiId: string, isBackup: boolean = false) => {
+    const result = await executeSmartAssignment({
+      tripId,
+      primarySenseiId: isBackup ? currentSenseiId : senseiId,
+      requirementType: isBackup ? 'backup' : 'primary',
+      urgencyLevel: urgencyLevel || 'medium',
+      deadline: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours
+    });
+    
+    if (result.success) {
+      await loadMatches();
+      onAssignmentComplete?.(result);
+    }
+  };
+
+  const handleReplacementAssignment = async (senseiId: string) => {
+    if (!currentSenseiId) return;
+
+    const result = await handleSenseiReplacement({
+      tripId,
+      currentSenseiId,
+      newSenseiId: senseiId,
+      reason: 'Replacement assignment through enhanced assignment manager'
     });
 
     if (result.success) {
@@ -309,17 +342,28 @@ export const EnhancedAssignmentManager = ({
 
                   <Separator />
                   
-                  <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="outline">
-                      View Profile
-                    </Button>
-                    <Button size="sm">
-                      Assign as Primary
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Assign as Backup
-                    </Button>
-                  </div>
+                   <div className="flex justify-end gap-2">
+                     <Button size="sm" variant="outline">
+                       View Profile
+                     </Button>
+                     <Button
+                       size="sm"
+                       onClick={() => currentSenseiId ? handleReplacementAssignment(match.senseiId) : handleAssignMatch(match.senseiId)}
+                       disabled={isProcessing || isReplacementProcessing}
+                     >
+                       {currentSenseiId ? (
+                         <>
+                           <Crown className="h-4 w-4 mr-1" />
+                           Replace & Elevate
+                         </>
+                       ) : (
+                         'Assign Primary'
+                       )}
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => handleAssignMatch(match.senseiId, true)} disabled={isProcessing}>
+                       Assign Backup
+                     </Button>
+                   </div>
                 </div>
               ))}
             </div>

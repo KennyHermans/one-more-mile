@@ -40,33 +40,38 @@ export const useSenseiPermissions = (senseiId?: string, tripId?: string) => {
       setCurrentLevel(senseiData.sensei_level);
       
       // Check for trip-specific elevated permissions if tripId is provided
-      let effectiveLevel = senseiData.sensei_level;
       let hasElevation = false;
+      let elevatedLevelValue = null;
       
       if (tripId) {
-        const { data: tripPermData, error: tripPermError } = await supabase
-          .from('trip_specific_permissions')
-          .select('elevated_level')
-          .eq('sensei_id', senseiId)
-          .eq('trip_id', tripId)
-          .eq('is_active', true)
-          .single();
+        // Use RPC call since table might not be in types yet
+        const { data: permissionData, error: permError } = await supabase
+          .rpc('get_sensei_permissions_for_trip', {
+            p_sensei_id: senseiId,
+            p_trip_id: tripId
+          });
 
-        if (tripPermData && !tripPermError) {
-          effectiveLevel = tripPermData.elevated_level;
-          hasElevation = true;
-          setElevatedLevel(tripPermData.elevated_level);
+        if (permissionData && !permError) {
+          const parsedData = typeof permissionData === 'string' 
+            ? JSON.parse(permissionData) 
+            : permissionData;
+          
+          if (parsedData.is_elevated) {
+            hasElevation = true;
+            elevatedLevelValue = parsedData.effective_level;
+            setElevatedLevel(parsedData.effective_level);
+            setPermissions(parsedData);
+            setHasElevatedPermissions(true);
+            return;
+          }
         }
       }
       
       setHasElevatedPermissions(hasElevation);
       
-      // Fetch permissions using effective level
+      // Fetch permissions using base level if no elevation
       const { data, error } = await supabase
-        .rpc('get_sensei_permissions_for_trip', { 
-          p_sensei_id: senseiId,
-          p_trip_id: tripId 
-        });
+        .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
 
       if (error) throw error;
       setPermissions(data as unknown as SenseiPermissions);

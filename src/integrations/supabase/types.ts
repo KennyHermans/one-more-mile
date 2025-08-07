@@ -2527,6 +2527,10 @@ export type Database = {
         Args: { p_sensei_id: string }
         Returns: Json
       }
+      get_sensei_permissions_for_trip: {
+        Args: { p_sensei_id: string; p_trip_id?: string }
+        Returns: Json
+      }
       get_sensei_trip_status: {
         Args: { p_sensei_id: string }
         Returns: Json
