@@ -5,6 +5,7 @@ import { AdminLevelRequirementsConfig } from "@/components/ui/admin-level-requir
 import { AdminPermissionFieldEditor } from "@/components/ui/admin-permission-field-editor";
 import { AutomatedAssignmentSystem } from "@/components/ui/automated-assignment-system";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
+import { SenseiPermissionTester } from "@/components/ui/sensei-permission-tester";
 
 const AdminSenseiLevels = () => {
   return (
@@ -19,12 +20,13 @@ const AdminSenseiLevels = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview & Management</TabsTrigger>
               <TabsTrigger value="configuration">Level Configuration</TabsTrigger>
               <TabsTrigger value="requirements">Requirements Config</TabsTrigger>
               <TabsTrigger value="permissions">Field Permissions</TabsTrigger>
               <TabsTrigger value="automation">Auto-Assignment</TabsTrigger>
+              <TabsTrigger value="testing">Permission Testing</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -47,6 +49,10 @@ const AdminSenseiLevels = () => {
               <div className="grid gap-6">
                 <AutomatedAssignmentSystem />
               </div>
+            </TabsContent>
+
+            <TabsContent value="testing" className="space-y-6">
+              <SenseiPermissionTester />
             </TabsContent>
           </Tabs>
         </div>
