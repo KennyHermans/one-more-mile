@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSenseiLevel } from '@/contexts/SenseiLevelContext';
 
 interface SenseiPermissions {
   can_view_trips: boolean;
@@ -17,7 +16,7 @@ interface SenseiPermissions {
 export const useSenseiPermissions = (senseiId?: string) => {
   const [permissions, setPermissions] = useState<SenseiPermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { currentLevel, lastLevelChange } = useSenseiLevel();
+  const [currentLevel, setCurrentLevel] = useState<string | null>(null);
 
   const fetchPermissions = async () => {
     if (!senseiId) {
@@ -27,6 +26,18 @@ export const useSenseiPermissions = (senseiId?: string) => {
 
     try {
       setIsLoading(true);
+      
+      // Fetch sensei level first
+      const { data: senseiData, error: senseiError } = await supabase
+        .from('sensei_profiles')
+        .select('sensei_level')
+        .eq('id', senseiId)
+        .single();
+
+      if (senseiError) throw senseiError;
+      setCurrentLevel(senseiData.sensei_level);
+      
+      // Then fetch permissions
       const { data, error } = await supabase
         .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
 
@@ -65,13 +76,14 @@ export const useSenseiPermissions = (senseiId?: string) => {
 
   useEffect(() => {
     fetchPermissions();
-  }, [senseiId, currentLevel, lastLevelChange]);
+  }, [senseiId]);
 
   return {
     permissions,
     isLoading,
     validateAction,
     canEditField,
-    refreshPermissions: fetchPermissions
+    refreshPermissions: fetchPermissions,
+    currentLevel
   };
 };

@@ -181,13 +181,12 @@ const AdminTrips = () => {
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedTripForPermissions, setSelectedTripForPermissions] = useState<string>("");
   const [currentSenseiId, setCurrentSenseiId] = useState<string | null>(null);
-  const [currentSenseiLevel, setCurrentSenseiLevel] = useState<'apprentice' | 'journey_guide' | 'master_sensei' | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { profileStatus } = useProfileManagement();
   
   // Get sensei permissions
-  const { permissions: senseiPermissions, isLoading: permissionsLoading } = useSenseiPermissions(currentSenseiId || undefined);
+  const { permissions: senseiPermissions, isLoading: permissionsLoading, currentLevel } = useSenseiPermissions(currentSenseiId || undefined);
   const { permissions: tripPermissions, canEditField } = useTripPermissions(currentSenseiId || undefined, editingTrip?.id);
 
   const [formData, setFormData] = useState({
@@ -404,7 +403,7 @@ const AdminTrips = () => {
     try {
       const { data, error } = await supabase
         .from('sensei_profiles')
-        .select('id, sensei_level')
+        .select('id')
         .eq('user_id', user.id)
         .single();
       
@@ -414,7 +413,6 @@ const AdminTrips = () => {
       }
       
       setCurrentSenseiId(data.id);
-      setCurrentSenseiLevel(data.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei');
     } catch (error) {
       console.error('Error in fetchCurrentSensei:', error);
     }
@@ -754,8 +752,8 @@ const AdminTrips = () => {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3">
                     {editingTrip ? 'Edit Trip' : 'Create New Trip'}
-                    {currentSenseiLevel && (
-                      <SenseiLevelBadge level={currentSenseiLevel} size="sm" />
+                    {currentLevel && (
+                      <SenseiLevelBadge level={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei'} size="sm" />
                     )}
                   </DialogTitle>
                   {senseiPermissions && !senseiPermissions.can_edit_trips && (
@@ -781,7 +779,7 @@ const AdminTrips = () => {
                         <PermissionAwareField
                           fieldName="title"
                           canEdit={canEditField('title')}
-                          currentLevel={currentSenseiLevel}
+                          currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
                           label="Title *"
                         >
@@ -797,7 +795,7 @@ const AdminTrips = () => {
                         <PermissionAwareField
                           fieldName="destination"
                           canEdit={canEditField('destination')}
-                          currentLevel={currentSenseiLevel}
+                          currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
                           label="Destination *"
                         >
@@ -812,7 +810,7 @@ const AdminTrips = () => {
                       <PermissionAwareField
                         fieldName="description"
                         canEdit={canEditField('description')}
-                        currentLevel={currentSenseiLevel}
+                        currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                         requiredLevel="apprentice"
                         label="Description *"
                       >
@@ -830,7 +828,7 @@ const AdminTrips = () => {
                         <PermissionAwareField
                           fieldName="price"
                           canEdit={canEditField('price')}
-                          currentLevel={currentSenseiLevel}
+                          currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="journey_guide"
                           label="Price *"
                         >
@@ -846,7 +844,7 @@ const AdminTrips = () => {
                         <PermissionAwareField
                           fieldName="theme"
                           canEdit={canEditField('theme')}
-                          currentLevel={currentSenseiLevel}
+                          currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
                           label="Theme"
                         >
@@ -895,7 +893,7 @@ const AdminTrips = () => {
                         <PermissionAwareField
                           fieldName="group_size"
                           canEdit={canEditField('group_size')}
-                          currentLevel={currentSenseiLevel}
+                          currentLevel={currentLevel as 'apprentice' | 'journey_guide' | 'master_sensei' | null}
                           requiredLevel="apprentice"
                           label="Max Participants"
                         >
