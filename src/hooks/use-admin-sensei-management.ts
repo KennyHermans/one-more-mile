@@ -49,10 +49,7 @@ export const useAdminSenseiManagement = () => {
       setError(null);
       const { data, error } = await supabase
         .from('sensei_profiles')
-        .select(`
-          *,
-          sensei_level_history(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
