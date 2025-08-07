@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_library: {
+        Row: {
+          activity_name: string
+          best_season: string[] | null
+          category: string
+          created_at: string | null
+          description: string | null
+          destination_type: string[] | null
+          difficulty_level: string | null
+          duration_hours: number | null
+          equipment_needed: string[] | null
+          estimated_cost_range: Json | null
+          id: string
+          requirements: string[] | null
+          themes: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_name: string
+          best_season?: string[] | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          destination_type?: string[] | null
+          difficulty_level?: string | null
+          duration_hours?: number | null
+          equipment_needed?: string[] | null
+          estimated_cost_range?: Json | null
+          id?: string
+          requirements?: string[] | null
+          themes?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_name?: string
+          best_season?: string[] | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          destination_type?: string[] | null
+          difficulty_level?: string | null
+          duration_hours?: number | null
+          equipment_needed?: string[] | null
+          estimated_cost_range?: Json | null
+          id?: string
+          requirements?: string[] | null
+          themes?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_alerts: {
         Row: {
           alert_type: string
@@ -962,6 +1013,47 @@ export type Database = {
         }
         Relationships: []
       }
+      sensei_availability_calendar: {
+        Row: {
+          availability_type: string | null
+          created_at: string | null
+          date_from: string
+          date_to: string
+          id: string
+          reason: string | null
+          sensei_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          availability_type?: string | null
+          created_at?: string | null
+          date_from: string
+          date_to: string
+          id?: string
+          reason?: string | null
+          sensei_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          availability_type?: string | null
+          created_at?: string | null
+          date_from?: string
+          date_to?: string
+          id?: string
+          reason?: string | null
+          sensei_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensei_availability_calendar_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sensei_certificates: {
         Row: {
           certificate_file_url: string | null
@@ -1556,6 +1648,47 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_analytics: {
+        Row: {
+          calculated_at: string | null
+          id: string
+          metric_data: Json | null
+          metric_name: string
+          metric_value: number | null
+          period_end: string | null
+          period_start: string | null
+          trip_id: string | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          id?: string
+          metric_data?: Json | null
+          metric_name: string
+          metric_value?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          trip_id?: string | null
+        }
+        Update: {
+          calculated_at?: string | null
+          id?: string
+          metric_data?: Json | null
+          metric_name?: string
+          metric_value?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_analytics_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_bookings: {
         Row: {
           booking_date: string
@@ -1672,6 +1805,113 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_trip_cancellations_trip_id"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_collaboration_comments: {
+        Row: {
+          comment_text: string
+          comment_type: string | null
+          created_at: string | null
+          field_reference: string | null
+          id: string
+          is_resolved: boolean | null
+          parent_comment_id: string | null
+          trip_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment_text: string
+          comment_type?: string | null
+          created_at?: string | null
+          field_reference?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment_text?: string
+          comment_type?: string | null
+          created_at?: string | null
+          field_reference?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_collaboration_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "trip_collaboration_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_collaboration_comments_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_media: {
+        Row: {
+          ai_tags: string[] | null
+          alt_text: string | null
+          created_at: string | null
+          display_order: number | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string
+          id: string
+          is_primary: boolean | null
+          media_type: string
+          mime_type: string | null
+          trip_id: string | null
+        }
+        Insert: {
+          ai_tags?: string[] | null
+          alt_text?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_primary?: boolean | null
+          media_type: string
+          mime_type?: string | null
+          trip_id?: string | null
+        }
+        Update: {
+          ai_tags?: string[] | null
+          alt_text?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_primary?: boolean | null
+          media_type?: string
+          mime_type?: string | null
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_media_trip_id_fkey"
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
@@ -1851,14 +2091,112 @@ export type Database = {
           },
         ]
       }
+      trip_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          destination: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          template_data: Json
+          theme: string | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          destination?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          template_data?: Json
+          theme?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          destination?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          template_data?: Json
+          theme?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      trip_workflow_history: {
+        Row: {
+          approval_level: number | null
+          approved_at: string | null
+          approved_by: string | null
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_status: string
+          previous_status: string | null
+          requires_approval: boolean | null
+          trip_id: string | null
+        }
+        Insert: {
+          approval_level?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status: string
+          previous_status?: string | null
+          requires_approval?: boolean | null
+          trip_id?: string | null
+        }
+        Update: {
+          approval_level?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: string
+          previous_status?: string | null
+          requires_approval?: boolean | null
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_workflow_history_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
+          ai_generated_content: Json | null
+          auto_save_data: Json | null
           backup_assignment_deadline: string | null
           backup_sensei_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by_sensei: boolean | null
           created_at: string
+          created_by_admin: string | null
           created_by_sensei: boolean
           created_by_user_id: string | null
           current_participants: number | null
@@ -1874,8 +2212,10 @@ export type Database = {
           image_url: string
           included_amenities: string[] | null
           is_active: boolean | null
+          last_auto_save: string | null
           max_participants: number
           price: string
+          pricing_intelligence: Json | null
           program: Json | null
           rating: number | null
           replacement_needed: boolean | null
@@ -1883,19 +2223,26 @@ export type Database = {
           requires_backup_sensei: boolean | null
           sensei_id: string | null
           sensei_name: string
+          seo_metadata: Json | null
           start_date: string | null
+          template_id: string | null
           theme: string
           title: string
           trip_status: string
+          trip_status_workflow: string | null
           updated_at: string
+          version_number: number | null
         }
         Insert: {
+          ai_generated_content?: Json | null
+          auto_save_data?: Json | null
           backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
           created_at?: string
+          created_by_admin?: string | null
           created_by_sensei?: boolean
           created_by_user_id?: string | null
           current_participants?: number | null
@@ -1911,8 +2258,10 @@ export type Database = {
           image_url: string
           included_amenities?: string[] | null
           is_active?: boolean | null
+          last_auto_save?: string | null
           max_participants?: number
           price: string
+          pricing_intelligence?: Json | null
           program?: Json | null
           rating?: number | null
           replacement_needed?: boolean | null
@@ -1920,19 +2269,26 @@ export type Database = {
           requires_backup_sensei?: boolean | null
           sensei_id?: string | null
           sensei_name: string
+          seo_metadata?: Json | null
           start_date?: string | null
+          template_id?: string | null
           theme: string
           title: string
           trip_status?: string
+          trip_status_workflow?: string | null
           updated_at?: string
+          version_number?: number | null
         }
         Update: {
+          ai_generated_content?: Json | null
+          auto_save_data?: Json | null
           backup_assignment_deadline?: string | null
           backup_sensei_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by_sensei?: boolean | null
           created_at?: string
+          created_by_admin?: string | null
           created_by_sensei?: boolean
           created_by_user_id?: string | null
           current_participants?: number | null
@@ -1948,8 +2304,10 @@ export type Database = {
           image_url?: string
           included_amenities?: string[] | null
           is_active?: boolean | null
+          last_auto_save?: string | null
           max_participants?: number
           price?: string
+          pricing_intelligence?: Json | null
           program?: Json | null
           rating?: number | null
           replacement_needed?: boolean | null
@@ -1957,11 +2315,15 @@ export type Database = {
           requires_backup_sensei?: boolean | null
           sensei_id?: string | null
           sensei_name?: string
+          seo_metadata?: Json | null
           start_date?: string | null
+          template_id?: string | null
           theme?: string
           title?: string
           trip_status?: string
+          trip_status_workflow?: string | null
           updated_at?: string
+          version_number?: number | null
         }
         Relationships: [
           {
@@ -1976,6 +2338,13 @@ export type Database = {
             columns: ["sensei_id"]
             isOneToOne: false
             referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "trip_templates"
             referencedColumns: ["id"]
           },
         ]

@@ -10,8 +10,10 @@ export interface ProgramDay {
   day: number;
   title: string;
   description: string;
-  activities: string[];
+  activities: (string | { name: string; time?: string; duration?: string; cost?: string })[];
   location?: string;
+  distance?: string;
+  estimated_cost?: string;
   coordinates?: { lat: number; lng: number };
 }
 
