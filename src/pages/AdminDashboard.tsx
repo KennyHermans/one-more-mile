@@ -308,12 +308,17 @@ const AdminDashboard = () => {
 
   const checkAuth = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Import debug utility
+      const { debugAuthState, validateAuthForAdmin } = await import('@/lib/auth-debug');
       
-      if (!user) {
-        window.location.href = '/auth';
-        return;
-      }
+      console.log('Admin Dashboard: Starting authentication check...');
+      
+      // Debug authentication state
+      await debugAuthState();
+      
+      // Validate authentication and admin privileges
+      const { user } = await validateAuthForAdmin();
+      console.log('Admin Dashboard: Authentication successful for user:', user.id);
       
       setUser(user);
       await Promise.all([
@@ -325,10 +330,19 @@ const AdminDashboard = () => {
         fetchTripCancellations(), 
         fetchAdminAnnouncements()
       ]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Admin Dashboard: Authentication failed:', error);
+      
+      // If authentication fails, redirect to auth page
+      if (error.message.includes('No authenticated user') || 
+          error.message.includes('not an admin')) {
+        window.location.href = '/auth';
+        return;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to load admin data.",
+        title: "Authentication Error",
+        description: error.message || "Failed to verify admin access.",
         variant: "destructive",
       });
     } finally {

@@ -180,42 +180,44 @@ export const useAdminTripManagement = () => {
     }
   }, [fetchTrips, toast]);
 
-  // Delete trip with RLS-aware error handling
+  // Delete trip with enhanced authentication and debugging
   const deleteTrip = useCallback(async (tripId: string) => {
     try {
       setError(null);
 
-      // First check if user is authenticated and has admin privileges
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('You must be logged in to delete trips');
-      }
+      // Import debug utility
+      const { debugAuthState, validateAuthForAdmin } = await import('@/lib/auth-debug');
+      
+      // Debug authentication state
+      console.log('Starting trip deletion process for trip:', tripId);
+      await debugAuthState();
 
-      // Check admin status
-      const { data: isAdminResult, error: adminError } = await supabase.rpc('is_admin', {
-        user_id: user.id
-      });
+      // Validate authentication and admin status
+      const { user } = await validateAuthForAdmin();
+      console.log('Authentication validated for user:', user.id);
 
-      if (adminError) {
-        throw new Error(`Authentication check failed: ${adminError.message}`);
-      }
-
-      if (!isAdminResult) {
-        throw new Error('You must be an admin to delete trips');
-      }
-
+      // Attempt deletion with count tracking
+      console.log('Attempting to delete trip...');
       const { data, error, count } = await supabase
         .from('trips')
         .delete({ count: 'exact' })
         .eq('id', tripId);
 
-      if (error) throw error;
+      console.log('Delete operation result:', { data, error, count });
+
+      if (error) {
+        console.error('Database delete error:', error);
+        throw error;
+      }
 
       // Check if any rows were actually deleted
       if (count === 0) {
-        throw new Error('Trip not found or you do not have permission to delete it');
+        console.warn('No rows were deleted - RLS policy may have blocked the operation');
+        throw new Error('Trip not found or access denied by security policy');
       }
 
+      console.log(`Successfully deleted ${count} trip(s)`);
+      
       toast({
         title: "Trip deleted",
         description: "Trip has been successfully deleted",
@@ -224,6 +226,7 @@ export const useAdminTripManagement = () => {
       await fetchTrips(); // Refresh trips list
       return { success: true };
     } catch (err) {
+      console.error('Trip deletion failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete trip';
       setError(errorMessage);
       toast({
