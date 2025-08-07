@@ -118,6 +118,19 @@ export const SenseiPermissionTester: React.FC = () => {
 
       addTestResult('Test Complete', true, `Level change test completed. Sensei remains at ${newLevel} level.`);
 
+      // Test 7: Final confirmation - wait a bit more and check if level stuck
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Check final level after longer wait
+      const finalSensei = senseis.find(s => s.id === selectedSenseiId);
+      const finalLevel = finalSensei?.sensei_level || 'unknown';
+      
+      addTestResult(
+        'Final Confirmation',
+        finalLevel === newLevel,
+        `Final check: Sensei level is ${finalLevel}. ${finalLevel === newLevel ? 'SUCCESS - Level change persisted!' : 'FAILED - Level reverted!'}`
+      );
+
     } catch (error) {
       addTestResult('Test Error', false, `Unexpected error: ${error}`);
     } finally {
@@ -217,7 +230,7 @@ export const SenseiPermissionTester: React.FC = () => {
             <li>Changes the sensei level using admin function</li>
             <li>Verifies that permissions are updated correctly</li>
             <li>Tests field-level permissions for the new level</li>
-            <li>Reverts the sensei back to original level</li>
+            <li>Confirms the level change persists (NO REVERT)</li>
           </ul>
         </div>
       </CardContent>
