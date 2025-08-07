@@ -20,6 +20,7 @@ import { PermissionAwareField } from "@/components/ui/permission-aware-field";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 import { useTripPermissions } from "@/hooks/use-trip-permissions";
 import { useProfileManagement } from "@/hooks/use-profile-management";
+import { useAdminCheck } from "@/hooks/use-admin-check";
 import { 
   Plus, 
   Edit2, 
@@ -184,6 +185,7 @@ const AdminTrips = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { profileStatus } = useProfileManagement();
+  const { isAdmin, isLoading: adminLoading } = useAdminCheck();
   
   // Get sensei permissions
   const { permissions: senseiPermissions, isLoading: permissionsLoading, currentLevel } = useSenseiPermissions(currentSenseiId || undefined);
@@ -575,8 +577,8 @@ const AdminTrips = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Check permissions before submitting
-    if (!senseiPermissions?.can_create_trips && !editingTrip) {
+    // Check permissions before submitting (admin can do everything)
+    if (!isAdmin && !senseiPermissions?.can_create_trips && !editingTrip) {
       toast({
         title: "Permission denied",
         description: "You don't have permission to create trips",
@@ -586,7 +588,7 @@ const AdminTrips = () => {
       return;
     }
 
-    if (!senseiPermissions?.can_edit_trips && editingTrip) {
+    if (!isAdmin && !senseiPermissions?.can_edit_trips && editingTrip) {
       toast({
         title: "Permission denied", 
         description: "You don't have permission to edit trips",
@@ -972,7 +974,7 @@ const AdminTrips = () => {
                     <div className="flex gap-2 pt-4 border-t">
                       <Button 
                         type="submit" 
-                        disabled={isSubmitting || (!senseiPermissions?.can_create_trips && !editingTrip) || (!senseiPermissions?.can_edit_trips && !!editingTrip)}
+                        disabled={isSubmitting || (!isAdmin && !senseiPermissions?.can_create_trips && !editingTrip) || (!isAdmin && !senseiPermissions?.can_edit_trips && !!editingTrip)}
                       >
                         {isSubmitting ? (
                           <>
