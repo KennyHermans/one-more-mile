@@ -2232,6 +2232,7 @@ export type Database = {
           trip_status_workflow: string | null
           updated_at: string
           version_number: number | null
+          workflow_metadata: Json | null
         }
         Insert: {
           ai_generated_content?: Json | null
@@ -2278,6 +2279,7 @@ export type Database = {
           trip_status_workflow?: string | null
           updated_at?: string
           version_number?: number | null
+          workflow_metadata?: Json | null
         }
         Update: {
           ai_generated_content?: Json | null
@@ -2324,6 +2326,7 @@ export type Database = {
           trip_status_workflow?: string | null
           updated_at?: string
           version_number?: number | null
+          workflow_metadata?: Json | null
         }
         Relationships: [
           {
