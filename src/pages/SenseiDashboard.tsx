@@ -84,6 +84,7 @@ interface SenseiProfile {
   image_url?: string;
   rating: number;
   trips_led: number;
+  sensei_level: 'apprentice' | 'journey_guide' | 'master_sensei';
   can_create_trips: boolean;
   trip_creation_requested: boolean;
   trip_creation_request_date: string | null;
@@ -284,6 +285,42 @@ const SenseiDashboard = () => {
     return () => window.removeEventListener('availabilityUpdated', handleAvailabilityUpdate);
   }, []);
 
+  // Set up real-time listener for sensei profile updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('sensei-profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sensei_profiles',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Sensei profile updated in real-time:', payload);
+          // Update the local state with the new data
+          if (payload.new) {
+            setSenseiProfile({
+              ...payload.new,
+              sensei_level: payload.new.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei'
+            } as SenseiProfile);
+            toast({
+              title: "Profile Updated",
+              description: "Your sensei profile has been updated.",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, toast]);
+
   const checkAuth = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -325,7 +362,10 @@ const SenseiDashboard = () => {
 
       if (error) throw error;
       
-      setSenseiProfile(data);
+      setSenseiProfile({
+        ...data,
+        sensei_level: data.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei'
+      });
       setProfileFormData({
         name: data.name || "",
         bio: data.bio || "",

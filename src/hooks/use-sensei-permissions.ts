@@ -78,6 +78,35 @@ export const useSenseiPermissions = (senseiId?: string) => {
     fetchPermissions();
   }, [senseiId]);
 
+  // Set up real-time listener for sensei profile updates
+  useEffect(() => {
+    if (!senseiId) return;
+
+    const channel = supabase
+      .channel('sensei-permissions-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sensei_profiles',
+          filter: `id=eq.${senseiId}`
+        },
+        (payload) => {
+          console.log('Sensei level updated, refreshing permissions:', payload);
+          // Refresh permissions when sensei level changes
+          if (payload.new && payload.new.sensei_level !== currentLevel) {
+            fetchPermissions();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [senseiId, currentLevel]);
+
   return {
     permissions,
     isLoading,
