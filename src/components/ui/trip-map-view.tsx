@@ -6,14 +6,14 @@ import { Map, List, MapPin, Star, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
 
-import { TripListItem } from '@/types/trip';
+import { Trip } from '@/types/trip';
 
-interface TripWithCoordinates extends TripListItem {
+interface TripWithCoordinates extends Trip {
   coordinates?: [number, number]; // [lat, lng]
 }
 
 interface TripMapViewProps {
-  trips: TripListItem[];
+  trips: Trip[];
   className?: string;
 }
 
@@ -171,23 +171,24 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
               id={trip.id}
               title={trip.title}
               destination={trip.destination}
-              description={trip.title} // Using title as fallback for description
+              description={trip.description || trip.title} // Using description or title as fallback
               price={trip.price}
               dates={trip.dates}
-              groupSize={`${trip.max_participants} people max`} // Constructed from max_participants
-              sensei={trip.sensei_name}
+              groupSize={`${trip.max_participants} people max`}
+              sensei={trip.sensei_profiles?.name || trip.sensei_name || ""}
               image={trip.image_url}
               theme={trip.theme}
               current_participants={trip.current_participants || 0}
               max_participants={trip.max_participants}
               difficulty_level={trip.difficulty_level}
-              duration_days={undefined} // Not available in TripListItem
+              duration_days={trip.duration_days}
               rating={trip.rating || 0}
-              review_count={0} // Not available in TripListItem
-              sensei_image={undefined} // Not available in TripListItem
-              sensei_specialties={[]} // Not available in TripListItem
-              sensei_location={undefined} // Not available in TripListItem
-              sensei_id={trip.sensei_id} // Now passing sensei_id from TripListItem
+              review_count={0}
+              sensei_image={trip.sensei_profiles?.image_url}
+              sensei_specialties={trip.sensei_profiles?.specialties || []}
+              sensei_location={trip.sensei_profiles?.location}
+              sensei_id={trip.sensei_id}
+              sensei_level={trip.sensei_profiles?.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei' | undefined}
             />
           ))}
         </div>

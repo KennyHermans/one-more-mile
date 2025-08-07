@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { Badge } from "./badge";
+import { SenseiLevelBadge } from "./sensei-level-badge";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { MapPin, Users, Calendar, Plus, BarChart3, Star, Clock, Mountain, Heart, Zap, Eye, Award } from "lucide-react";
@@ -29,13 +30,14 @@ interface FeaturedTripCardProps {
   sensei_specialties?: string[];
   sensei_location?: string;
   sensei_id?: string | null;
+  sensei_level?: 'apprentice' | 'journey_guide' | 'master_sensei';
 }
 
 export function FeaturedTripCard({ 
   id, title, destination, description, price, dates, groupSize, sensei, image, theme,
   current_participants = 0, max_participants = 12, onCompare, isInComparison = false,
   difficulty_level, duration_days, rating = 0, review_count = 0, sensei_image, 
-  sensei_specialties = [], sensei_location, sensei_id
+  sensei_specialties = [], sensei_location, sensei_id, sensei_level
 }: FeaturedTripCardProps) {
   const currentParticipants = current_participants;
   const maxParticipants = max_participants;
@@ -156,7 +158,15 @@ export function FeaturedTripCard({
                 <AvatarFallback className="text-xs">{sensei.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm group-hover:text-primary transition-colors">Sensei {sensei}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-sm group-hover:text-primary transition-colors">Sensei {sensei}</p>
+                  {sensei_level && (
+                    <SenseiLevelBadge 
+                      level={sensei_level}
+                      size="sm"
+                    />
+                  )}
+                </div>
                 {sensei_location && (
                   <p className="text-xs text-muted-foreground">{sensei_location}</p>
                 )}
@@ -181,26 +191,11 @@ export function FeaturedTripCard({
         ) : (
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={sensei_image} alt={`Sensei ${sensei}`} />
-              <AvatarFallback className="text-xs">{sensei.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">?</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm">Sensei {sensei}</p>
-              {sensei_location && (
-                <p className="text-xs text-muted-foreground">{sensei_location}</p>
-              )}
-              {sensei_specialties.length > 0 && (
-                <div className="flex gap-1 mt-1">
-                  {sensei_specialties.slice(0, 2).map((specialty, index) => (
-                    <Badge key={index} variant="outline" className="text-xs py-0 px-1">
-                      {specialty}
-                    </Badge>
-                  ))}
-                  {sensei_specialties.length > 2 && (
-                    <span className="text-xs text-muted-foreground">+{sensei_specialties.length - 2}</span>
-                  )}
-                </div>
-              )}
+              <p className="font-medium text-sm text-primary">Will you be our Sensei?</p>
+              <p className="text-xs text-muted-foreground">This adventure is looking for a guide</p>
             </div>
           </div>
         )}

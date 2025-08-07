@@ -74,7 +74,10 @@ const Explore = () => {
     try {
       const { data, error } = await supabase
         .from('trips')
-        .select('*')
+        .select(`
+          *,
+          sensei_profiles!trips_sensei_id_fkey(id, name, sensei_level, image_url, location, specialties)
+        `)
         .eq('is_active', true)
         .eq('trip_status', 'approved')
         .order('created_at', { ascending: false });

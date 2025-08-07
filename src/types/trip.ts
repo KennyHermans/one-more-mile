@@ -59,6 +59,8 @@ export interface Trip {
     name: string;
     sensei_level: string;
     image_url?: string;
+    location?: string;
+    specialties?: string[];
   } | null;
 }
 
