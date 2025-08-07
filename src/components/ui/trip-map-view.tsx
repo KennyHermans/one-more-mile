@@ -15,6 +15,8 @@ interface TripWithCoordinates extends Trip {
 interface TripMapViewProps {
   trips: Trip[];
   className?: string;
+  isInWishlist?: (tripId: string) => boolean;
+  onWishlistToggle?: (tripId: string, isCurrentlyWishlisted: boolean) => void;
 }
 
 // Destination coordinates - in production, get from trip data or geocoding service
@@ -41,7 +43,7 @@ const destinationCoordinates: Record<string, [number, number]> = {
   "mongolia": [46.8625, 103.8467]
 };
 
-export function TripMapView({ trips, className }: TripMapViewProps) {
+export function TripMapView({ trips, className, isInWishlist, onWishlistToggle }: TripMapViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [selectedTrip, setSelectedTrip] = useState<TripWithCoordinates | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -189,6 +191,8 @@ export function TripMapView({ trips, className }: TripMapViewProps) {
               sensei_location={trip.sensei_profiles?.location}
               sensei_id={trip.sensei_id}
               sensei_level={trip.sensei_profiles?.sensei_level as 'apprentice' | 'journey_guide' | 'master_sensei' | undefined}
+              isWishlisted={isInWishlist?.(trip.id)}
+              onWishlistToggle={onWishlistToggle}
             />
           ))}
         </div>

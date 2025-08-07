@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import { Search, Filter, MapPin, Calendar, Users, Star, Loader2, ArrowUpDown, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { Trip, TripListItem, toTripListItem, transformDbTrip } from '@/types/trip';
 
 interface FilterState {
@@ -39,6 +40,7 @@ const Explore = () => {
   const [comparisonTrips, setComparisonTrips] = useState<Trip[]>([]);
   const [savedPresets, setSavedPresets] = useState<{ name: string; filters: FilterState }[]>([]);
   const [sortBy, setSortBy] = useState("newest");
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist(user?.id);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: "",
     themes: [],
@@ -229,6 +231,14 @@ const Explore = () => {
     });
   };
 
+  const handleWishlistToggle = async (tripId: string, isCurrentlyWishlisted: boolean) => {
+    if (isCurrentlyWishlisted) {
+      await removeFromWishlist(tripId);
+    } else {
+      await addToWishlist(tripId);
+    }
+  };
+
   const activeFiltersCount = [
     filters.searchQuery,
     ...filters.themes,
@@ -363,7 +373,11 @@ const Explore = () => {
               </div>
             </div>
           ) : (
-            <TripMapView trips={filteredAndSortedTrips} />
+            <TripMapView 
+              trips={filteredAndSortedTrips} 
+              isInWishlist={isInWishlist}
+              onWishlistToggle={handleWishlistToggle}
+            />
           )}
         </div>
       </section>

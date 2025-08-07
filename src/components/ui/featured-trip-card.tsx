@@ -31,13 +31,16 @@ interface FeaturedTripCardProps {
   sensei_location?: string;
   sensei_id?: string | null;
   sensei_level?: 'apprentice' | 'journey_guide' | 'master_sensei';
+  isWishlisted?: boolean;
+  onWishlistToggle?: (tripId: string, isCurrentlyWishlisted: boolean) => void;
 }
 
 export function FeaturedTripCard({ 
   id, title, destination, description, price, dates, groupSize, sensei, image, theme,
   current_participants = 0, max_participants = 12, onCompare, isInComparison = false,
   difficulty_level, duration_days, rating = 0, review_count = 0, sensei_image, 
-  sensei_specialties = [], sensei_location, sensei_id, sensei_level
+  sensei_specialties = [], sensei_location, sensei_id, sensei_level,
+  isWishlisted = false, onWishlistToggle
 }: FeaturedTripCardProps) {
   const currentParticipants = current_participants;
   const maxParticipants = max_participants;
@@ -122,8 +125,15 @@ export function FeaturedTripCard({
         </div>
 
         {/* Heart wishlist button */}
-        <button className="absolute bottom-4 right-4 p-2 bg-card/20 backdrop-blur-sm rounded-full hover:bg-card/30 transition-colors group/heart">
-          <Heart className="h-4 w-4 text-primary-foreground group-hover/heart:fill-destructive group-hover/heart:text-destructive transition-colors" />
+        <button 
+          onClick={() => onWishlistToggle?.(id, isWishlisted)}
+          className="absolute bottom-4 right-4 p-2 bg-card/20 backdrop-blur-sm rounded-full hover:bg-card/30 transition-colors group/heart"
+        >
+          <Heart className={`h-4 w-4 transition-colors ${
+            isWishlisted 
+              ? 'text-destructive fill-destructive' 
+              : 'text-primary-foreground group-hover/heart:fill-destructive group-hover/heart:text-destructive'
+          }`} />
         </button>
       </div>
       
