@@ -341,13 +341,14 @@ const AdminTrips = () => {
 
   // Auto-create on component mount (only once)  
   useEffect(() => {
-    if (user && trips.length === 0) {
+    if (user) {
+      // Small delay to ensure data is loaded, then create trip
       const timer = setTimeout(() => {
         createMongoliaTrip();
-      }, 2000);
+      }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [user, trips]);
+  }, [user]);
 
   useEffect(() => {
     const checkAuth = async () => {
