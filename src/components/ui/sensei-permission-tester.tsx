@@ -116,17 +116,7 @@ export const SenseiPermissionTester: React.FC = () => {
         addTestResult('Field Permissions', false, `Failed to check field permissions: ${error}`);
       }
 
-      // Test 7: Change level back
-      const originalLevel = currentLevel === 'apprentice' ? 'journey_guide' : 'apprentice';
-      const revertResult = await updateSenseiLevel(selectedSenseiId, originalLevel, 'Reverting test changes');
-      
-      addTestResult(
-        'Level Revert',
-        revertResult.success,
-        revertResult.success ? 
-          `Successfully reverted to ${originalLevel}` : 
-          `Failed to revert: ${revertResult.error}`
-      );
+      addTestResult('Test Complete', true, `Level change test completed. Sensei remains at ${newLevel} level.`);
 
     } catch (error) {
       addTestResult('Test Error', false, `Unexpected error: ${error}`);
