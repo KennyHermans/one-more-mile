@@ -2358,12 +2358,19 @@ export type Database = {
     }
     Functions: {
       admin_update_sensei_level: {
-        Args: {
-          p_sensei_id: string
-          p_new_level: string
-          p_reason?: string
-          p_admin_override?: boolean
-        }
+        Args:
+          | {
+              p_sensei_id: string
+              p_new_level: string
+              p_admin_user_id?: string
+              p_reason?: string
+            }
+          | {
+              p_sensei_id: string
+              p_new_level: string
+              p_reason?: string
+              p_admin_override?: boolean
+            }
         Returns: Json
       }
       assign_admin_role: {
@@ -2503,7 +2510,9 @@ export type Database = {
         }[]
       }
       get_sensei_field_permissions: {
-        Args: { p_sensei_id: string }
+        Args:
+          | { p_sensei_id: string }
+          | { p_sensei_id: string; p_field_name?: string }
         Returns: {
           field_category: string
           field_name: string
@@ -2518,6 +2527,10 @@ export type Database = {
       }
       get_sensei_trip_status: {
         Args: { p_sensei_id: string }
+        Returns: Json
+      }
+      get_trip_edit_permissions: {
+        Args: { p_sensei_id: string; p_trip_id?: string }
         Returns: Json
       }
       get_user_platform_role: {
