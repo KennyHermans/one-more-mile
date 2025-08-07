@@ -13,10 +13,12 @@ interface SenseiPermissions {
   trip_edit_fields: string[];
 }
 
-export const useSenseiPermissions = (senseiId?: string) => {
+export const useSenseiPermissions = (senseiId?: string, tripId?: string) => {
   const [permissions, setPermissions] = useState<SenseiPermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentLevel, setCurrentLevel] = useState<string | null>(null);
+  const [hasElevatedPermissions, setHasElevatedPermissions] = useState(false);
+  const [elevatedLevel, setElevatedLevel] = useState<string | null>(null);
 
   const fetchPermissions = async () => {
     if (!senseiId) {
@@ -37,9 +39,34 @@ export const useSenseiPermissions = (senseiId?: string) => {
       if (senseiError) throw senseiError;
       setCurrentLevel(senseiData.sensei_level);
       
-      // Then fetch permissions
+      // Check for trip-specific elevated permissions if tripId is provided
+      let effectiveLevel = senseiData.sensei_level;
+      let hasElevation = false;
+      
+      if (tripId) {
+        const { data: tripPermData, error: tripPermError } = await supabase
+          .from('trip_specific_permissions')
+          .select('elevated_level')
+          .eq('sensei_id', senseiId)
+          .eq('trip_id', tripId)
+          .eq('is_active', true)
+          .single();
+
+        if (tripPermData && !tripPermError) {
+          effectiveLevel = tripPermData.elevated_level;
+          hasElevation = true;
+          setElevatedLevel(tripPermData.elevated_level);
+        }
+      }
+      
+      setHasElevatedPermissions(hasElevation);
+      
+      // Fetch permissions using effective level
       const { data, error } = await supabase
-        .rpc('get_sensei_permissions', { p_sensei_id: senseiId });
+        .rpc('get_sensei_permissions_for_trip', { 
+          p_sensei_id: senseiId,
+          p_trip_id: tripId 
+        });
 
       if (error) throw error;
       setPermissions(data as unknown as SenseiPermissions);
@@ -113,6 +140,8 @@ export const useSenseiPermissions = (senseiId?: string) => {
     validateAction,
     canEditField,
     refreshPermissions: fetchPermissions,
-    currentLevel
+    currentLevel,
+    hasElevatedPermissions,
+    elevatedLevel
   };
 };

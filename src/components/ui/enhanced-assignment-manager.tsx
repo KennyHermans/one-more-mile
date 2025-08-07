@@ -45,6 +45,12 @@ export const EnhancedAssignmentManager = ({
     resolveAssignmentConflicts
   } = useEnhancedAssignmentSystem();
 
+  const {
+    handleSenseiReplacement,
+    checkPermissionCompatibility,
+    isProcessing: isReplacementProcessing
+  } = useSenseiReplacementSystem();
+
   useEffect(() => {
     loadMatches();
     checkConflicts();
