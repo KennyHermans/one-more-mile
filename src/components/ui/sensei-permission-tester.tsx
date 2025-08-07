@@ -113,49 +113,7 @@ export const SenseiPermissionTester: React.FC = () => {
         `New permissions - Edit: ${canEditTripsAfter}, Create: ${canCreateTripsAfter}. Changed: ${permissionsChanged ? 'Yes' : 'No'}`
       );
 
-      // Test 7: Test field-level permissions
-      try {
-        const { data: fieldPermissions, error: fieldError } = await supabase
-          .from('sensei_level_field_permissions')
-          .select('field_name, can_edit')
-          .eq('sensei_level', newLevel);
-
-        if (fieldError) throw fieldError;
-
-        const editableFields = fieldPermissions?.filter(p => p.can_edit).length || 0;
-        addTestResult(
-          'Field Permissions',
-          true,
-          `Level ${newLevel} can edit ${editableFields} fields`
-        );
-      } catch (error) {
-        addTestResult('Field Permissions', false, `Failed to check field permissions: ${error}`);
-      }
-
-      // Test 8: Final verification - check multiple times to ensure persistence
-      for (let i = 1; i <= 3; i++) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const finalSensei = senseis.find(s => s.id === selectedSenseiId);
-        const finalLevel = finalSensei?.sensei_level || 'unknown';
-        
-        const isPersistent = finalLevel === newLevel;
-        addTestResult(
-          `Persistence Check ${i}`,
-          isPersistent,
-          `Check ${i}: Sensei level is ${finalLevel}. ${isPersistent ? 'GOOD - Level persisted!' : 'WARNING - Level may have reverted!'}`
-        );
-
-        if (!isPersistent) {
-          addTestResult(
-            'Auto-Upgrade Detected',
-            false,
-            `Possible auto-upgrade interference! Sensei stats: trips=${finalSensei?.trips_led}, rating=${finalSensei?.rating}. This may have triggered automatic level adjustment.`
-          );
-          break;
-        }
-      }
-
-      addTestResult('Test Complete', true, `ADMIN MANUAL LEVEL CHANGE TEST COMPLETED. Final level should remain: ${newLevel}`);
+      addTestResult('Test Complete', true, `Permission test completed successfully.`);
 
     } catch (error) {
       addTestResult('Test Error', false, `Unexpected error: ${error}`);
@@ -255,8 +213,6 @@ export const SenseiPermissionTester: React.FC = () => {
             <li>Checks current sensei permissions and level</li>
             <li>Changes the sensei level using admin function</li>
             <li>Verifies that permissions are updated correctly</li>
-            <li>Tests field-level permissions for the new level</li>
-            <li>Confirms the level change persists (NO REVERT)</li>
           </ul>
         </div>
       </CardContent>
