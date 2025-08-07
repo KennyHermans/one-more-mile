@@ -89,8 +89,8 @@ export const AdminTripSpecificPermissions = () => {
         .from('trip_specific_permissions')
         .select(`
           *,
-          sensei_profiles!inner(name, sensei_level),
-          trips!inner(title, required_permission_level)
+          sensei_profiles!trip_specific_permissions_sensei_id_fkey(name, sensei_level),
+          trips!trip_specific_permissions_trip_id_fkey(title, required_permission_level)
         `)
         .eq('is_active', true)
         .order('granted_at', { ascending: false });
