@@ -5,6 +5,7 @@ import { AdminLevelRequirementsConfig } from "@/components/ui/admin-level-requir
 import { AdminPermissionFieldEditor } from "@/components/ui/admin-permission-field-editor";
 import { AutomatedAssignmentSystem } from "@/components/ui/automated-assignment-system";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
+import { AdminTripSpecificPermissions } from "@/components/ui/admin-trip-specific-permissions";
 
 
 const AdminSenseiLevels = () => {
@@ -20,13 +21,13 @@ const AdminSenseiLevels = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview & Management</TabsTrigger>
-              <TabsTrigger value="configuration">Level Configuration</TabsTrigger>
-              <TabsTrigger value="requirements">Requirements Config</TabsTrigger>
-              <TabsTrigger value="permissions">Field Permissions</TabsTrigger>
-              <TabsTrigger value="automation">Auto-Assignment</TabsTrigger>
-              
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="configuration">Configuration</TabsTrigger>
+              <TabsTrigger value="requirements">Requirements</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
+              <TabsTrigger value="trip-permissions">Trip Permissions</TabsTrigger>
+              <TabsTrigger value="automation">Assignment</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -43,6 +44,10 @@ const AdminSenseiLevels = () => {
 
             <TabsContent value="permissions" className="space-y-6">
               <AdminPermissionFieldEditor />
+            </TabsContent>
+
+            <TabsContent value="trip-permissions" className="space-y-6">
+              <AdminTripSpecificPermissions />
             </TabsContent>
 
             <TabsContent value="automation" className="space-y-6">

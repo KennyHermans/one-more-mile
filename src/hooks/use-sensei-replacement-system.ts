@@ -12,14 +12,20 @@ interface ReplacementRequest {
 export const useSenseiReplacementSystem = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSenseiReplacement = async (request: ReplacementRequest) => {
+  const handleSenseiReplacement = async (request: ReplacementRequest): Promise<{ success: boolean, elevated: boolean }> => {
     setIsProcessing(true);
     
     try {
-      // Get trip details - use basic query since new columns may not be in types yet
+      // Get trip details including permission levels
       const { data: tripData, error: tripError } = await supabase
         .from('trips')
-        .select('id, title, sensei_id')
+        .select(`
+          id, 
+          title, 
+          sensei_id,
+          required_permission_level,
+          created_by_sensei_level
+        `)
         .eq('id', request.tripId)
         .single();
 
@@ -45,7 +51,7 @@ export const useSenseiReplacementSystem = () => {
 
       const currentSenseiLevel = currentSenseiData.sensei_level;
       const newSenseiLevel = newSenseiData.sensei_level;
-      const requiredLevel = currentSenseiLevel; // Use current sensei's level as baseline
+      const requiredLevel = tripData.required_permission_level || currentSenseiLevel;
 
       // Define level hierarchy for comparison
       const levelHierarchy = {
@@ -68,13 +74,22 @@ export const useSenseiReplacementSystem = () => {
 
       if (updateError) throw updateError;
 
-      // Grant elevated permissions if needed (simplified approach for now)
+      // Grant elevated permissions if needed
       if (needsElevation) {
-        // For now, just log that elevation would be needed
-        console.log(`Would grant ${requiredLevel} permissions to ${newSenseiLevel} sensei for trip ${request.tripId}`);
-        
+        const { error: permissionError } = await supabase.rpc('grant_trip_specific_permission', {
+          p_trip_id: request.tripId,
+          p_sensei_id: request.newSenseiId,
+          p_elevated_level: requiredLevel,
+          p_reason: `Auto-granted for replacement. Original: ${newSenseiLevel}, Required: ${requiredLevel}. ${request.reason || ''}`
+        });
+
+        if (permissionError) {
+          console.error('Error granting elevated permissions:', permissionError);
+          // Don't fail the replacement if permission grant fails
+        }
+
         toast.success(
-          `Sensei replacement successful! Note: ${newSenseiLevel} sensei will need ${requiredLevel} permissions for this trip.`
+          `Sensei replacement successful! ${newSenseiLevel} sensei elevated to ${requiredLevel} permissions for this trip.`
         );
       } else {
         toast.success('Sensei replacement completed successfully!');
@@ -88,13 +103,14 @@ export const useSenseiReplacementSystem = () => {
           action: 'sensei_replacement',
           table_name: 'trips',
           record_id: request.tripId,
-          old_values: { sensei_id: request.currentSenseiId },
-          new_values: { sensei_id: request.newSenseiId },
-          metadata: {
-            reason: request.reason,
-            elevated_permissions: needsElevation,
-            original_level: newSenseiLevel,
-            required_level: requiredLevel
+          old_values: { 
+            sensei_id: request.currentSenseiId,
+            sensei_level: currentSenseiLevel
+          },
+          new_values: { 
+            sensei_id: request.newSenseiId,
+            sensei_level: newSenseiLevel,
+            elevated_permissions: needsElevation ? requiredLevel : null
           }
         });
 
