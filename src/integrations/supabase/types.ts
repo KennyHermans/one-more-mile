@@ -2358,19 +2358,13 @@ export type Database = {
     }
     Functions: {
       admin_update_sensei_level: {
-        Args:
-          | {
-              p_sensei_id: string
-              p_new_level: string
-              p_admin_user_id?: string
-              p_reason?: string
-            }
-          | {
-              p_sensei_id: string
-              p_new_level: string
-              p_reason?: string
-              p_admin_override?: boolean
-            }
+        Args: {
+          p_sensei_id: string
+          p_new_level: string
+          p_reason?: string
+          p_admin_user_id?: string
+          p_admin_override?: boolean
+        }
         Returns: Json
       }
       assign_admin_role: {
