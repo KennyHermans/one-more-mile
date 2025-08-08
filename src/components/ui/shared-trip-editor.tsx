@@ -296,8 +296,34 @@ export const SharedTripEditor: React.FC<SharedTripEditorProps> = ({
                   <option value="Challenging">Challenging</option>
                   <option value="Extreme">Extreme</option>
                 </select>
+                </div>
               </div>
-            </div>
+
+              <PermissionAwareField
+                fieldName="image_url"
+                canEdit={true}
+                currentLevel={currentLevel as any}
+                requiredLevel="apprentice"
+                isAdmin={isAdmin}
+                label="Cover Image URL (card & hero)"
+              >
+                <div className="space-y-2">
+                  <Input
+                    name="image_url"
+                    value={formData.image_url}
+                    onChange={handleInputChange}
+                    placeholder="https://..."
+                  />
+                  {formData.image_url && (
+                    <img
+                      src={formData.image_url}
+                      alt={`${formData.title || 'Trip'} cover image`}
+                      className="h-32 w-full object-cover rounded-md"
+                      loading="lazy"
+                    />
+                  )}
+                </div>
+              </PermissionAwareField>
 
             {isAdmin ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -385,10 +411,12 @@ export const SharedTripEditor: React.FC<SharedTripEditorProps> = ({
           </TabsContent>
 
           <TabsContent value="media" className="space-y-4">
+            <p className="text-sm text-muted-foreground">Tip: Set a Primary media item. It will be used as the trip's cover image automatically.</p>
             <EnhancedMediaGallery
               tripId={editingTrip?.id}
               mediaItems={formData.media_items}
               onMediaUpdate={(newItems) => setFormData((prev) => ({ ...prev, media_items: newItems }))}
+              onPrimaryChange={(url) => setFormData((prev) => ({ ...prev, image_url: url }))}
             />
           </TabsContent>
 

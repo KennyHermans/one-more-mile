@@ -42,6 +42,7 @@ interface EnhancedMediaGalleryProps {
   maxFiles?: number;
   acceptedTypes?: string[];
   className?: string;
+  onPrimaryChange?: (fileUrl: string, media: MediaItem) => void;
 }
 
 export function EnhancedMediaGallery({
@@ -50,7 +51,8 @@ export function EnhancedMediaGallery({
   onMediaUpdate,
   maxFiles = 10,
   acceptedTypes = ['image/*', 'video/*'],
-  className
+  className,
+  onPrimaryChange
 }: EnhancedMediaGalleryProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -208,6 +210,8 @@ export function EnhancedMediaGallery({
         is_primary: item.id === mediaId
       }));
 
+      const selectedItem = updatedMedia.find(item => item.id === mediaId);
+
       if (tripId) {
         // Update all media items to set is_primary false
         await supabase
@@ -220,9 +224,20 @@ export function EnhancedMediaGallery({
           .from('trip_media')
           .update({ is_primary: true })
           .eq('id', mediaId);
+
+        // Sync cover image on trip for primary media
+        if (selectedItem) {
+          await supabase
+            .from('trips')
+            .update({ image_url: selectedItem.file_url })
+            .eq('id', tripId);
+        }
       }
 
       onMediaUpdate(updatedMedia);
+      if (selectedItem) {
+        onPrimaryChange?.(selectedItem.file_url, selectedItem);
+      }
 
       toast({
         title: "Primary media set",
