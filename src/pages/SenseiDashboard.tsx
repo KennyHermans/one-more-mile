@@ -875,6 +875,21 @@ const SenseiDashboard = () => {
     }
   };
 
+  const publishTrip = async (trip: Trip) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'published', is_active: true })
+        .eq('id', trip.id);
+      if (error) throw error;
+      if (user) await fetchSenseiTrips(user.id);
+      toast({ title: 'Published', description: 'Trip published successfully.' });
+    } catch (e: any) {
+      console.error('Publish trip failed', e);
+      toast({ title: 'Error', description: e.message || 'Failed to publish trip', variant: 'destructive' });
+    }
+  };
+
   const addProgramDay = () => {
     if (!editingTrip) return;
     const currentProgram = ensureProgramIsArray(editingTrip.program);
@@ -1118,6 +1133,7 @@ const SenseiDashboard = () => {
             trips={trips}
             canCreateTrips={senseiPermissions?.can_create_trips || false}
             canEditTrips={senseiPermissions?.can_edit_trips || false}
+            canPublishTrips={senseiPermissions?.can_publish_trips || false}
             onCreateTrip={() => setCreateTripOpen(true)}
             onEditTrip={(trip) => {
               setEditingTrip({
@@ -1134,6 +1150,7 @@ const SenseiDashboard = () => {
               setSelectedTripForCancel(trip);
               setCancelTripOpen(true);
             }}
+            onPublishTrip={publishTrip}
           />
         );
 

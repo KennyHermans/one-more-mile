@@ -23,20 +23,24 @@ interface SenseiTripsManagementProps {
   trips: Trip[];
   canCreateTrips: boolean;
   canEditTrips: boolean; // Add this permission check
+  canPublishTrips?: boolean;
   onCreateTrip: () => void;
   onEditTrip: (trip: Trip) => void;
   onViewTrip: (trip: Trip) => void;
   onCancelTrip: (trip: Trip) => void;
+  onPublishTrip?: (trip: Trip) => void;
 }
 
 export function SenseiTripsManagement({ 
   trips, 
   canCreateTrips,
   canEditTrips,
+  canPublishTrips,
   onCreateTrip,
   onEditTrip,
   onViewTrip,
-  onCancelTrip 
+  onCancelTrip,
+  onPublishTrip
 }: SenseiTripsManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -117,6 +121,11 @@ export function SenseiTripsManagement({
                 >
                   <Edit2 className="h-3 w-3 mr-1" />
                   Edit
+                </Button>
+              )}
+              {canPublishTrips && trip.trip_status === 'approved' && (
+                <Button size="sm" onClick={() => onPublishTrip && onPublishTrip(trip)}>
+                  Publish
                 </Button>
               )}
             </div>

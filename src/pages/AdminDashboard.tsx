@@ -206,6 +206,9 @@ const AdminDashboard = () => {
     target_audience: 'all_senseis' as 'all_senseis' | 'active_senseis' | 'specific_senseis',
     specific_sensei_ids: [] as string[]
   });
+  const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
+  const [isEditingProposal, setIsEditingProposal] = useState(false);
+  const [proposalForm, setProposalForm] = useState<Partial<Trip>>({});
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -376,7 +379,7 @@ const AdminDashboard = () => {
       const transformedData = (data || []).map(trip => transformDbTrip(trip));
       
       setTrips(transformedData);
-      setTripProposals(transformedData.filter(trip => trip.created_by_sensei && trip.trip_status !== 'approved'));
+      setTripProposals(transformedData.filter(trip => trip.created_by_sensei && trip.trip_status === 'review'));
     } catch (error) {
       console.error('Error fetching trips:', error);
     }
@@ -893,8 +896,105 @@ const AdminDashboard = () => {
                 )}
               </div>
             )}
-            
-            
+
+  // Trip proposal actions
+  const approveTripProposal = async (trip: Trip) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'approved' })
+        .eq('id', trip.id);
+      if (error) throw error;
+
+      if (trip.sensei_id) {
+        await supabase.from('admin_announcements').insert({
+          title: 'Trip Proposal Approved',
+          content: `Your trip "${trip.title}" has been approved. You can now publish it.`,
+          priority: 'high',
+          target_audience: 'specific_senseis',
+          specific_sensei_ids: [trip.sensei_id],
+          is_active: true,
+          created_by_admin: true,
+        } as any);
+      }
+
+      await fetchTrips();
+      toast({ title: 'Approved', description: 'Trip proposal approved.' });
+    } catch (e: any) {
+      console.error('Approve proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to approve proposal', variant: 'destructive' });
+    }
+  };
+
+  const rejectTripProposal = async (trip: Trip, reason?: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'archived' })
+        .eq('id', trip.id);
+      if (error) throw error;
+
+      if (trip.sensei_id) {
+        await supabase.from('admin_announcements').insert({
+          title: 'Trip Proposal Rejected',
+          content: `Your trip "${trip.title}" was not approved.${reason ? ` Reason: ${reason}` : ''}`,
+          priority: 'normal',
+          target_audience: 'specific_senseis',
+          specific_sensei_ids: [trip.sensei_id],
+          is_active: true,
+          created_by_admin: true,
+        } as any);
+      }
+
+      await fetchTrips();
+      toast({ title: 'Rejected', description: 'Trip proposal rejected.' });
+    } catch (e: any) {
+      console.error('Reject proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to reject proposal', variant: 'destructive' });
+    }
+  };
+
+  const openProposalDetails = (trip: Trip) => {
+    setSelectedTripForDetails(trip);
+    setIsEditingProposal(false);
+    setProposalForm({
+      title: trip.title,
+      destination: trip.destination,
+      dates: trip.dates,
+      price: trip.price,
+      group_size: trip.group_size,
+      max_participants: trip.max_participants,
+      theme: trip.theme,
+      difficulty_level: trip.difficulty_level,
+      included_amenities: trip.included_amenities || [],
+      excluded_items: trip.excluded_items || [],
+      requirements: trip.requirements || [],
+      program: trip.program || [],
+      image_url: trip.image_url,
+      description: trip.description,
+    });
+  };
+
+  const saveProposalEdits = async () => {
+    if (!selectedTripForDetails) return;
+    try {
+      const updates: any = { ...proposalForm };
+      const { error } = await supabase
+        .from('trips')
+        .update(updates)
+        .eq('id', selectedTripForDetails.id);
+      if (error) throw error;
+
+      toast({ title: 'Saved', description: 'Proposal updated successfully.' });
+      setIsEditingProposal(false);
+      setSelectedTripForDetails(null);
+      await fetchTrips();
+    } catch (e: any) {
+      console.error('Save proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to save changes', variant: 'destructive' });
+    }
+  };
+
 
             {activeTab === "trips" && (
               <div className="space-y-6">
