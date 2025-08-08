@@ -21,7 +21,7 @@ import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management
 import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
-import { SenseiGoalsTracker } from "@/components/ui/sensei-goals-tracker";
+
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
 import { SenseiOverviewDashboard } from "@/components/ui/sensei-overview-dashboard";
@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/enhanced-loading-states";
 
 import { 
-  Calendar as CalendarIcon,
+  
   MapPin,
   Users,
   TrendingUp,
@@ -1074,12 +1074,6 @@ const SenseiDashboard = () => {
                 variant: senseiPermissions?.can_create_trips ? "default" : "outline"
               },
               {
-                title: "View Calendar",
-                description: "Check your schedule and availability",
-                icon: CalendarIcon,
-                action: () => setActiveTab("calendar")
-              },
-              {
                 title: "Messages",
                 description: "Connect with travelers and admins",
                 icon: MessageCircle,
@@ -1117,9 +1111,6 @@ const SenseiDashboard = () => {
 
       case "analytics":
         return <SenseiAnalyticsDashboard />;
-
-      case "goals":
-        return <SenseiGoalsTracker />;
 
       case "trips":
         return (

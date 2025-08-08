@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/sidebar";
 import {
   BarChart3,
-  Target,
   MapPin,
   Shield,
   FileText,
@@ -22,7 +21,6 @@ import {
   FileCheck,
   Megaphone,
   MessageCircle,
-  Calendar,
   CheckSquare,
   Settings,
   Home,
@@ -53,13 +51,6 @@ const getPermissionBasedSidebarItems = (permissions: any) => [
     requiredPermission: "can_view_trips"
   }] : []),
   
-  {
-    title: "Calendar",
-    value: "calendar",
-    icon: Calendar,
-    group: "main",
-    requiredPermission: null
-  },
   
   // Trip Creation - High level permission
   ...(permissions?.can_create_trips ? [{
@@ -91,13 +82,6 @@ const getPermissionBasedSidebarItems = (permissions: any) => [
     title: "Analytics",
     value: "analytics", 
     icon: BarChart3,
-    group: "professional",
-    requiredPermission: null
-  },
-  {
-    title: "Goals",
-    value: "goals",
-    icon: Target,
     group: "professional",
     requiredPermission: null
   },
