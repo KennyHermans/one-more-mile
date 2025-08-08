@@ -61,6 +61,7 @@ const TripDetail = () => {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [mediaItems, setMediaItems] = useState<any[]>([]);
   const [bookingForm, setBookingForm] = useState({
     full_name: "",
     address: "",

@@ -4,7 +4,7 @@ import { Button } from './button';
 import { Badge } from './badge';
 import { Plus, Wand2 } from 'lucide-react';
 import { useSenseiPermissions } from '@/hooks/use-sensei-permissions';
-import { TripProposalForm } from './trip-proposal-form';
+import { SharedTripEditor } from './shared-trip-editor';
 import { PermissionAwareAiTripBuilder } from './permission-aware-ai-trip-builder';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -199,9 +199,12 @@ export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationM
         </Badge>
       </div>
       
-      <TripProposalForm 
+      <SharedTripEditor
+        role="sensei"
+        editingTrip={null}
+        onClose={() => onSuccess?.()}
+        onSaved={() => onSuccess?.()}
         senseiId={senseiId}
-        onSuccess={onSuccess}
       />
     </div>
   );

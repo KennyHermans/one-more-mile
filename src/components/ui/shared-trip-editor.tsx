@@ -17,6 +17,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trip, ProgramDay } from "@/types/trip";
 import { format, differenceInDays } from "date-fns";
 import { Loader2, Lock } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { CoverImageUploader } from "@/components/ui/cover-image-uploader";
 
 export type SharedTripEditorRole = "admin" | "sensei";
 
@@ -76,8 +81,8 @@ export const SharedTripEditor: React.FC<SharedTripEditorProps> = ({
     description: editingTrip?.description || "",
     price: editingTrip?.price || "",
     dates: editingTrip?.dates || "",
-    start_date: null as Date | null,
-    end_date: null as Date | null,
+    start_date: (editingTrip as any)?.start_date ? new Date((editingTrip as any).start_date as any) : null,
+    end_date: (editingTrip as any)?.end_date ? new Date((editingTrip as any).end_date as any) : null,
     group_size: editingTrip?.group_size || "",
     sensei_name: editingTrip?.sensei_name || "",
     sensei_id: (isAdmin ? editingTrip?.sensei_id : senseiId) || null as string | null,
@@ -296,34 +301,84 @@ export const SharedTripEditor: React.FC<SharedTripEditorProps> = ({
                   <option value="Challenging">Challenging</option>
                   <option value="Extreme">Extreme</option>
                 </select>
-                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium mb-2">Start Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn("justify-start", !formData.start_date && "text-muted-foreground")}
+                      type="button"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.start_date ? (
+                        format(formData.start_date, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.start_date as any}
+                      onSelect={(d: any) => setFormData((prev) => ({ ...prev, start_date: d || null }))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <PermissionAwareField
-                fieldName="image_url"
-                canEdit={true}
-                currentLevel={currentLevel as any}
-                requiredLevel="apprentice"
-                isAdmin={isAdmin}
-                label="Cover Image URL (card & hero)"
-              >
-                <div className="space-y-2">
-                  <Input
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
-                    placeholder="https://..."
-                  />
-                  {formData.image_url && (
-                    <img
-                      src={formData.image_url}
-                      alt={`${formData.title || 'Trip'} cover image`}
-                      className="h-32 w-full object-cover rounded-md"
-                      loading="lazy"
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium mb-2">End Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn("justify-start", !formData.end_date && "text-muted-foreground")}
+                      type="button"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.end_date ? (
+                        format(formData.end_date, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.end_date as any}
+                      onSelect={(d: any) => setFormData((prev) => ({ ...prev, end_date: d || null }))}
+                      disabled={(date: Date) => (formData.start_date ? date < formData.start_date : false)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
-                  )}
-                </div>
-              </PermissionAwareField>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <PermissionAwareField
+              fieldName="image_url"
+              canEdit={true}
+              currentLevel={currentLevel as any}
+              requiredLevel="apprentice"
+              isAdmin={isAdmin}
+              label="Card Cover Image"
+            >
+              <CoverImageUploader
+                tripId={editingTrip?.id}
+                value={formData.image_url}
+                onChange={(url) => setFormData((prev) => ({ ...prev, image_url: url }))}
+              />
+            </PermissionAwareField>
 
             {isAdmin ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
