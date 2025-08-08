@@ -329,6 +329,59 @@ const SenseiDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+}, [user, toast]);
+
+  // Realtime: watch trips for this sensei (publish/approve/reject/edits)
+  useEffect(() => {
+    if (!user || !senseiProfile?.id) return;
+
+    const channel = supabase
+      .channel('sensei-trips-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trips', filter: `sensei_id=eq.${senseiProfile.id}` },
+        (payload) => {
+          console.log('Trip change detected:', payload);
+          try {
+            const oldStatus = (payload as any)?.old?.trip_status;
+            const newStatus = (payload as any)?.new?.trip_status;
+            if (oldStatus !== newStatus && newStatus) {
+              toast({ title: 'Trip status updated', description: `Status is now ${newStatus}.` });
+            }
+          } catch {}
+          if (user) fetchSenseiTrips(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, senseiProfile?.id, toast]);
+
+  // Realtime: watch admin announcements
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('admin-announcements')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'admin_announcements' },
+        (payload) => {
+          console.log('New admin announcement:', payload);
+          fetchAdminAnnouncements();
+          const a: any = (payload as any).new;
+          if (a?.is_active) {
+            toast({ title: a.title || 'New Announcement', description: a.content?.slice(0, 120) || '' });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, toast]);
 
   const checkAuth = async () => {

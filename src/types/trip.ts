@@ -166,7 +166,7 @@ export interface TripComparisonData extends TripListItem {
 
 // Type guards and utilities
 export const isTripActive = (trip: Trip | TripListItem): boolean => {
-  return trip.trip_status === 'approved' || trip.trip_status === 'active';
+  return trip.trip_status === 'approved' || trip.trip_status === 'active' || trip.trip_status === 'published';
 };
 
 export const isTripBookable = (trip: Trip | TripListItem): boolean => {

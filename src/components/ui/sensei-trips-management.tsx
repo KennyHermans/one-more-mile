@@ -46,8 +46,8 @@ export function SenseiTripsManagement({
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const activeTrips = trips.filter(trip => 
-    trip.is_active && 
-    trip.trip_status === 'approved' &&
+    trip.is_active === true && 
+    trip.trip_status === 'published' &&
     trip.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -57,20 +57,27 @@ export function SenseiTripsManagement({
   );
 
   const draftTrips = trips.filter(trip => 
-    (trip.trip_status === 'draft' || trip.trip_status === 'pending') &&
+    (['draft', 'pending', 'review', 'approved', 'archived'].includes(trip.trip_status)) &&
     trip.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'published':
+        return <Badge variant="default">Published</Badge>;
       case 'approved':
-        return <Badge variant="default" className="bg-green-500">Active</Badge>;
+        return <Badge variant="secondary">Approved</Badge>;
       case 'completed':
         return <Badge variant="secondary">Completed</Badge>;
       case 'pending':
+      case 'review':
         return <Badge variant="outline">Pending Review</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
       case 'draft':
         return <Badge variant="secondary">Draft</Badge>;
+      case 'archived':
+        return <Badge variant="outline">Archived</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
