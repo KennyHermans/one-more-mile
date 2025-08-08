@@ -10,11 +10,13 @@ import { Crown, Lock, Star } from "lucide-react";
 interface PermissionAwareAiTripBuilderProps {
   senseiId: string;
   onSuccess?: () => void;
+  onTripGenerated?: (tripData: any) => void;
 }
 
 export const PermissionAwareAiTripBuilder = ({ 
   senseiId, 
-  onSuccess 
+  onSuccess,
+  onTripGenerated
 }: PermissionAwareAiTripBuilderProps) => {
   const { permissions, isLoading: permissionsLoading } = useSenseiPermissions(senseiId);
   const { level, getProgressToNextLevel } = useSenseiGamification(senseiId);
@@ -125,7 +127,7 @@ export const PermissionAwareAiTripBuilder = ({
 
       {/* AI Trip Builder Component */}
       <AITripBuilder
-        onTripGenerated={onSuccess}
+        onTripGenerated={onTripGenerated}
       />
     </div>
   );
