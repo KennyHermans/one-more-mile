@@ -39,6 +39,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
 import { AdminSenseiOverview } from "@/components/ui/admin-sensei-overview";
 import { AdminTripManagementOverview } from "@/components/ui/admin-trip-management-overview";
@@ -670,6 +671,104 @@ const AdminDashboard = () => {
     status: sensei.is_active ? 'active' : 'inactive'
   }));
 
+  // Trip proposal actions
+  const approveTripProposal = async (trip: Trip) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'approved' })
+        .eq('id', trip.id);
+      if (error) throw error;
+
+      if (trip.sensei_id) {
+        await supabase.from('admin_announcements').insert({
+          title: 'Trip Proposal Approved',
+          content: `Your trip "${trip.title}" has been approved. You can now publish it.`,
+          priority: 'high',
+          target_audience: 'specific_senseis',
+          specific_sensei_ids: [trip.sensei_id],
+          is_active: true,
+          created_by_admin: true,
+        } as any);
+      }
+
+      await fetchTrips();
+      toast({ title: 'Approved', description: 'Trip proposal approved.' });
+    } catch (e: any) {
+      console.error('Approve proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to approve proposal', variant: 'destructive' });
+    }
+  };
+
+  const rejectTripProposal = async (trip: Trip, reason?: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ trip_status: 'archived' })
+        .eq('id', trip.id);
+      if (error) throw error;
+
+      if (trip.sensei_id) {
+        await supabase.from('admin_announcements').insert({
+          title: 'Trip Proposal Rejected',
+          content: `Your trip "${trip.title}" was not approved.${reason ? ` Reason: ${reason}` : ''}`,
+          priority: 'normal',
+          target_audience: 'specific_senseis',
+          specific_sensei_ids: [trip.sensei_id],
+          is_active: true,
+          created_by_admin: true,
+        } as any);
+      }
+
+      await fetchTrips();
+      toast({ title: 'Rejected', description: 'Trip proposal rejected.' });
+    } catch (e: any) {
+      console.error('Reject proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to reject proposal', variant: 'destructive' });
+    }
+  };
+
+  const openProposalDetails = (trip: Trip) => {
+    setSelectedTripForDetails(trip);
+    setIsEditingProposal(false);
+    setProposalForm({
+      title: trip.title,
+      destination: trip.destination,
+      dates: trip.dates,
+      price: trip.price,
+      group_size: trip.group_size,
+      max_participants: trip.max_participants,
+      theme: trip.theme,
+      difficulty_level: trip.difficulty_level,
+      included_amenities: trip.included_amenities || [],
+      excluded_items: trip.excluded_items || [],
+      requirements: trip.requirements || [],
+      program: trip.program || [],
+      image_url: trip.image_url,
+      description: trip.description,
+    });
+  };
+
+  const saveProposalEdits = async () => {
+    if (!selectedTripForDetails) return;
+    try {
+      const updates: any = { ...proposalForm };
+      const { error } = await supabase
+        .from('trips')
+        .update(updates)
+        .eq('id', selectedTripForDetails.id);
+      if (error) throw error;
+
+      toast({ title: 'Saved', description: 'Proposal updated successfully.' });
+      setIsEditingProposal(false);
+      setSelectedTripForDetails(null);
+      await fetchTrips();
+    } catch (e: any) {
+      console.error('Save proposal failed:', e);
+      toast({ title: 'Error', description: e.message || 'Failed to save changes', variant: 'destructive' });
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -897,104 +996,6 @@ const AdminDashboard = () => {
               </div>
             )}
 
-  // Trip proposal actions
-  const approveTripProposal = async (trip: Trip) => {
-    try {
-      const { error } = await supabase
-        .from('trips')
-        .update({ trip_status: 'approved' })
-        .eq('id', trip.id);
-      if (error) throw error;
-
-      if (trip.sensei_id) {
-        await supabase.from('admin_announcements').insert({
-          title: 'Trip Proposal Approved',
-          content: `Your trip "${trip.title}" has been approved. You can now publish it.`,
-          priority: 'high',
-          target_audience: 'specific_senseis',
-          specific_sensei_ids: [trip.sensei_id],
-          is_active: true,
-          created_by_admin: true,
-        } as any);
-      }
-
-      await fetchTrips();
-      toast({ title: 'Approved', description: 'Trip proposal approved.' });
-    } catch (e: any) {
-      console.error('Approve proposal failed:', e);
-      toast({ title: 'Error', description: e.message || 'Failed to approve proposal', variant: 'destructive' });
-    }
-  };
-
-  const rejectTripProposal = async (trip: Trip, reason?: string) => {
-    try {
-      const { error } = await supabase
-        .from('trips')
-        .update({ trip_status: 'archived' })
-        .eq('id', trip.id);
-      if (error) throw error;
-
-      if (trip.sensei_id) {
-        await supabase.from('admin_announcements').insert({
-          title: 'Trip Proposal Rejected',
-          content: `Your trip "${trip.title}" was not approved.${reason ? ` Reason: ${reason}` : ''}`,
-          priority: 'normal',
-          target_audience: 'specific_senseis',
-          specific_sensei_ids: [trip.sensei_id],
-          is_active: true,
-          created_by_admin: true,
-        } as any);
-      }
-
-      await fetchTrips();
-      toast({ title: 'Rejected', description: 'Trip proposal rejected.' });
-    } catch (e: any) {
-      console.error('Reject proposal failed:', e);
-      toast({ title: 'Error', description: e.message || 'Failed to reject proposal', variant: 'destructive' });
-    }
-  };
-
-  const openProposalDetails = (trip: Trip) => {
-    setSelectedTripForDetails(trip);
-    setIsEditingProposal(false);
-    setProposalForm({
-      title: trip.title,
-      destination: trip.destination,
-      dates: trip.dates,
-      price: trip.price,
-      group_size: trip.group_size,
-      max_participants: trip.max_participants,
-      theme: trip.theme,
-      difficulty_level: trip.difficulty_level,
-      included_amenities: trip.included_amenities || [],
-      excluded_items: trip.excluded_items || [],
-      requirements: trip.requirements || [],
-      program: trip.program || [],
-      image_url: trip.image_url,
-      description: trip.description,
-    });
-  };
-
-  const saveProposalEdits = async () => {
-    if (!selectedTripForDetails) return;
-    try {
-      const updates: any = { ...proposalForm };
-      const { error } = await supabase
-        .from('trips')
-        .update(updates)
-        .eq('id', selectedTripForDetails.id);
-      if (error) throw error;
-
-      toast({ title: 'Saved', description: 'Proposal updated successfully.' });
-      setIsEditingProposal(false);
-      setSelectedTripForDetails(null);
-      await fetchTrips();
-    } catch (e: any) {
-      console.error('Save proposal failed:', e);
-      toast({ title: 'Error', description: e.message || 'Failed to save changes', variant: 'destructive' });
-    }
-  };
-
 
             {activeTab === "trips" && (
               <div className="space-y-6">
@@ -1059,11 +1060,18 @@ const AdminDashboard = () => {
                               </p>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                              <Button size="sm" variant="outline" onClick={() => openProposalDetails(trip)}>
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => approveTripProposal(trip)}>
                                 <Check className="w-4 h-4 mr-1" />
                                 Approve
                               </Button>
-                              <Button variant="destructive" size="sm">
+                              <Button variant="destructive" size="sm" onClick={() => {
+                                const reason = window.prompt('Provide a reason (optional)');
+                                rejectTripProposal(trip, reason || undefined);
+                              }}>
                                 <X className="w-4 h-4 mr-1" />
                                 Reject
                               </Button>
@@ -1072,6 +1080,120 @@ const AdminDashboard = () => {
                         </CardContent>
                       </Card>
                     ))}
+
+                    {/* Details / Edit Dialog */}
+                    <Dialog open={!!selectedTripForDetails} onOpenChange={(open) => { if (!open) setSelectedTripForDetails(null); }}>
+                      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Trip Proposal Details</DialogTitle>
+                        </DialogHeader>
+                        {selectedTripForDetails && (
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h3 className="text-xl font-semibold">{selectedTripForDetails.title}</h3>
+                              <div className="flex gap-2">
+                                {!isEditingProposal ? (
+                                  <Button variant="outline" onClick={() => setIsEditingProposal(true)}>Edit</Button>
+                                ) : (
+                                  <>
+                                    <Button variant="outline" onClick={() => setIsEditingProposal(false)}>Cancel</Button>
+                                    <Button onClick={saveProposalEdits}>Save</Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Basic fields */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label>Title</Label>
+                                {isEditingProposal ? (
+                                  <Input value={proposalForm.title as string || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, title: e.target.value }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.title}</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label>Destination</Label>
+                                {isEditingProposal ? (
+                                  <Input value={proposalForm.destination as string || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, destination: e.target.value }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.destination}</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label>Dates</Label>
+                                {isEditingProposal ? (
+                                  <Input value={proposalForm.dates as string || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, dates: e.target.value }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.dates}</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label>Price</Label>
+                                {isEditingProposal ? (
+                                  <Input value={proposalForm.price as string || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, price: e.target.value }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.price}</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label>Max Participants</Label>
+                                {isEditingProposal ? (
+                                  <Input type="number" value={proposalForm.max_participants as number || 0} onChange={(e) => setProposalForm(prev => ({ ...prev, max_participants: Number(e.target.value) }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.max_participants}</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label>Theme</Label>
+                                {isEditingProposal ? (
+                                  <Input value={proposalForm.theme as string || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, theme: e.target.value }))} />
+                                ) : (
+                                  <p>{selectedTripForDetails.theme}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Lists */}
+                            <div>
+                              <Label>Included Amenities</Label>
+                              {isEditingProposal ? (
+                                <Textarea value={(proposalForm.included_amenities as string[] | undefined)?.join(', ') || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, included_amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} />
+                              ) : (
+                                <p className="text-sm text-muted-foreground">{(selectedTripForDetails.included_amenities || []).join(', ')}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Excluded Items</Label>
+                              {isEditingProposal ? (
+                                <Textarea value={(proposalForm.excluded_items as string[] | undefined)?.join(', ') || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, excluded_items: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} />
+                              ) : (
+                                <p className="text-sm text-muted-foreground">{(selectedTripForDetails.excluded_items || []).join(', ')}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Requirements</Label>
+                              {isEditingProposal ? (
+                                <Textarea value={(proposalForm.requirements as string[] | undefined)?.join(', ') || ''} onChange={(e) => setProposalForm(prev => ({ ...prev, requirements: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} />
+                              ) : (
+                                <p className="text-sm text-muted-foreground">{(selectedTripForDetails.requirements || []).join(', ')}</p>
+                              )}
+                            </div>
+                            <div>
+                              <Label>Program (JSON)</Label>
+                              {isEditingProposal ? (
+                                <Textarea value={JSON.stringify(proposalForm.program || [], null, 2)} onChange={(e) => {
+                                  try { setProposalForm(prev => ({ ...prev, program: JSON.parse(e.target.value) })); } catch {}
+                                }} />
+                              ) : (
+                                <pre className="text-xs bg-muted p-3 rounded max-h-64 overflow-auto">{JSON.stringify(selectedTripForDetails.program || [], null, 2)}</pre>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 )}
               </div>
