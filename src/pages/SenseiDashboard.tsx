@@ -943,6 +943,22 @@ const SenseiDashboard = () => {
     }
   };
 
+  const deleteTrip = async (trip: Trip) => {
+    try {
+      if (!confirm('Are you sure you want to delete this trip? This cannot be undone.')) return;
+      const { error } = await supabase
+        .from('trips')
+        .delete()
+        .eq('id', trip.id);
+      if (error) throw error;
+      if (user) await fetchSenseiTrips(user.id);
+      toast({ title: 'Deleted', description: 'Trip deleted successfully.' });
+    } catch (e: any) {
+      console.error('Delete trip failed', e);
+      toast({ title: 'Error', description: e.message || 'Failed to delete trip', variant: 'destructive' });
+    }
+  };
+
   const addProgramDay = () => {
     if (!editingTrip) return;
     const currentProgram = ensureProgramIsArray(editingTrip.program);
@@ -1204,6 +1220,7 @@ const SenseiDashboard = () => {
               setCancelTripOpen(true);
             }}
             onPublishTrip={publishTrip}
+            onDeleteTrip={deleteTrip}
           />
         );
 

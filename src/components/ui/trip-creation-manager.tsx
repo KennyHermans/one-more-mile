@@ -18,6 +18,7 @@ interface TripCreationManagerProps {
 export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationManagerProps) {
   const { permissions, isLoading } = useSenseiPermissions(senseiId);
   const { toast } = useToast();
+  
   if (isLoading) {
     return (
       <Card>

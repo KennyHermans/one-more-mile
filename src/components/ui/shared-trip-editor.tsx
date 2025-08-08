@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverImageUploader } from "@/components/ui/cover-image-uploader";
+import { useAdminPermissions } from "@/hooks/use-admin-permissions";
 
 export type SharedTripEditorRole = "admin" | "sensei";
 
@@ -49,7 +50,8 @@ export const SharedTripEditor: React.FC<SharedTripEditorProps> = ({
   onSaved,
   senseiId,
 }) => {
-  const isAdmin = role === "admin";
+const { permissions: adminPerms } = useAdminPermissions();
+  const isAdmin = role === "admin" || adminPerms?.canManageTrips;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 

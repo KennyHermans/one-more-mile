@@ -15,7 +15,8 @@ import {
   Filter,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Trash2
 } from "lucide-react";
 import { Trip, TripListItem } from '@/types/trip';
 
@@ -29,6 +30,7 @@ interface SenseiTripsManagementProps {
   onViewTrip: (trip: Trip) => void;
   onCancelTrip: (trip: Trip) => void;
   onPublishTrip?: (trip: Trip) => void;
+  onDeleteTrip?: (trip: Trip) => void;
 }
 
 export function SenseiTripsManagement({ 
@@ -40,7 +42,8 @@ export function SenseiTripsManagement({
   onEditTrip,
   onViewTrip,
   onCancelTrip,
-  onPublishTrip
+  onPublishTrip,
+  onDeleteTrip
 }: SenseiTripsManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -133,6 +136,12 @@ export function SenseiTripsManagement({
               {canPublishTrips && trip.trip_status === 'approved' && (
                 <Button size="sm" onClick={() => onPublishTrip && onPublishTrip(trip)}>
                   Publish
+                </Button>
+              )}
+              {canEditTrips && onDeleteTrip && (
+                <Button size="sm" variant="destructive" onClick={() => onDeleteTrip(trip)}>
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Delete
                 </Button>
               )}
             </div>
