@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminCheck } from '@/hooks/use-admin-check';
+import { useAdminPermissions } from '@/hooks/use-admin-permissions';
 import { useProfileManagement } from '@/hooks/use-profile-management';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Button } from './button';
@@ -15,10 +16,12 @@ interface AdminAccessGuardProps {
 export function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const { user, session } = useProfileManagement();
   const { isAdmin, isLoading, error } = useAdminCheck();
+  const { permissions: adminPerms, isLoading: permsLoading } = useAdminPermissions();
+  const isPlatformStaff = isAdmin || adminPerms.userRole === 'sensei_scout' || adminPerms.userRole === 'journey_curator' || adminPerms.canManageTrips;
   const navigate = useNavigate();
 
   // Show loading while auth is initializing or admin check is loading
-  if (!session || isLoading) {
+  if (!session || isLoading || permsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner />
@@ -73,7 +76,7 @@ export function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   }
 
   // Show access denied if user is not admin
-  if (!isAdmin) {
+  if (!isPlatformStaff) {
     return (
       <div className="min-h-screen bg-background p-8">
         <div className="max-w-2xl mx-auto">
