@@ -15,7 +15,6 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { TripProposalForm } from "@/components/ui/trip-proposal-form";
 import { SenseiAvailabilitySettings } from "@/components/ui/sensei-availability-settings";
 import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management";
 import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
@@ -2019,17 +2018,11 @@ const SenseiDashboard = () => {
       {/* Create Trip Dialog */}
       <Dialog open={createTripOpen} onOpenChange={setCreateTripOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Trip</DialogTitle>
-          </DialogHeader>
-          
-          <TripProposalForm
+          <SharedTripEditor
+            role="sensei"
             senseiId={senseiProfile?.id}
-            onSuccess={() => {
-              setCreateTripOpen(false);
-              if (user) fetchSenseiTrips(user.id);
-            }}
-            onCancel={() => setCreateTripOpen(false)}
+            onClose={() => setCreateTripOpen(false)}
+            onSaved={() => { setCreateTripOpen(false); if (user) fetchSenseiTrips(user.id); }}
           />
         </DialogContent>
       </Dialog>
