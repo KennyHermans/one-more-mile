@@ -133,7 +133,7 @@ export function TripProposalForm({ onSuccess, onCancel, senseiId }: TripProposal
         ...formData,
         sensei_id: finalSenseiId,
         sensei_name: user.user_metadata.full_name || user.email,
-        trip_status: isDraft ? 'draft' : 'pending_approval',
+        trip_status: isDraft ? 'draft' : 'review',
         created_by_sensei: true,
         created_by_user_id: user.id,
         current_participants: 0,

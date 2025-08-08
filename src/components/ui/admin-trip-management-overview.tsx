@@ -411,7 +411,7 @@ export function AdminTripManagementOverview() {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="pending_approval">Pending</SelectItem>
+                  <SelectItem value="review">Pending</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
                 </SelectContent>
               </Select>
@@ -502,11 +502,11 @@ export function AdminTripManagementOverview() {
                     <TableCell>
                       <Badge variant={
                         trip.trip_status === 'approved' ? 'default' :
-                        trip.trip_status === 'pending_approval' ? 'secondary' :
+                        trip.trip_status === 'review' ? 'secondary' :
                         'outline'
                       }>
                         {trip.trip_status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                        {trip.trip_status === 'pending_approval' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                        {trip.trip_status === 'review' && <AlertTriangle className="h-3 w-3 mr-1" />}
                         {trip.trip_status === 'draft' && <XCircle className="h-3 w-3 mr-1" />}
                         {trip.trip_status?.replace('_', ' ')?.toUpperCase()}
                       </Badge>

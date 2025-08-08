@@ -99,7 +99,7 @@ interface TripPlan {
   requirements: string[];
   itinerary: ItineraryDay[];
   created_by_sensei: boolean;
-  status: 'draft' | 'pending_approval' | 'approved' | 'rejected';
+  status: 'draft' | 'review' | 'approved' | 'rejected';
   tags: string[];
   images: string[];
 }
@@ -319,7 +319,7 @@ export function AdvancedTripPlanner({
     }
 
     if (onPublish) {
-      onPublish({ ...tripPlan, status: 'pending_approval' });
+      onPublish({ ...tripPlan, status: 'review' });
     }
   };
 

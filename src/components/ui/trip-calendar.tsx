@@ -109,7 +109,7 @@ const TripCalendar = () => {
     const trip = event.resource;
     let backgroundColor = 'hsl(var(--primary))';
     
-    if (trip.trip_status === 'pending_approval') {
+    if (trip.trip_status === 'review') {
       backgroundColor = 'hsl(var(--muted))';
     } else if (trip.current_participants >= trip.max_participants) {
       backgroundColor = 'hsl(var(--destructive))';
@@ -133,7 +133,7 @@ const TripCalendar = () => {
     switch (status) {
       case 'approved':
         return 'default';
-      case 'pending_approval':
+      case 'review':
         return 'secondary';
       case 'cancelled':
         return 'destructive';
