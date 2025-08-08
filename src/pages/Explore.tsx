@@ -107,6 +107,7 @@ const Explore = () => {
 
   // Extract group size number (e.g., "8-12 people" -> 12)
   const extractGroupSize = (groupStr: string) => {
+    if (!groupStr) return 0;
     const numbers = groupStr.match(/\d+/g);
     return numbers ? Math.max(...numbers.map(n => parseInt(n))) : 0;
   };
@@ -176,16 +177,18 @@ const Explore = () => {
       // Rating
       const matchesRating = trip.rating >= filters.minRating;
       
-      // Group size
-      const tripGroupSize = extractGroupSize(trip.group_size);
-      const matchesGroupSize = tripGroupSize >= filters.groupSize[0] && tripGroupSize <= filters.groupSize[1];
+      // Group size (use max_participants as primary, fallback to parsed group_size; if unknown, don't filter out)
+      const effectiveGroupSize = (trip as any).max_participants || extractGroupSize((trip as any).group_size || "");
+      const matchesGroupSize = effectiveGroupSize === 0 
+        ? true 
+        : (effectiveGroupSize >= filters.groupSize[0] && effectiveGroupSize <= filters.groupSize[1]);
 
       // Duration
       const matchesDur = matchesDuration(trip, filters.duration);
 
       // Difficulty
       const matchesDifficulty = filters.difficulty.length === 0 || 
-        filters.difficulty.some(diff => trip.difficulty_level?.toLowerCase().includes(diff.toLowerCase()));
+        filters.difficulty.some(diff => (trip.difficulty_level || '').toLowerCase().includes(diff.toLowerCase()));
 
       return matchesSearch && matchesThemes && matchesDestinations && 
              matchesPrice && matchesRating && matchesGroupSize && 
@@ -205,7 +208,7 @@ const Explore = () => {
           return (a.duration_days || 0) - (b.duration_days || 0);
         case "newest":
         default:
-          return new Date(b.dates || 0).getTime() - new Date(a.dates || 0).getTime();
+          return new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime();
       }
     });
 

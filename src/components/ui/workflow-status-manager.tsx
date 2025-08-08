@@ -162,6 +162,16 @@ export function WorkflowStatusManager({
 
       if (historyError) throw historyError;
 
+      // Update trip status (and activation if publishing)
+      const updateData: any = { trip_status: newStatus };
+      if (newStatus === 'published') updateData.is_active = true;
+      if (newStatus === 'archived') updateData.is_active = false;
+      const { error: updateError } = await supabase
+        .from('trips')
+        .update(updateData)
+        .eq('id', tripId);
+      if (updateError) throw updateError;
+
       onStatusChange(newStatus, statusChangeReason);
       setChangeDialogOpen(false);
       setStatusChangeReason('');

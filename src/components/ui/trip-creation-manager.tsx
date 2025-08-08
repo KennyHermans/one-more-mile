@@ -9,6 +9,7 @@ import { PermissionAwareAiTripBuilder } from './permission-aware-ai-trip-builder
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAdminPermissions } from '@/hooks/use-admin-permissions';
 interface TripCreationManagerProps {
   senseiId: string;
   mode: 'create-trip' | 'ai-builder';
@@ -17,6 +18,8 @@ interface TripCreationManagerProps {
 
 export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationManagerProps) {
   const { permissions, isLoading } = useSenseiPermissions(senseiId);
+  const { permissions: adminPerms } = useAdminPermissions();
+  const isAdmin = !!adminPerms && (adminPerms.userRole === 'admin' || adminPerms.canManageTrips);
   const { toast } = useToast();
   
   if (isLoading) {
@@ -29,7 +32,7 @@ export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationM
     );
   }
 
-  if (mode === 'ai-builder' && !permissions?.can_use_ai_builder) {
+  if (mode === 'ai-builder' && !isAdmin && !permissions?.can_use_ai_builder) {
     return (
       <Card>
         <CardContent className="pt-6 text-center">
@@ -53,7 +56,7 @@ export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationM
     );
   }
 
-  if (mode === 'create-trip' && !permissions?.can_create_trips) {
+  if (mode === 'create-trip' && !isAdmin && !permissions?.can_create_trips) {
     return (
       <Card>
         <CardContent className="pt-6 text-center">
@@ -201,7 +204,7 @@ export function TripCreationManager({ senseiId, mode, onSuccess }: TripCreationM
       </div>
       
       <SharedTripEditor
-        role="sensei"
+        role={isAdmin ? "admin" : "sensei"}
         editingTrip={null}
         onClose={() => onSuccess?.()}
         onSaved={() => onSuccess?.()}

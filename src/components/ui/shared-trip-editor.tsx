@@ -497,7 +497,7 @@ const { permissions: adminPerms } = useAdminPermissions();
                 tripId={editingTrip.id}
                 currentStatus={(editingTrip as any).trip_status || "draft"}
                 onStatusChange={(newStatus) => {
-                  setFormData((prev: any) => ({ ...prev, trip_status: newStatus }));
+                  setFormData((prev: any) => ({ ...prev, trip_status: newStatus, is_active: newStatus === 'published' ? true : prev.is_active }));
                 }}
                 canManageWorkflow={true}
               />
