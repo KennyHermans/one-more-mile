@@ -133,7 +133,7 @@ export function SenseiTripsManagement({
                   Edit
                 </Button>
               )}
-              {canPublishTrips && trip.trip_status === 'approved' && (
+              {canPublishTrips && ['draft','review','approved'].includes(trip.trip_status) && (
                 <Button size="sm" onClick={() => onPublishTrip && onPublishTrip(trip)}>
                   Publish
                 </Button>

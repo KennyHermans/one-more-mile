@@ -20,33 +20,37 @@ export const useTripPermissions = (senseiId?: string, tripId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTripPermissions = async () => {
-    if (!senseiId || !tripId) {
+    if (!senseiId) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      
-      // First try to get individual trip permissions
-      const { data: tripPermData, error: tripError } = await supabase
-        .from('trip_permissions')
-        .select('permissions')
-        .eq('sensei_id', senseiId)
-        .eq('trip_id', tripId)
-        .single();
 
-      if (tripError && tripError.code !== 'PGRST116') {
-        console.error('Error fetching trip permissions:', tripError);
+      let tripPermData: any = null;
+      if (tripId) {
+        // Try to get individual trip permissions when a specific trip is provided
+        const { data, error } = await supabase
+          .from('trip_permissions')
+          .select('permissions')
+          .eq('sensei_id', senseiId)
+          .eq('trip_id', tripId)
+          .maybeSingle();
+
+        if (error && (error as any).code !== 'PGRST116') {
+          console.error('Error fetching trip permissions:', error);
+        }
+        tripPermData = data;
       }
 
-      // If no individual permissions, get level-based defaults
+      // If no individual permissions found OR we're creating a new trip (no tripId), get level-based defaults
       if (!tripPermData?.permissions) {
         const { data: senseiData, error: senseiError } = await supabase
           .from('sensei_profiles')
           .select('sensei_level')
           .eq('id', senseiId)
-          .single();
+          .maybeSingle();
 
         if (senseiError) {
           console.error('Error fetching sensei level:', senseiError);
@@ -58,7 +62,7 @@ export const useTripPermissions = (senseiId?: string, tripId?: string) => {
         const { data: fieldPermissions, error: fieldError } = await supabase
           .from('sensei_level_field_permissions')
           .select('field_name, can_edit')
-          .eq('sensei_level', senseiData.sensei_level);
+          .eq('sensei_level', senseiData?.sensei_level);
 
         if (fieldError) {
           console.error('Error fetching field permissions:', fieldError);
@@ -81,7 +85,7 @@ export const useTripPermissions = (senseiId?: string, tripId?: string) => {
           program: false,
         };
 
-        fieldPermissions?.forEach(perm => {
+        fieldPermissions?.forEach((perm: any) => {
           if (perm.field_name in levelPermissions) {
             (levelPermissions as any)[perm.field_name] = perm.can_edit;
           }

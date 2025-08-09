@@ -306,66 +306,75 @@ const { permissions: adminPerms } = useAdminPermissions();
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col">
-                <label className="block text-sm font-medium mb-2">Start Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn("justify-start", !formData.start_date && "text-muted-foreground")}
-                      type="button"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.start_date ? (
-                        format(formData.start_date, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.start_date as any}
-                      onSelect={(d: any) => setFormData((prev) => ({ ...prev, start_date: d || null }))}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <PermissionAwareField
+              fieldName="dates"
+              canEdit={canEditField("dates")}
+              currentLevel={currentLevel as any}
+              requiredLevel="apprentice"
+              isAdmin={isAdmin}
+              label="Dates"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium mb-2">Start Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn("justify-start", !formData.start_date && "text-muted-foreground")}
+                        type="button"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.start_date ? (
+                          format(formData.start_date, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.start_date as any}
+                        onSelect={(d: any) => setFormData((prev) => ({ ...prev, start_date: d || null }))}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-              <div className="flex flex-col">
-                <label className="block text-sm font-medium mb-2">End Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn("justify-start", !formData.end_date && "text-muted-foreground")}
-                      type="button"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.end_date ? (
-                        format(formData.end_date, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.end_date as any}
-                      onSelect={(d: any) => setFormData((prev) => ({ ...prev, end_date: d || null }))}
-                      disabled={(date: Date) => (formData.start_date ? date < formData.start_date : false)}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium mb-2">End Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn("justify-start", !formData.end_date && "text-muted-foreground")}
+                        type="button"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.end_date ? (
+                          format(formData.end_date, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.end_date as any}
+                        onSelect={(d: any) => setFormData((prev) => ({ ...prev, end_date: d || null }))}
+                        disabled={(date: Date) => (formData.start_date ? date < formData.start_date : false)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
-            </div>
+            </PermissionAwareField>
 
             <PermissionAwareField
               fieldName="image_url"
