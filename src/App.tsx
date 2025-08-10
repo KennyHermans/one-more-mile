@@ -35,6 +35,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import NotFound from "./pages/NotFound";
+import { AiAssistant } from "@/components/ui/ai-assistant";
 
 
 
@@ -90,7 +91,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
-              
+              <AiAssistant />
             </div>
           </BrowserRouter>
         </TooltipProvider>
