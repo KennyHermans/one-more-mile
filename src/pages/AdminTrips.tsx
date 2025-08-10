@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SenseiPermissionsDialog } from "@/components/ui/sensei-permissions-dialog";
+import { SenseiEffectivePermissionsDialog } from "@/components/ui/sensei-effective-permissions-dialog";
 import { SenseiLevelBadge } from "@/components/ui/sensei-level-badge";
 import { PermissionAwareField } from "@/components/ui/permission-aware-field";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
@@ -31,7 +31,7 @@ import {
   Users,
   Loader2,
   ChevronDown,
-  Settings,
+  Eye,
   Copy,
   Lock
 } from "lucide-react";
@@ -869,9 +869,9 @@ const AdminTrips = () => {
                           setSelectedTripForPermissions(trip.id);
                           setPermissionsDialogOpen(true);
                         }}
-                        title="Manage Sensei Permissions"
+                        title="View effective permissions"
                       >
-                        <Settings className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                     )}
                     <Button 
@@ -896,18 +896,15 @@ const AdminTrips = () => {
             </div>
           )}
 
-          <SenseiPermissionsDialog
+          <SenseiEffectivePermissionsDialog
             tripId={selectedTripForPermissions}
+            senseiId={trips.find((t) => t.id === selectedTripForPermissions)?.sensei_id || undefined}
+            senseiName={trips.find((t) => t.id === selectedTripForPermissions)?.sensei_profiles?.name}
+            tripTitle={trips.find((t) => t.id === selectedTripForPermissions)?.title}
             isOpen={permissionsDialogOpen}
             onClose={() => {
               setPermissionsDialogOpen(false);
               setSelectedTripForPermissions("");
-            }}
-            onSave={() => {
-              toast({
-                title: "Success",
-                description: "Sensei permissions updated successfully!",
-              });
             }}
           />
         </div>
