@@ -46,3 +46,6 @@ verify_jwt = true
 
 [functions.system-status]
 verify_jwt = false
+
+[functions.ai-support-agent]
+verify_jwt = false
