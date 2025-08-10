@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminSenseiLevelConfiguration } from "@/components/ui/admin-sensei-level-configuration";
 import { EnhancedAdminSenseiLevelOverview } from "@/components/ui/enhanced-admin-sensei-level-overview";
 import { AdminLevelRequirementsConfig } from "@/components/ui/admin-level-requirements-config";
-import { AdminPermissionFieldEditor } from "@/components/ui/admin-permission-field-editor";
+import { ReadOnlyLevelPermissions } from "@/components/ui/read-only-level-permissions";
 import { AutomatedAssignmentSystem } from "@/components/ui/automated-assignment-system";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { AdminTripSpecificPermissions } from "@/components/ui/admin-trip-specific-permissions";
@@ -25,7 +25,7 @@ const AdminSenseiLevels = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="requirements">Requirements</TabsTrigger>
-              <TabsTrigger value="permissions">Permissions</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions (Read-only)</TabsTrigger>
               <TabsTrigger value="trip-permissions">Trip Permissions</TabsTrigger>
               <TabsTrigger value="automation">Assignment</TabsTrigger>
             </TabsList>
@@ -43,7 +43,7 @@ const AdminSenseiLevels = () => {
             </TabsContent>
 
             <TabsContent value="permissions" className="space-y-6">
-              <AdminPermissionFieldEditor />
+              <ReadOnlyLevelPermissions />
             </TabsContent>
 
             <TabsContent value="trip-permissions" className="space-y-6">

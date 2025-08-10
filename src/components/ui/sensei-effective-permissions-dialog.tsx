@@ -30,7 +30,7 @@ export function SenseiEffectivePermissionsDialog({
 
   const handleGoToEditor = () => {
     onClose();
-    navigate("/admin/sensei-levels");
+    navigate("/admin/dashboard");
   };
 
   return (
@@ -115,10 +115,10 @@ export function SenseiEffectivePermissionsDialog({
           <div className="flex items-center justify-between rounded-md border p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Info className="h-4 w-4" />
-              Edit level permissions and field access from the Sensei Levels page.
+              Edit level permissions and field access from Admin Dashboard → Level Permissions.
             </div>
             <Button variant="secondary" onClick={handleGoToEditor}>
-              Go to Sensei Levels
+              Open Level Permissions
             </Button>
           </div>
         </div>
