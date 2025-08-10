@@ -23,7 +23,7 @@ serve(async (req: Request) => {
     }
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const OPENAI_MODEL = Deno.env.get('OPENAI_MODEL') || 'gpt-4o';
+    const OPENAI_MODEL = Deno.env.get('OPENAI_MODEL') || 'gpt-4o-mini';
 
     if (!OPENAI_API_KEY) {
       return new Response(
@@ -65,7 +65,22 @@ serve(async (req: Request) => {
 
     if (!openaiRes.ok) {
       const errText = await openaiRes.text();
-      console.error('OpenAI error', errText);
+      let errJson: any = null;
+      try { errJson = JSON.parse(errText); } catch {}
+      const code = errJson?.error?.code;
+      const status = openaiRes.status;
+      console.error('OpenAI error', { status, code, errText });
+
+      if (code === 'insufficient_quota' || status === 429) {
+        const friendly = role === 'sensei'
+          ? 'Our AI is temporarily unavailable due to provider quota. For immediate help: go to Sensei Dashboard > Trips or Sensei Help in the sidebar. Try again later.'
+          : 'Our AI is temporarily unavailable due to provider quota. For booking info, open Customer Dashboard > Trips. Please try again in a bit.';
+        return new Response(
+          JSON.stringify({ reply: friendly, provider_error: errJson }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(JSON.stringify({ error: 'AI provider error', details: errText }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
