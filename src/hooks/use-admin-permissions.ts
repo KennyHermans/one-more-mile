@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileManagement } from './use-profile-management';
 
-export type PlatformRole = 'admin' | 'journey_curator' | 'sensei_scout' | 'traveler_support';
+export type PlatformRole = 'admin' | 'journey_curator' | 'sensei_scout' | 'traveler_support' | 'partner';
 
 export interface AdminPermissions {
   canManageTrips: boolean;

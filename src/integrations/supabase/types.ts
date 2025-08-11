@@ -2712,6 +2712,7 @@ export type Database = {
         | "journey_curator"
         | "sensei_scout"
         | "traveler_support"
+        | "partner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2844,6 +2845,7 @@ export const Constants = {
         "journey_curator",
         "sensei_scout",
         "traveler_support",
+        "partner",
       ],
     },
   },
