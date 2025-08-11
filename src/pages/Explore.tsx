@@ -246,26 +246,28 @@ const Explore = () => {
         
         <div className="container relative">
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="h-6 w-6 animate-pulse" />
-              <span className="text-sm font-medium uppercase tracking-wider opacity-90">
-                Premium Adventure Experiences
-              </span>
-              <Sparkles className="h-6 w-6 animate-pulse" />
-            </div>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-              Explore Adventures
-            </h1>
-            <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
-              Discover transformative journeys led by expert Senseis around the world
-            </p>
-            <div className="mt-6 max-w-4xl mx-auto">
-              <SearchFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                resultsCount={filteredAndSortedTrips.length}
-                className=""
-              />
+            <div className="mx-auto max-w-4xl rounded-2xl border border-border/50 bg-background/80 backdrop-blur-md shadow-lg px-6 py-8 text-foreground">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Sparkles className="h-6 w-6 animate-pulse" />
+                <span className="text-sm font-medium uppercase tracking-wider opacity-90">
+                  Premium Adventure Experiences
+                </span>
+                <Sparkles className="h-6 w-6 animate-pulse" />
+              </div>
+              <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+                Explore Adventures
+              </h1>
+              <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
+                Discover transformative journeys led by expert Senseis around the world
+              </p>
+              <div className="mt-6 max-w-4xl mx-auto">
+                <SearchFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  resultsCount={filteredAndSortedTrips.length}
+                  className=""
+                />
+              </div>
             </div>
           </div>
         </div>
