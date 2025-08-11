@@ -81,8 +81,17 @@ const Contact = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-accent text-white py-20">
-        <div className="container text-center">
+      <section className="relative py-20">
+        <div className="absolute inset-0">
+          <img 
+            src="/lovable-uploads/2474f079-a946-4975-88a2-b4704e35976f.png"
+            alt="Travel adventure background for contact page"
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60"></div>
+        </div>
+        <div className="container relative text-center text-white">
           <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4">
             Get in Touch
           </h1>
