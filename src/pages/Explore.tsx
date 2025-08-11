@@ -265,7 +265,6 @@ const Explore = () => {
                   filters={filters}
                   onFiltersChange={setFilters}
                   resultsCount={filteredAndSortedTrips.length}
-                  className=""
                 />
               </div>
             </div>
