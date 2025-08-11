@@ -84,8 +84,8 @@ const Contact = () => {
       <section className="relative py-20">
         <div className="absolute inset-0">
           <img 
-            src="/lovable-uploads/2474f079-a946-4975-88a2-b4704e35976f.png"
-            alt="Travel adventure background for contact page"
+            src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png"
+            alt="Scenic travel destination background for contact page"
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -95,9 +95,6 @@ const Contact = () => {
           <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4">
             Get in Touch
           </h1>
-          <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed">
-            Ready to start your transformative journey? We're here to help you find the perfect adventure
-          </p>
         </div>
       </section>
 
