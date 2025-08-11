@@ -7,7 +7,8 @@ import { FeaturedTripCard } from "@/components/ui/featured-trip-card";
 import { TripCardSkeleton } from "@/components/ui/trip-card-skeleton";
 import { TestimonialsSection } from "@/components/ui/testimonials-section";
 import { SocialProofSection } from "@/components/ui/social-proof-section";
-import { Dumbbell, ChefHat, Heart, Globe } from "lucide-react";
+import { Dumbbell, ChefHat, Heart, Globe, Users, Compass } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +46,31 @@ const Index = () => {
     }
   ];
 
+  const values = [
+    {
+      icon: Heart,
+      title: "Purpose-Driven",
+      description: "Every journey is designed to create meaningful connections and lasting personal growth."
+    },
+    {
+      icon: Globe,
+      title: "Cultural Respect",
+      description: "We honor and celebrate the rich traditions and communities we visit around the world."
+    },
+    {
+      icon: Users,
+      title: "Expert Guidance",
+      description: "Our Senseis are passionate specialists who share their knowledge and wisdom authentically."
+    },
+    {
+      icon: Compass,
+      title: "Transformative Experiences",
+      description: "We believe travel should challenge, inspire, and expand your perspective on life."
+    }
+  ];
+
   const featuredTrips = [
+
     {
       id: "1",
       title: "Himalayan Trekking & Mindfulness Retreat",
@@ -81,7 +106,57 @@ const Index = () => {
       <HeroSection />
       
       <StatsSection />
-      
+
+      {/* Values Section */}
+      <section id="values" className="py-16 bg-secondary/20">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Our Values
+            </h2>
+            <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
+              These principles guide every adventure we create and every relationship we build
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {values.map((value, index) => (
+              <Card key={index} className="text-center border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="pt-8">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-primary/10 rounded-full">
+                      <value.icon className="h-8 w-8 text-primary" />
+                    </div>
+                  </div>
+                  <h3 className="font-serif text-xl font-bold text-foreground mb-3">{value.title}</h3>
+                  <p className="font-sans text-muted-foreground leading-relaxed">{value.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Section */}
+      <section id="impact" className="py-16 bg-gradient-to-br from-primary to-accent text-white">
+        <div className="container text-center">
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-8">Our Impact</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div>
+              <div className="font-serif text-5xl font-bold mb-2">500+</div>
+              <div className="font-sans text-lg">Transformative Adventures</div>
+            </div>
+            <div>
+              <div className="font-serif text-5xl font-bold mb-2">2000+</div>
+              <div className="font-sans text-lg">Lives Changed</div>
+            </div>
+            <div>
+              <div className="font-serif text-5xl font-bold mb-2">35+</div>
+              <div className="font-sans text-lg">Countries Explored</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Themes Section */}
       <section className="py-16 bg-secondary/30">
         <div className="container">
@@ -187,7 +262,8 @@ const Index = () => {
               <ul className="space-y-2 text-primary-foreground/80 font-sans">
                 <li><a href="/explore" className="hover:text-primary-foreground transition-colors duration-300">Explore Trips</a></li>
                 <li><a href="/senseis" className="hover:text-primary-foreground transition-colors duration-300">Our Senseis</a></li>
-                <li><a href="/about" className="hover:text-primary-foreground transition-colors duration-300">About Us</a></li>
+                <li><a href="/#values" className="hover:text-primary-foreground transition-colors duration-300">Our Values</a></li>
+                <li><a href="/#impact" className="hover:text-primary-foreground transition-colors duration-300">Our Impact</a></li>
                 <li><a href="/contact" className="hover:text-primary-foreground transition-colors duration-300">Contact</a></li>
               </ul>
             </div>
