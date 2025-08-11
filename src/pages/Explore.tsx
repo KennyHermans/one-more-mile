@@ -271,7 +271,7 @@ const Explore = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-background text-white py-20 relative overflow-hidden">
+      <section className="bg-background text-white py-8 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-80">
           <div className="absolute inset-0" style={{
@@ -301,7 +301,7 @@ const Explore = () => {
       </section>
 
       {/* Search and Filters Section */}
-      <section className="py-6 bg-muted/30">
+      <section className="py-4 bg-muted/30">
         <div className="container">
           <SearchFilters 
             filters={filters}
@@ -313,51 +313,24 @@ const Explore = () => {
       </section>
 
       {/* Results Section */}
-      <section className="py-8">
+      <section className="py-4">
         <div className="container">
           {/* Results Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
-              <h2 className="font-serif text-3xl font-bold">
-                Available Adventures
-              </h2>
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="gap-1">
-                  {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 hover:bg-transparent"
-                    onClick={clearAllFilters}
-                  >
-                    <span className="sr-only">Clear filters</span>
-                    ×
-                  </Button>
-                </Badge>
-              )}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              <span>{filteredAndSortedTrips.length} of {trips.length} trips</span>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Filter className="h-4 w-4" />
-                <span>{filteredAndSortedTrips.length} of {trips.length} trips</span>
-              </div>
-              
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="duration">Duration</SelectItem>
-                  <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-8 px-2 text-sm"
+              >
+                Clear filters ({activeFiltersCount})
+              </Button>
+            )}
           </div>
 
           {/* Trip Results */}
