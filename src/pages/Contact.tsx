@@ -84,8 +84,8 @@ const Contact = () => {
       <section className="relative py-20">
         <div className="absolute inset-0">
           <img 
-            src="/lovable-uploads/eceedcc9-46a8-4a46-899c-93c3a120589a.png"
-            alt="Scenic travel destination background for contact page"
+            src="/images/contact-hero.jpg"
+            alt="Epic travel landscape background for Contact page"
             className="w-full h-full object-cover"
             loading="lazy"
           />
