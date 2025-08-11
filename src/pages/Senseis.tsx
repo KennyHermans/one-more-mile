@@ -69,14 +69,6 @@ const Senseis = () => {
       {/* Senseis Grid */}
       <section className="py-16">
         <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our Expert Guides
-            </h2>
-            <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
-              Each Sensei brings unique expertise, passion, and cultural insight to create transformative experiences
-            </p>
-          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Promotional Card */}
