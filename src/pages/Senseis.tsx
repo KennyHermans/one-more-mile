@@ -63,11 +63,6 @@ const Senseis = () => {
           <p className="font-sans text-xl max-w-3xl mx-auto leading-relaxed">
             World-class experts who transform ordinary trips into extraordinary journeys of discovery and growth
           </p>
-          <div className="mt-6">
-            <Button asChild size="lg" className="font-sans font-medium">
-              <a href="/senseis">Become a Sensei</a>
-            </Button>
-          </div>
         </div>
       </section>
 
