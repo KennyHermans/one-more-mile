@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { TripReviewDialog } from "@/components/ui/trip-review-dialog";
 
 import { Trip } from '@/types/trip';
 
@@ -70,6 +71,8 @@ const TripDetail = () => {
     payNow: false
   });
   const { toast } = useToast();
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [canReview, setCanReview] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -93,17 +96,31 @@ const TripDetail = () => {
     if (!user || !trip) return;
     
     try {
-      const { data, error } = await supabase
+      const { data: wl, error: wlError } = await supabase
         .from('customer_wishlists')
         .select('id')
         .eq('user_id', user.id)
         .eq('trip_id', trip.id)
         .maybeSingle();
 
-      if (error) throw error;
-      setIsWishlisted(!!data);
+      if (wlError) throw wlError;
+      setIsWishlisted(!!wl);
+
+      // Check review eligibility (paid booking)
+      const { data: booking, error: bookingError } = await supabase
+        .from('trip_bookings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('trip_id', trip.id)
+        .eq('payment_status', 'paid')
+        .maybeSingle();
+
+      if (bookingError && bookingError.code !== 'PGRST116') {
+        console.warn('Eligibility check error', bookingError);
+      }
+      setCanReview(!!booking);
     } catch (error: any) {
-      console.error('Error checking wishlist status:', error);
+      console.error('Error checking wishlist/review status:', error);
     }
   };
 
@@ -494,7 +511,13 @@ const TripDetail = () => {
                   {trip.description}
                 </p>
               </div>
-
+              {user && canReview && senseiProfile && (
+                <div>
+                  <Button onClick={() => setShowReviewDialog(true)}>
+                    Leave a review
+                  </Button>
+                </div>
+              )}
               {/* Interactive Content Tabs */}
               <Tabs defaultValue="itinerary" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
@@ -889,6 +912,18 @@ const TripDetail = () => {
         </div>
       </section>
 
+      {/* Review Dialog */}
+      <TripReviewDialog
+        open={showReviewDialog}
+        onOpenChange={setShowReviewDialog}
+        trip={{
+          id: trip.id,
+          title: trip.title,
+          sensei_name: senseiProfile?.name || 'Sensei',
+          sensei_id: senseiProfile?.id || (trip as any).sensei_id
+        }}
+        onSuccess={() => {}}
+      />
     </div>
   );
 };

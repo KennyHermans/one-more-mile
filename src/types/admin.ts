@@ -47,7 +47,7 @@ export interface AdminAuditLog {
 export interface AdminRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'journey_curator' | 'sensei_scout' | 'traveler_support';
+  role: 'admin' | 'journey_curator' | 'sensei_scout' | 'traveler_support' | 'partner';
   is_active: boolean;
   permissions?: Record<string, any>;
   granted_by?: string;

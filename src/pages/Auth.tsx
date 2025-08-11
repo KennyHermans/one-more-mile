@@ -21,6 +21,10 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const navigate = useNavigate();
 
   // Separate form handlers for sign up and sign in
@@ -51,6 +55,12 @@ const Auth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsSignUp(false);
+          setIsRecoveryMode(true);
+          return;
+        }
         
         if (session?.user) {
           // Defer navigation to prevent deadlocks
@@ -134,6 +144,55 @@ const Auth = () => {
       // Navigation will be handled by the auth state change listener
     } catch (error: any) {
       setError(error.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Password reset helpers
+  const handlePasswordResetRequest = async () => {
+    try {
+      setError("");
+      setSuccess("");
+      const email = signInForm.getValues('email');
+      if (!email) {
+        setError('Please enter your email above, then click "Forgot your password?"');
+        return;
+      }
+      setResetLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+      setSuccess('Check your email for the password reset link.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset email');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setError("");
+    setSuccess("");
+    if (!newPassword || newPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setSuccess('Password updated! You can now sign in.');
+      setIsRecoveryMode(false);
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err: any) {
+      setError(err.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -327,15 +386,25 @@ const Auth = () => {
                 </Button>
               </form>
               
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <button
                   type="button"
-                  onClick={toggleMode}
+                  onClick={handlePasswordResetRequest}
                   className="text-primary hover:underline"
-                  disabled={loading}
+                  disabled={resetLoading || loading}
                 >
-                  Don't have an account? Sign up
+                  {resetLoading ? 'Sending reset email...' : 'Forgot your password?'}
                 </button>
+                <div>
+                  <button
+                    type="button"
+                    onClick={toggleMode}
+                    className="text-primary hover:underline"
+                    disabled={loading}
+                  >
+                    Don't have an account? Sign up
+                  </button>
+                </div>
               </div>
             </CardContent>
           </Card>

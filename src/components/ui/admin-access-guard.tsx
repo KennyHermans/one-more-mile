@@ -17,7 +17,7 @@ export function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const { user, session } = useProfileManagement();
   const { isAdmin, isLoading, error } = useAdminCheck();
   const { permissions: adminPerms, isLoading: permsLoading } = useAdminPermissions();
-  const isPlatformStaff = isAdmin || adminPerms.userRole === 'sensei_scout' || adminPerms.userRole === 'journey_curator' || adminPerms.canManageTrips;
+  const isPlatformStaff = isAdmin || adminPerms.userRole === 'sensei_scout' || adminPerms.userRole === 'journey_curator' || adminPerms.userRole === 'partner' || adminPerms.canManageTrips;
   const navigate = useNavigate();
 
   // Show loading while auth is initializing or admin check is loading
