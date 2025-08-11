@@ -17,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Trip, TripListItem, toTripListItem, transformDbTrip } from '@/types/trip';
-
 interface FilterState {
   searchQuery: string;
   themes: string[];
@@ -32,15 +31,21 @@ interface FilterState {
     to?: Date;
   };
 }
-
 const Explore = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [comparisonTrips, setComparisonTrips] = useState<Trip[]>([]);
-  const [savedPresets, setSavedPresets] = useState<{ name: string; filters: FilterState }[]>([]);
+  const [savedPresets, setSavedPresets] = useState<{
+    name: string;
+    filters: FilterState;
+  }[]>([]);
   const [sortBy, setSortBy] = useState("newest");
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist(user?.id);
+  const {
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist
+  } = useWishlist(user?.id);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: "",
     themes: [],
@@ -50,40 +55,41 @@ const Explore = () => {
     groupSize: [1, 50],
     duration: "any",
     difficulty: [],
-    dates: {},
+    dates: {}
   });
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     fetchTrips();
     checkUser();
     loadSavedPresets();
   }, []);
-
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     setUser(user);
   };
-
   const loadSavedPresets = () => {
     const saved = localStorage.getItem('tripSearchPresets');
     if (saved) {
       setSavedPresets(JSON.parse(saved));
     }
   };
-
   const fetchTrips = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('trips').select(`
           *,
           sensei_profiles!trips_sensei_id_fkey(id, name, sensei_level, image_url, location, specialties)
-        `)
-        .eq('is_active', true)
-        .in('trip_status', ['approved', 'published'])
-        .order('created_at', { ascending: false });
-
+        `).eq('is_active', true).in('trip_status', ['approved', 'published']).order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
       const transformedTrips = (data || []).map(transformDbTrip);
       setTrips(transformedTrips);
@@ -92,7 +98,7 @@ const Explore = () => {
       toast({
         title: "Error",
         description: "Failed to load trips. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -116,7 +122,6 @@ const Explore = () => {
   const matchesDuration = (trip: Trip, duration: string) => {
     if (duration === "any") return true;
     const days = trip.duration_days || 0;
-    
     switch (duration) {
       case "1-3":
         return days >= 1 && days <= 3;
@@ -132,94 +137,72 @@ const Explore = () => {
   };
 
   // Enhanced filtering logic
-  const filteredAndSortedTrips = trips
-    .filter(trip => {
-      // Search query
-      const matchesSearch = filters.searchQuery === "" || 
-        trip.title.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        trip.destination.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        trip.description.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        trip.sensei_name.toLowerCase().includes(filters.searchQuery.toLowerCase());
-      
-      // Themes
-      const matchesThemes = filters.themes.length === 0 || 
-        filters.themes.some(theme => trip.theme.toLowerCase().includes(theme.toLowerCase()));
-      
-      // Destinations  
-      const matchesDestinations = filters.destinations.length === 0 || 
-        filters.destinations.some(dest => {
-          const destination = trip.destination.toLowerCase();
-          switch (dest) {
-            case "asia":
-              return destination.includes("nepal") || destination.includes("thailand") || 
-                     destination.includes("japan") || destination.includes("asia");
-            case "europe":
-              return destination.includes("italy") || destination.includes("swiss") || 
-                     destination.includes("france") || destination.includes("europe");
-            case "africa":
-              return destination.includes("morocco") || destination.includes("africa");
-            case "americas":
-              return destination.includes("peru") || destination.includes("costa rica") || 
-                     destination.includes("america") || destination.includes("usa") || 
-                     destination.includes("canada");
-            case "oceania":
-              return destination.includes("australia") || destination.includes("new zealand") ||
-                     destination.includes("oceania");
-            default:
-              return destination.includes(dest);
-          }
-        });
+  const filteredAndSortedTrips = trips.filter(trip => {
+    // Search query
+    const matchesSearch = filters.searchQuery === "" || trip.title.toLowerCase().includes(filters.searchQuery.toLowerCase()) || trip.destination.toLowerCase().includes(filters.searchQuery.toLowerCase()) || trip.description.toLowerCase().includes(filters.searchQuery.toLowerCase()) || trip.sensei_name.toLowerCase().includes(filters.searchQuery.toLowerCase());
 
-      // Price range
-      const tripPrice = extractPrice(trip.price);
-      const matchesPrice = tripPrice >= filters.priceRange[0] && tripPrice <= filters.priceRange[1];
-      
-      // Rating
-      const matchesRating = trip.rating >= filters.minRating;
-      
-      // Group size (use max_participants as primary, fallback to parsed group_size; if unknown, don't filter out)
-      const effectiveGroupSize = (trip as any).max_participants || extractGroupSize((trip as any).group_size || "");
-      const matchesGroupSize = effectiveGroupSize === 0 
-        ? true 
-        : (effectiveGroupSize >= filters.groupSize[0] && effectiveGroupSize <= filters.groupSize[1]);
+    // Themes
+    const matchesThemes = filters.themes.length === 0 || filters.themes.some(theme => trip.theme.toLowerCase().includes(theme.toLowerCase()));
 
-      // Duration
-      const matchesDur = matchesDuration(trip, filters.duration);
-
-      // Difficulty
-      const matchesDifficulty = filters.difficulty.length === 0 || 
-        filters.difficulty.some(diff => (trip.difficulty_level || '').toLowerCase().includes(diff.toLowerCase()));
-
-      return matchesSearch && matchesThemes && matchesDestinations && 
-             matchesPrice && matchesRating && matchesGroupSize && 
-             matchesDur && matchesDifficulty;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return extractPrice(a.price) - extractPrice(b.price);
-        case "price-high":
-          return extractPrice(b.price) - extractPrice(a.price);
-        case "rating":
-          return b.rating - a.rating;
-        case "alphabetical":
-          return a.title.localeCompare(b.title);
-        case "duration":
-          return (a.duration_days || 0) - (b.duration_days || 0);
-        case "newest":
+    // Destinations  
+    const matchesDestinations = filters.destinations.length === 0 || filters.destinations.some(dest => {
+      const destination = trip.destination.toLowerCase();
+      switch (dest) {
+        case "asia":
+          return destination.includes("nepal") || destination.includes("thailand") || destination.includes("japan") || destination.includes("asia");
+        case "europe":
+          return destination.includes("italy") || destination.includes("swiss") || destination.includes("france") || destination.includes("europe");
+        case "africa":
+          return destination.includes("morocco") || destination.includes("africa");
+        case "americas":
+          return destination.includes("peru") || destination.includes("costa rica") || destination.includes("america") || destination.includes("usa") || destination.includes("canada");
+        case "oceania":
+          return destination.includes("australia") || destination.includes("new zealand") || destination.includes("oceania");
         default:
-          return new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime();
+          return destination.includes(dest);
       }
     });
 
+    // Price range
+    const tripPrice = extractPrice(trip.price);
+    const matchesPrice = tripPrice >= filters.priceRange[0] && tripPrice <= filters.priceRange[1];
+
+    // Rating
+    const matchesRating = trip.rating >= filters.minRating;
+
+    // Group size (use max_participants as primary, fallback to parsed group_size; if unknown, don't filter out)
+    const effectiveGroupSize = (trip as any).max_participants || extractGroupSize((trip as any).group_size || "");
+    const matchesGroupSize = effectiveGroupSize === 0 ? true : effectiveGroupSize >= filters.groupSize[0] && effectiveGroupSize <= filters.groupSize[1];
+
+    // Duration
+    const matchesDur = matchesDuration(trip, filters.duration);
+
+    // Difficulty
+    const matchesDifficulty = filters.difficulty.length === 0 || filters.difficulty.some(diff => (trip.difficulty_level || '').toLowerCase().includes(diff.toLowerCase()));
+    return matchesSearch && matchesThemes && matchesDestinations && matchesPrice && matchesRating && matchesGroupSize && matchesDur && matchesDifficulty;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return extractPrice(a.price) - extractPrice(b.price);
+      case "price-high":
+        return extractPrice(b.price) - extractPrice(a.price);
+      case "rating":
+        return b.rating - a.rating;
+      case "alphabetical":
+        return a.title.localeCompare(b.title);
+      case "duration":
+        return (a.duration_days || 0) - (b.duration_days || 0);
+      case "newest":
+      default:
+        return new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime();
+    }
+  });
   const removeComparisonTrip = (tripId: string) => {
     setComparisonTrips(prev => prev.filter(t => t.id !== tripId));
   };
-
   const selectTripFromComparison = (tripId: string) => {
     window.location.href = `/trip/${tripId}`;
   };
-
   const clearAllFilters = () => {
     setFilters({
       searchQuery: "",
@@ -230,10 +213,9 @@ const Explore = () => {
       groupSize: [1, 50],
       duration: "any",
       difficulty: [],
-      dates: {},
+      dates: {}
     });
   };
-
   const handleWishlistToggle = async (tripId: string, isCurrentlyWishlisted: boolean) => {
     if (isCurrentlyWishlisted) {
       await removeFromWishlist(tripId);
@@ -241,33 +223,14 @@ const Explore = () => {
       await addToWishlist(tripId);
     }
   };
-
-  const activeFiltersCount = [
-    filters.searchQuery,
-    ...filters.themes,
-    ...filters.destinations,
-    ...filters.difficulty,
-    filters.priceRange[0] > 0 || filters.priceRange[1] < 10000,
-    filters.minRating > 0,
-    filters.groupSize[0] > 1 || filters.groupSize[1] < 50,
-    filters.duration !== "any",
-  ].filter(Boolean).length;
-
-
+  const activeFiltersCount = [filters.searchQuery, ...filters.themes, ...filters.destinations, ...filters.difficulty, filters.priceRange[0] > 0 || filters.priceRange[1] < 10000, filters.minRating > 0, filters.groupSize[0] > 1 || filters.groupSize[1] < 50, filters.duration !== "any"].filter(Boolean).length;
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <Navigation />
-        <AdventureLoadingState 
-          message="Discovering amazing adventures for you..."
-          stage="Exploring"
-        />
-      </div>
-    );
+        <AdventureLoadingState message="Discovering amazing adventures for you..." stage="Exploring" />
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navigation />
       
       {/* Hero Section */}
@@ -275,10 +238,10 @@ const Explore = () => {
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-80">
           <div className="absolute inset-0" style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=800&fit=crop&opacity=20')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }} />
+          backgroundImage: `url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=800&fit=crop&opacity=20')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }} />
         </div>
         
         <div className="container relative">
@@ -303,12 +266,7 @@ const Explore = () => {
       {/* Search and Filters Section */}
       <section className="py-4 bg-muted/30">
         <div className="container">
-          <SearchFilters 
-            filters={filters}
-            onFiltersChange={setFilters}
-            resultsCount={filteredAndSortedTrips.length}
-            className="max-w-4xl mx-auto"
-          />
+          <SearchFilters filters={filters} onFiltersChange={setFilters} resultsCount={filteredAndSortedTrips.length} className="max-w-4xl mx-auto" />
         </div>
       </section>
 
@@ -316,26 +274,10 @@ const Explore = () => {
       <section className="py-4">
         <div className="container">
           {/* Results Header */}
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Filter className="h-4 w-4" />
-              <span>{filteredAndSortedTrips.length} of {trips.length} trips</span>
-            </div>
-            {activeFiltersCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="h-8 px-2 text-sm"
-              >
-                Clear filters ({activeFiltersCount})
-              </Button>
-            )}
-          </div>
+          
 
           {/* Trip Results */}
-          {filteredAndSortedTrips.length === 0 ? (
-            <div className="text-center py-16">
+          {filteredAndSortedTrips.length === 0 ? <div className="text-center py-16">
               <div className="max-w-md mx-auto">
                 <Search className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
                 <h3 className="text-xl font-semibold mb-3">No adventures found</h3>
@@ -347,25 +289,12 @@ const Explore = () => {
                   Clear All Filters
                 </Button>
               </div>
-            </div>
-          ) : (
-            <TripMapView 
-              trips={filteredAndSortedTrips} 
-              isInWishlist={isInWishlist}
-              onWishlistToggle={handleWishlistToggle}
-            />
-          )}
+            </div> : <TripMapView trips={filteredAndSortedTrips} isInWishlist={isInWishlist} onWishlistToggle={handleWishlistToggle} />}
         </div>
       </section>
 
       {/* Trip Comparison */}
-      <TripComparison
-        trips={comparisonTrips}
-        onRemoveTrip={removeComparisonTrip}
-        onSelectTrip={selectTripFromComparison}
-      />
-    </div>
-  );
+      <TripComparison trips={comparisonTrips} onRemoveTrip={removeComparisonTrip} onSelectTrip={selectTripFromComparison} />
+    </div>;
 };
-
 export default Explore;
