@@ -27,7 +27,7 @@ export function Navigation() {
   return (
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-3 group">
+        <Link to="/explore" className="flex items-center space-x-3 group">
           <img 
             src="/lovable-uploads/81c21caf-1b83-4480-bbe6-7d895da092cd.png" 
             alt="One More Mile Logo" 
