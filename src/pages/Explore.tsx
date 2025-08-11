@@ -259,16 +259,18 @@ const Explore = () => {
             <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
               Discover transformative journeys led by expert Senseis around the world
             </p>
+            <div className="mt-6 max-w-4xl mx-auto">
+              <SearchFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                resultsCount={filteredAndSortedTrips.length}
+                className=""
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Search and Filters Section */}
-      <section className="py-4 bg-muted/30">
-        <div className="container">
-          <SearchFilters filters={filters} onFiltersChange={setFilters} resultsCount={filteredAndSortedTrips.length} className="max-w-4xl mx-auto" />
-        </div>
-      </section>
 
       {/* Results Section */}
       <section className="py-4">
