@@ -61,7 +61,7 @@ const Senseis = () => {
             Meet Our Senseis
           </h1>
           <p className="font-sans text-xl max-w-3xl mx-auto leading-relaxed">
-            World-class experts who transform ordinary trips into extraordinary journeys of discovery and growth
+            World-class experts who transform ordinary trips into extraordinary journeys
           </p>
         </div>
       </section>
