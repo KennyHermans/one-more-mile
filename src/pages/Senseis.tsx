@@ -54,13 +54,8 @@ const Senseis = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section
-        className="relative bg-cover bg-center text-white py-20"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop')" }}
-      >
-        {/* Updated overlay: smaller area with rounded corners and lighter tone */}
-        <div className="absolute inset-2 sm:inset-4 md:inset-6 lg:inset-8 rounded-lg bg-overlay-dark/30"></div>
-
+      <section className="relative bg-cover bg-center text-white py-20" style={{backgroundImage: "url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop')"}}>
+        <div className="absolute inset-0 bg-black/40"></div>
         <div className="container text-center relative z-10">
           <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4">
             Meet Our Senseis
