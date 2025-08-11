@@ -287,6 +287,24 @@ const TripDetail = () => {
           related_trip_id: trip.id
         });
 
+      // Send reservation confirmation email
+      try {
+        await supabase.functions.invoke('send-booking-reservation-email', {
+          body: {
+            type: 'reservation',
+            toEmail: user.email || bookingForm.email,
+            toName: (user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name)) || undefined,
+            tripTitle: trip.title,
+            destination: trip.destination,
+            dates: trip.dates,
+            price: trip.price,
+            reservationDeadlineISO: deadline.toISOString(),
+          }
+        });
+      } catch (emailErr) {
+        console.warn('Reservation email send failed', emailErr);
+      }
+
       toast({
         title: "Reservation confirmed!",
         description: `Your spot is reserved for ${reservationDays} days. Complete payment or make a €1,000 deposit to secure your booking.`,

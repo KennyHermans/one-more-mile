@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -155,6 +156,54 @@ serve(async (req) => {
 
     if (todoError) console.error("Todo creation error:", todoError);
     logStep("Customer todos created");
+
+    // Send booking confirmation email via Resend
+    try {
+      const resendKey = Deno.env.get("RESEND_API_KEY");
+      if (resendKey) {
+        const resend = new Resend(resendKey);
+        // Fetch trip details for email context
+        const { data: trip } = await supabaseClient
+          .from('trips')
+          .select('title, destination, dates, price')
+          .eq('id', trip_id)
+          .maybeSingle();
+
+        const toEmail = (session.customer_details && session.customer_details.email) || (session as any).customer_email;
+        const title = trip?.title || 'Your Adventure';
+        const html = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, Arial, sans-serif; color:#111;">
+            <h1 style="margin:0 0 8px;">Booking Confirmed</h1>
+            <p style="margin:0 0 16px;">Thank you for your ${payment_type === 'full_payment' ? 'payment' : 'deposit'}! Your booking is ${payment_type === 'full_payment' ? 'confirmed' : 'reserved'}.</p>
+            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
+              <h2 style="margin:0 0 8px;">${title}</h2>
+              ${trip?.destination ? `<p style=\"margin:0 0 4px;\"><strong>Destination:</strong> ${trip.destination}</p>` : ''}
+              ${trip?.dates ? `<p style=\"margin:0 0 4px;\"><strong>Dates:</strong> ${trip.dates}</p>` : ''}
+              ${trip?.price ? `<p style=\"margin:0 0 4px;\"><strong>Price:</strong> ${trip.price} per person</p>` : ''}
+              <p style="margin:8px 0 0;"><strong>Booking ID:</strong> ${booking.id}</p>
+            </div>
+            ${payment_type === 'deposit' ? `<p style=\"margin:16px 0 0;\">Your payment plan is active. We\'ll send reminders before each due date.</p>` : ''}
+            <p style="margin:16px 0 0; color:#6b7280; font-size:12px;">If you have questions, just reply to this email.</p>
+          </div>
+        `;
+
+        if (toEmail) {
+          await resend.emails.send({
+            from: "One More Mile <onboarding@resend.dev>",
+            to: [toEmail],
+            subject: `${payment_type === 'full_payment' ? 'Booking confirmed' : 'Deposit received'}: ${title}`,
+            html,
+          });
+          logStep('Confirmation email sent');
+        } else {
+          logStep('No recipient email found on session');
+        }
+      } else {
+        logStep('RESEND_API_KEY not configured, skipping email');
+      }
+    } catch (emailErr) {
+      console.error('Booking email send failed', emailErr);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
