@@ -246,7 +246,7 @@ const Explore = () => {
         
         <div className="container relative">
           <div className="text-center mb-12">
-            <div className="mx-auto max-w-4xl rounded-2xl border border-border/50 bg-background/80 backdrop-blur-md shadow-lg px-6 py-8 text-foreground">
+            <div className="mx-auto max-w-4xl rounded-2xl border border-border/50 bg-background/60 backdrop-blur-md shadow-lg px-6 py-8 text-foreground">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Sparkles className="h-6 w-6 animate-pulse" />
                 <span className="text-sm font-medium uppercase tracking-wider opacity-90">
