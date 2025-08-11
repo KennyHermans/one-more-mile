@@ -182,20 +182,6 @@ const Senseis = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-secondary/30">
-        <div className="container text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Ready to Join Our Community?
-          </h2>
-          <p className="font-sans text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Share your expertise and passion by becoming a Sensei with One More Mile
-          </p>
-          <Button asChild size="lg" className="font-sans font-medium">
-            <a href="/become-sensei">Become a Sensei</a>
-          </Button>
-        </div>
-      </section>
     </div>
   );
 };
