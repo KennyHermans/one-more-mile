@@ -2,17 +2,11 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { TripComparison } from "@/components/ui/trip-comparison";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SearchFilters } from "@/components/ui/search-filters";
 import { TripMapView } from "@/components/ui/trip-map-view";
-import { EnhancedTripCardSkeleton } from "@/components/ui/enhanced-trip-skeletons";
-import { SearchFiltersSkeleton } from "@/components/ui/enhanced-ui-skeletons";
 import { AdventureLoadingState } from "@/components/ui/enhanced-loading-states";
-import { Link } from "react-router-dom";
-import { Search, Filter, MapPin, Calendar, Users, Star, Loader2, ArrowUpDown, Sparkles } from "lucide-react";
+
+import { Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -270,44 +264,19 @@ const Explore = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="bg-background text-white py-8 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-80">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&h=800&fit=crop&opacity=20')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }} />
-        </div>
-        
-        <div className="container relative">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="h-6 w-6 animate-pulse" />
-              <span className="text-sm font-medium uppercase tracking-wider opacity-90">
-                Premium Adventure Experiences
-              </span>
-              <Sparkles className="h-6 w-6 animate-pulse" />
-            </div>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-              Explore Adventures
-            </h1>
-            <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
-              Discover transformative journeys led by expert Senseis around the world
-            </p>
-          </div>
-        </div>
+      {/* SEO H1 (visually hidden for compact layout) */}
+      <section aria-label="Explore adventures" className="sr-only">
+        <h1>Explore Trips and Adventures</h1>
       </section>
 
       {/* Search and Filters Section */}
-      <section className="py-4 bg-muted/30">
+      <section className="py-3 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container">
           <SearchFilters 
             filters={filters}
             onFiltersChange={setFilters}
             resultsCount={filteredAndSortedTrips.length}
-            className="max-w-4xl mx-auto"
+            className="max-w-5xl mx-auto rounded-2xl border bg-card/70 backdrop-blur p-3 shadow-lg"
           />
         </div>
       </section>
