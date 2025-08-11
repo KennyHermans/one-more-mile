@@ -172,7 +172,7 @@ export const EnhancedMobileNavigation = () => {
             </SheetContent>
           </Sheet>
 
-          <Link to="/explore" className="font-bold text-lg">
+          <Link to="/" className="font-bold text-lg">
             One More Mile
           </Link>
 

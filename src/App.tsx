@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAccessGuard } from "@/components/ui/admin-access-guard";
 import { DashboardAccessGuard } from "@/components/ui/dashboard-access-guard";
 import { EnhancedMobileNavigation } from "@/components/ui/enhanced-mobile-navigation";
@@ -65,7 +65,7 @@ const App = () => {
               <EnhancedMobileNavigation />
               <main id="main-content">
                 <Routes>
-            <Route path="/" element={<Navigate to="/explore" replace />} />
+            <Route path="/" element={<Index />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/trip/:tripId" element={<TripDetail />} />
             <Route path="/senseis" element={<Senseis />} />

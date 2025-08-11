@@ -13,7 +13,7 @@ const Terms = () => {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Button variant="ghost" asChild className="mb-4">
-              <Link to="/explore">
+              <Link to="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Home
               </Link>
