@@ -282,20 +282,6 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-primary to-accent text-white">
-        <div className="container text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-            Ready to Start Your Adventure?
-          </h2>
-          <p className="font-sans text-lg mb-8 max-w-2xl mx-auto">
-            Don't wait for the perfect moment. The perfect moment is now.
-          </p>
-          <Button asChild size="lg" variant="secondary" className="font-sans font-medium bg-white text-primary hover:bg-white/90">
-            <a href="/explore">Explore Adventures</a>
-          </Button>
-        </div>
-      </section>
     </div>;
 };
 export default Contact;
