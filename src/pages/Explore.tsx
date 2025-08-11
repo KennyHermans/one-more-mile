@@ -226,7 +226,7 @@ const Explore = () => {
   const activeFiltersCount = [filters.searchQuery, ...filters.themes, ...filters.destinations, ...filters.difficulty, filters.priceRange[0] > 0 || filters.priceRange[1] < 10000, filters.minRating > 0, filters.groupSize[0] > 1 || filters.groupSize[1] < 50, filters.duration !== "any"].filter(Boolean).length;
   if (loading) {
     return <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation className="text-sm font-normal" />
         <AdventureLoadingState message="Discovering amazing adventures for you..." stage="Exploring" />
       </div>;
   }
@@ -246,33 +246,29 @@ const Explore = () => {
         
         <div className="container relative">
           <div className="text-center mb-12">
-            <div className="mx-auto max-w-4xl rounded-2xl border border-border/50 bg-background/40 backdrop-blur-md shadow-lg px-6 py-8 text-foreground">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="h-6 w-6 animate-pulse" />
-                <span className="text-sm font-medium uppercase tracking-wider opacity-90">
-                  Premium Adventure Experiences
-                </span>
-                <Sparkles className="h-6 w-6 animate-pulse" />
-              </div>
-              <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-                Explore Adventures
-              </h1>
-              <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
-                Discover transformative journeys led by expert Senseis around the world
-              </p>
-              <div className="mt-6 max-w-4xl mx-auto">
-                <SearchFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  resultsCount={filteredAndSortedTrips.length}
-                  className=""
-                />
-              </div>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Sparkles className="h-6 w-6 animate-pulse" />
+              <span className="text-sm font-medium uppercase tracking-wider opacity-90">
+                Premium Adventure Experiences
+              </span>
+              <Sparkles className="h-6 w-6 animate-pulse" />
             </div>
+            <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+              Explore Adventures
+            </h1>
+            <p className="font-sans text-xl max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-90">
+              Discover transformative journeys led by expert Senseis around the world
+            </p>
           </div>
         </div>
       </section>
 
+      {/* Search and Filters Section */}
+      <section className="py-4 bg-muted/30">
+        <div className="container">
+          <SearchFilters filters={filters} onFiltersChange={setFilters} resultsCount={filteredAndSortedTrips.length} className="max-w-4xl mx-auto" />
+        </div>
+      </section>
 
       {/* Results Section */}
       <section className="py-4">
