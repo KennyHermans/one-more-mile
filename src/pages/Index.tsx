@@ -46,7 +46,7 @@ const Index = () => {
     }
   ];
 
-  const values = [
+  const coreValues = [
     {
       icon: Heart,
       title: "Purpose-Driven",
@@ -119,7 +119,7 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
+            {coreValues.map((value, index) => (
               <Card key={index} className="text-center border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="pt-8">
                   <div className="flex justify-center mb-4">
