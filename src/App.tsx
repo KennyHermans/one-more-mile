@@ -35,6 +35,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import NotFound from "./pages/NotFound";
+import SystemStatus from "./pages/SystemStatus";
 import { AiAssistant } from "@/components/ui/ai-assistant";
 
 
@@ -87,6 +88,7 @@ const App = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+            <Route path="/system-status" element={<SystemStatus />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
                 </Routes>
