@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
 import { SenseiLevelProvider } from "@/contexts/SenseiLevelContext";
 import { SenseiLevelChangeNotification } from "@/components/ui/sensei-level-change-notification";
+import { SenseiPermissionChangeListener } from "@/components/ui/sensei-permission-change-listener";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SenseiDashboardLayoutProps {
@@ -92,6 +93,7 @@ export function SenseiDashboardLayout({
           </div>
         </SidebarProvider>
         <SenseiLevelChangeNotification />
+        <SenseiPermissionChangeListener />
       </SenseiLevelProvider>
     </DashboardAccessGuard>
   );
