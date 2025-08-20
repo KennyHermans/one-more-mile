@@ -427,6 +427,24 @@ const { permissions: adminPerms } = useAdminPermissions();
                     max={50}
                   />
                 </PermissionAwareField>
+
+                <PermissionAwareField
+                  fieldName="current_participants"
+                  canEdit={canEditField("current_participants")}
+                  currentLevel={currentLevel as any}
+                  requiredLevel="master_sensei"
+                  isAdmin={isAdmin}
+                  label="Current Participants"
+                >
+                  <Input
+                    name="current_participants"
+                    type="number"
+                    value={formData.current_participants}
+                    onChange={handleInputChange}
+                    min={0}
+                    max={formData.max_participants}
+                  />
+                </PermissionAwareField>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,6 +466,24 @@ const { permissions: adminPerms } = useAdminPermissions();
                     onChange={handleInputChange}
                     min={1}
                     max={50}
+                  />
+                </PermissionAwareField>
+
+                <PermissionAwareField
+                  fieldName="current_participants"
+                  canEdit={canEditField("current_participants")}
+                  currentLevel={currentLevel as any}
+                  requiredLevel="master_sensei"
+                  isAdmin={isAdmin}
+                  label="Current Participants"
+                >
+                  <Input
+                    name="current_participants"
+                    type="number"
+                    value={formData.current_participants}
+                    onChange={handleInputChange}
+                    min={0}
+                    max={formData.max_participants}
                   />
                 </PermissionAwareField>
               </div>
