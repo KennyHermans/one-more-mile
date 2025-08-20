@@ -17,11 +17,25 @@ export const SenseiDashboardTabs = () => {
       </TabsList>
 
       <TabsContent value="overview" className="space-y-6">
-        <SenseiOverviewDashboard />
+        <SenseiOverviewDashboard 
+          senseiProfile={null}
+          stats={{ activeTrips: 0, completedTrips: 0, upcomingTrips: 0, totalParticipants: 0, rating: 0 }}
+          quickActions={[]}
+          onTabChange={() => {}}
+        />
       </TabsContent>
 
       <TabsContent value="trips" className="space-y-6">
-        <SenseiTripsManagement />
+        <SenseiTripsManagement 
+          trips={[]}
+          canCreateTrips={false}
+          canEditTrips={false}
+          onCreateTrip={() => {}}
+          onEditTrip={() => {}}
+          onCancelTrip={() => {}}
+          onDeleteTrip={() => {}}
+          onViewTrip={() => {}}
+        />
       </TabsContent>
 
       <TabsContent value="analytics" className="space-y-6">

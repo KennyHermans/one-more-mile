@@ -26,7 +26,8 @@ import {
   Home,
   Crown,
   Plus,
-  Sparkles
+  Sparkles,
+  Wallet
 } from "lucide-react";
 import { useSenseiPermissions } from "@/hooks/use-sensei-permissions";
 import { useSenseiLevel } from "@/contexts/SenseiLevelContext";
@@ -89,6 +90,13 @@ const getPermissionBasedSidebarItems = (permissions: any) => [
     title: "Certificates",
     value: "certificates",
     icon: FileCheck,
+    group: "professional",
+    requiredPermission: null
+  },
+  {
+    title: "Payouts",
+    value: "payouts",
+    icon: Wallet,
     group: "professional",
     requiredPermission: null
   },

@@ -45,44 +45,75 @@ interface EarningsSummary {
 export const useSenseiPayouts = () => {
   const queryClient = useQueryClient();
 
+  // Get current user's sensei ID
+  const { data: senseiProfile } = useQuery({
+    queryKey: ["current-sensei-profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("sensei_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch payout methods
   const { data: payoutMethods, isLoading: methodsLoading } = useQuery({
-    queryKey: ['sensei-payout-methods'],
+    queryKey: ['sensei-payout-methods', senseiProfile?.id],
     queryFn: async () => {
+      if (!senseiProfile?.id) return [];
+      
       const { data, error } = await supabase
         .from('sensei_payout_methods')
         .select('*')
+        .eq('sensei_id', senseiProfile.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as PayoutMethod[];
     },
+    enabled: !!senseiProfile?.id,
   });
 
   // Fetch payouts history
   const { data: payouts, isLoading: payoutsLoading } = useQuery({
-    queryKey: ['sensei-payouts'],
+    queryKey: ['sensei-payouts', senseiProfile?.id],
     queryFn: async () => {
+      if (!senseiProfile?.id) return [];
+      
       const { data, error } = await supabase
         .from('sensei_payouts')
         .select('*')
+        .eq('sensei_id', senseiProfile.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as Payout[];
     },
+    enabled: !!senseiProfile?.id,
   });
 
   // Fetch earnings summary
   const { data: earningsSummary, isLoading: summaryLoading } = useQuery({
-    queryKey: ['sensei-earnings-summary'],
+    queryKey: ['sensei-earnings-summary', senseiProfile?.id],
     queryFn: async () => {
+      if (!senseiProfile?.id) return null;
+      
       const { data, error } = await supabase
-        .rpc('get_sensei_earnings_summary');
+        .rpc('get_sensei_earnings_summary', {
+          p_sensei_id: senseiProfile.id
+        });
 
       if (error) throw error;
-      return data as EarningsSummary;
+      return data as unknown as EarningsSummary;
     },
+    enabled: !!senseiProfile?.id,
   });
 
   // Add payout method mutation
@@ -94,14 +125,7 @@ export const useSenseiPayouts = () => {
       country?: string;
       is_default?: boolean;
     }) => {
-      // Get current user's sensei profile
-      const { data: profile } = await supabase
-        .from('sensei_profiles')
-        .select('id')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile) throw new Error('Sensei profile not found');
+      if (!senseiProfile?.id) throw new Error('Sensei profile not found');
 
       // Create masked IBAN and extract last 4
       const maskedIban = methodData.iban.replace(/(.{2})(.*)(.{4})/, '$1** **** **** **$3');
@@ -110,7 +134,7 @@ export const useSenseiPayouts = () => {
       const { data, error } = await supabase
         .from('sensei_payout_methods')
         .insert({
-          sensei_id: profile.id,
+          sensei_id: senseiProfile.id,
           display_name: methodData.display_name,
           account_holder_name: methodData.account_holder_name,
           masked_iban: maskedIban,
@@ -125,7 +149,7 @@ export const useSenseiPayouts = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods'] });
+      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods', senseiProfile?.id] });
       toast.success('Payout method added successfully');
     },
     onError: (error: any) => {
@@ -147,7 +171,7 @@ export const useSenseiPayouts = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods'] });
+      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods', senseiProfile?.id] });
       toast.success('Payout method updated successfully');
     },
     onError: (error: any) => {
@@ -166,7 +190,7 @@ export const useSenseiPayouts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods'] });
+      queryClient.invalidateQueries({ queryKey: ['sensei-payout-methods', senseiProfile?.id] });
       toast.success('Payout method deleted successfully');
     },
     onError: (error: any) => {

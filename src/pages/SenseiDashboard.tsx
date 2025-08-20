@@ -20,6 +20,7 @@ import { BackupSenseiManagement } from "@/components/ui/backup-sensei-management
 import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-management";
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
+import { SenseiPayoutsTab } from "@/components/ui/sensei-payouts-tab";
 
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
@@ -1897,6 +1898,9 @@ const SenseiDashboard = () => {
         ) : (
           <div className="text-center py-8">Loading...</div>
         );
+
+      case "payouts":
+        return <SenseiPayoutsTab />;
 
       default:
         return <div>Tab not found</div>;
