@@ -2646,6 +2646,16 @@ export type Database = {
         }
         Returns: string
       }
+      log_security_event: {
+        Args: {
+          p_details?: Json
+          p_event_type: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       request_backup_senseis: {
         Args:
           | { p_max_requests?: number; p_trip_id: string }
@@ -2703,6 +2713,14 @@ export type Database = {
       }
       validate_sensei_action: {
         Args: { p_action: string; p_sensei_id: string }
+        Returns: boolean
+      }
+      validate_sensitive_operation: {
+        Args: {
+          p_operation: string
+          p_record_id?: string
+          p_table_name?: string
+        }
         Returns: boolean
       }
     }
