@@ -223,9 +223,13 @@ export const EnhancedMobileNavigation = () => {
         </div>
       </nav>
 
-      {/* Spacer for fixed navigation */}
-      <div className="md:hidden h-16 shrink-0" /> {/* Top spacer */}
-      <div className="md:hidden h-20 shrink-0" /> {/* Bottom spacer */}
+      {/* Spacers for fixed navigation - only rendered when mobile */}
+      {isMobile && (
+        <>
+          <div className="h-16 shrink-0" /> {/* Top spacer */}
+          <div className="h-20 shrink-0" /> {/* Bottom spacer */}
+        </>
+      )}
     </>
   );
 };

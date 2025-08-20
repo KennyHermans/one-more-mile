@@ -163,7 +163,7 @@ interface TripPermissions {
   theme: boolean;
   dates: boolean;
   price: boolean;
-  group_size: boolean;
+  max_participants: boolean;
   included_amenities: boolean;
   excluded_items: boolean;
   requirements: boolean;
@@ -867,7 +867,7 @@ const SenseiDashboard = () => {
           description: editingTrip.description,
           price: editingTrip.price,
           dates: editingTrip.dates,
-          group_size: editingTrip.group_size,
+          max_participants: editingTrip.max_participants,
           program: editingTrip.program as any,
           included_amenities: editingTrip.included_amenities,
           excluded_items: editingTrip.excluded_items,
@@ -881,7 +881,7 @@ const SenseiDashboard = () => {
       // Determine what changed
       const changes: { [key: string]: any } = {};
       if (originalTrip) {
-        const fieldsToCheck = ['title', 'destination', 'description', 'price', 'dates', 'group_size', 'program', 'included_amenities', 'excluded_items', 'requirements', 'theme'];
+        const fieldsToCheck = ['title', 'destination', 'description', 'price', 'dates', 'max_participants', 'program', 'included_amenities', 'excluded_items', 'requirements', 'theme'];
         fieldsToCheck.forEach(field => {
           if (JSON.stringify((originalTrip as any)[field]) !== JSON.stringify((editingTrip as any)[field])) {
             changes[field] = {

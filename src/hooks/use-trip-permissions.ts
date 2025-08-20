@@ -8,7 +8,7 @@ interface TripPermissions {
   theme: boolean;
   dates: boolean;
   price: boolean;
-  group_size: boolean;
+  max_participants: boolean;
   current_participants: boolean;
   included_amenities: boolean;
   excluded_items: boolean;
@@ -79,7 +79,7 @@ export const useTripPermissions = (senseiId?: string, tripId?: string) => {
           theme: false,
           dates: false,
           price: false,
-          group_size: false,
+          max_participants: false,
           current_participants: false,
           included_amenities: false,
           excluded_items: false,

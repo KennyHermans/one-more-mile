@@ -411,8 +411,8 @@ const { permissions: adminPerms } = useAdminPermissions();
                 </div>
 
                 <PermissionAwareField
-                  fieldName="group_size"
-                  canEdit={canEditField("group_size")}
+                  fieldName="max_participants"
+                  canEdit={canEditField("max_participants")}
                   currentLevel={currentLevel as any}
                   requiredLevel="apprentice"
                   isAdmin={isAdmin}
@@ -452,8 +452,8 @@ const { permissions: adminPerms } = useAdminPermissions();
                   <Badge variant="outline">Primary Sensei: You</Badge>
                 </div>
                 <PermissionAwareField
-                  fieldName="group_size"
-                  canEdit={canEditField("group_size")}
+                  fieldName="max_participants"
+                  canEdit={canEditField("max_participants")}
                   currentLevel={currentLevel as any}
                   requiredLevel="apprentice"
                   isAdmin={isAdmin}
