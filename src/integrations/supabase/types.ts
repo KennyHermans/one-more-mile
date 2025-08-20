@@ -1466,6 +1466,154 @@ export type Database = {
           },
         ]
       }
+      sensei_payout_methods: {
+        Row: {
+          account_holder_name: string
+          country: string | null
+          created_at: string
+          currency: string | null
+          display_name: string | null
+          iban_last4: string
+          id: string
+          is_default: boolean
+          masked_iban: string
+          metadata: Json
+          method_type: Database["public"]["Enums"]["payout_method_type"]
+          sensei_id: string
+          status: Database["public"]["Enums"]["payout_method_status"]
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name: string
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          iban_last4: string
+          id?: string
+          is_default?: boolean
+          masked_iban: string
+          metadata?: Json
+          method_type?: Database["public"]["Enums"]["payout_method_type"]
+          sensei_id: string
+          status?: Database["public"]["Enums"]["payout_method_status"]
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          iban_last4?: string
+          id?: string
+          is_default?: boolean
+          masked_iban?: string
+          metadata?: Json
+          method_type?: Database["public"]["Enums"]["payout_method_type"]
+          sensei_id?: string
+          status?: Database["public"]["Enums"]["payout_method_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensei_payout_methods_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sensei_payouts: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          currency: string | null
+          gross_amount: number
+          id: string
+          metadata: Json
+          method_id: string | null
+          net_amount: number
+          notes: string | null
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          platform_fee: number | null
+          sensei_id: string
+          status: Database["public"]["Enums"]["payout_status"]
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          gross_amount: number
+          id?: string
+          metadata?: Json
+          method_id?: string | null
+          net_amount: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          platform_fee?: number | null
+          sensei_id: string
+          status?: Database["public"]["Enums"]["payout_status"]
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          gross_amount?: number
+          id?: string
+          metadata?: Json
+          method_id?: string | null
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          platform_fee?: number | null
+          sensei_id?: string
+          status?: Database["public"]["Enums"]["payout_status"]
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensei_payouts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensei_payouts_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_payout_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensei_payouts_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensei_payouts_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sensei_profiles: {
         Row: {
           availability_periods: Json | null
@@ -2581,6 +2729,10 @@ export type Database = {
           trips_wishlisted: number
         }[]
       }
+      get_sensei_earnings_summary: {
+        Args: { p_sensei_id?: string }
+        Returns: Json
+      }
       get_sensei_field_permissions: {
         Args:
           | { p_field_name?: string; p_sensei_id: string }
@@ -2725,6 +2877,9 @@ export type Database = {
       }
     }
     Enums: {
+      payout_method_status: "unverified" | "verified" | "rejected"
+      payout_method_type: "bank_transfer"
+      payout_status: "pending" | "processing" | "paid" | "failed" | "cancelled"
       platform_role:
         | "admin"
         | "journey_curator"
@@ -2858,6 +3013,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      payout_method_status: ["unverified", "verified", "rejected"],
+      payout_method_type: ["bank_transfer"],
+      payout_status: ["pending", "processing", "paid", "failed", "cancelled"],
       platform_role: [
         "admin",
         "journey_curator",
