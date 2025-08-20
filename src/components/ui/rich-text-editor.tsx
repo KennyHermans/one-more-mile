@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps {
@@ -41,10 +41,22 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
 
     const handleInput = () => {
       if (editorRef.current && !disabled) {
-        const content = editorRef.current.innerHTML;
+        const content = editorRef.current.textContent || '';
         onChange(content);
       }
     };
+
+    // Set content safely without dangerouslySetInnerHTML
+    const setContent = () => {
+      if (editorRef.current && editorRef.current.textContent !== value) {
+        editorRef.current.textContent = value;
+      }
+    };
+
+    // Update content when value prop changes
+    React.useEffect(() => {
+      setContent();
+    }, [value]);
 
     const handlePaste = (e: React.ClipboardEvent) => {
       e.preventDefault();
@@ -150,7 +162,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             "prose prose-sm max-w-none dark:prose-invert",
             disabled && "opacity-50 cursor-not-allowed"
           )}
-          dangerouslySetInnerHTML={{ __html: value }}
+          suppressContentEditableWarning={true}
           data-placeholder={placeholder}
         />
 

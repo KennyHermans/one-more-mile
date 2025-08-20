@@ -1,11 +1,13 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://ce31f3af-8b91-484e-98ed-813aa571c1cc.sandbox.lovable.dev',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface TripBuilderRequest {
@@ -42,6 +44,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Check if OpenAI API key is configured
   if (!openAIApiKey) {
     console.error('OpenAI API key not configured');
     return new Response(
@@ -50,9 +61,56 @@ serve(async (req) => {
     );
   }
 
+  // Verify JWT token for authentication
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'Unauthorized - Missing or invalid token' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Rate limiting: simple per-IP check
+  const clientIP = req.headers.get('CF-Connecting-IP') || req.headers.get('X-Forwarded-For') || 'unknown';
+  console.log(`AI Trip Builder request from IP: ${clientIP}`);
+
   try {
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Verify the user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Input validation and sanitization
     const request: TripBuilderRequest = await req.json();
-    console.log('Trip builder request:', request);
+    
+    // Validate required fields
+    if (!request.action || !request.destination || !request.theme) {
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Sanitize inputs
+    request.destination = request.destination.trim().substring(0, 100);
+    request.theme = request.theme.trim().substring(0, 100);
+    request.duration = Math.min(Math.max(request.duration || 1, 1), 30); // 1-30 days max
+    request.maxParticipants = Math.min(Math.max(request.maxParticipants || 1, 1), 50); // 1-50 people max
+    
+    console.log('AI Trip builder request:', { action: request.action, destination: request.destination, userId: user.id });
 
     let response;
     

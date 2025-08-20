@@ -47,5 +47,9 @@ verify_jwt = true
 [functions.system-status]
 verify_jwt = false
 
+// Secure functions - require authentication
+[functions.ai-trip-builder]
+verify_jwt = true
+
 [functions.ai-support-agent]
-verify_jwt = false
+verify_jwt = true

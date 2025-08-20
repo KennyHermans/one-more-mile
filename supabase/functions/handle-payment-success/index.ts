@@ -4,8 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://ce31f3af-8b91-484e-98ed-813aa571c1cc.sandbox.lovable.dev",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // Helper logging function
@@ -20,8 +21,31 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   try {
     logStep("Payment success handler started");
+
+    // Input validation
+    const body = await req.json();
+    const { sessionId } = body;
+    
+    if (!sessionId || typeof sessionId !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid session ID' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Sanitize session ID
+    const cleanSessionId = sessionId.trim().substring(0, 200);
+    logStep("Session ID received", { sessionId: cleanSessionId });
 
     // Use service role key for database operations
     const supabaseClient = createClient(
@@ -30,17 +54,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get session ID from request
-    const { sessionId } = await req.json();
-    logStep("Session ID received", { sessionId });
-
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with error handling
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      throw new Error("Stripe secret key not configured");
+    }
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Retrieve the checkout session with validation
+    const session = await stripe.checkout.sessions.retrieve(cleanSessionId);
     logStep("Stripe session retrieved", { 
       sessionId: session.id, 
       paymentStatus: session.payment_status,
