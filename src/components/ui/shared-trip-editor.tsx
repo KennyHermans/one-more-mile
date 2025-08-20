@@ -418,14 +418,17 @@ const { permissions: adminPerms } = useAdminPermissions();
                   isAdmin={isAdmin}
                   label="Max Participants"
                 >
-                  <Input
-                    name="max_participants"
-                    type="number"
-                    value={formData.max_participants}
-                    onChange={handleInputChange}
-                    min={1}
-                    max={50}
-                  />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Total seats available for this trip</p>
+                    <Input
+                      name="max_participants"
+                      type="number"
+                      value={formData.max_participants}
+                      onChange={handleInputChange}
+                      min={1}
+                      max={50}
+                    />
+                  </div>
                 </PermissionAwareField>
 
                 <PermissionAwareField
@@ -436,14 +439,22 @@ const { permissions: adminPerms } = useAdminPermissions();
                   isAdmin={isAdmin}
                   label="Current Participants"
                 >
-                  <Input
-                    name="current_participants"
-                    type="number"
-                    value={formData.current_participants}
-                    onChange={handleInputChange}
-                    min={0}
-                    max={formData.max_participants}
-                  />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Confirmed participants. Cannot exceed Max participants</p>
+                    <Input
+                      name="current_participants"
+                      type="number"
+                      value={formData.current_participants}
+                      onChange={handleInputChange}
+                      min={0}
+                      max={formData.max_participants}
+                    />
+                    {formData.max_participants && formData.current_participants && (
+                      <p className="text-xs text-muted-foreground">
+                        {formData.current_participants}/{formData.max_participants} participants
+                      </p>
+                    )}
+                  </div>
                 </PermissionAwareField>
               </div>
             ) : (
@@ -459,14 +470,17 @@ const { permissions: adminPerms } = useAdminPermissions();
                   isAdmin={isAdmin}
                   label="Max Participants"
                 >
-                  <Input
-                    name="max_participants"
-                    type="number"
-                    value={formData.max_participants}
-                    onChange={handleInputChange}
-                    min={1}
-                    max={50}
-                  />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Total seats available for this trip</p>
+                    <Input
+                      name="max_participants"
+                      type="number"
+                      value={formData.max_participants}
+                      onChange={handleInputChange}
+                      min={1}
+                      max={50}
+                    />
+                  </div>
                 </PermissionAwareField>
 
                 <PermissionAwareField
@@ -477,14 +491,22 @@ const { permissions: adminPerms } = useAdminPermissions();
                   isAdmin={isAdmin}
                   label="Current Participants"
                 >
-                  <Input
-                    name="current_participants"
-                    type="number"
-                    value={formData.current_participants}
-                    onChange={handleInputChange}
-                    min={0}
-                    max={formData.max_participants}
-                  />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Confirmed participants. Cannot exceed Max participants</p>
+                    <Input
+                      name="current_participants"
+                      type="number"
+                      value={formData.current_participants}
+                      onChange={handleInputChange}
+                      min={0}
+                      max={formData.max_participants}
+                    />
+                    {formData.max_participants && formData.current_participants && (
+                      <p className="text-xs text-muted-foreground">
+                        {formData.current_participants}/{formData.max_participants} participants
+                      </p>
+                    )}
+                  </div>
                 </PermissionAwareField>
               </div>
             )}

@@ -41,6 +41,23 @@ One More Mile is a comprehensive travel platform that connects experienced guide
   - Leave reviews and ratings
   - Manage personal todos
 
+## Participant Management
+
+### Field Definitions
+- **group_size**: Marketing display text (e.g., "6-8 people") shown to customers
+- **max_participants**: Numeric capacity control - total seats available for the trip
+- **current_participants**: Numeric count of confirmed participants from all channels
+
+### Permission Levels
+- **Admin**: Can edit all participant fields on any trip
+- **Master Sensei**: Can edit max_participants and current_participants on assigned trips
+- **Other Sensei levels**: Cannot edit participant fields unless granted trip-specific elevation
+
+### Permission Configuration
+- **Level-based permissions**: Set in Admin Dashboard > Sensei Level Permissions > Trip Field Permissions
+- **Trip-specific elevation**: Set via Sensei Permissions Dialog for individual trips
+- **Validation**: current_participants cannot exceed max_participants (enforced in UI and DB triggers)
+
 ## Key Features
 
 ### Authentication & Profiles

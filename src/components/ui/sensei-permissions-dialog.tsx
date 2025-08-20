@@ -29,6 +29,8 @@ interface TripPermissions {
   requirements?: boolean;
   dates?: boolean;
   price?: boolean;
+  max_participants?: boolean;
+  current_participants?: boolean;
   group_size?: boolean;
   title?: boolean;
   destination?: boolean;
@@ -44,6 +46,8 @@ const permissionPresets = {
     requirements: false,
     dates: false,
     price: false,
+    max_participants: false,
+    current_participants: false,
     group_size: false,
     title: false,
     destination: false,
@@ -57,6 +61,8 @@ const permissionPresets = {
     requirements: true,
     dates: false,
     price: false,
+    max_participants: false,
+    current_participants: false,
     group_size: false,
     title: false,
     destination: false,
@@ -70,6 +76,8 @@ const permissionPresets = {
     requirements: true,
     dates: true,
     price: false,
+    max_participants: false,
+    current_participants: false,
     group_size: true,
     title: false,
     destination: false,
@@ -83,6 +91,8 @@ const permissionPresets = {
     requirements: true,
     dates: true,
     price: true,
+    max_participants: true,
+    current_participants: true,
     group_size: true,
     title: true,
     destination: true,
@@ -212,7 +222,9 @@ export function SenseiPermissionsDialog({ tripId, isOpen, onClose, onSave }: Sen
     { key: 'requirements', label: 'Requirements', category: 'Content' },
     { key: 'dates', label: 'Trip Dates', category: 'Logistics' },
     { key: 'price', label: 'Pricing', category: 'Logistics' },
-    { key: 'group_size', label: 'Group Size', category: 'Logistics' },
+    { key: 'max_participants', label: 'Max participants', category: 'Logistics' },
+    { key: 'current_participants', label: 'Current participants', category: 'Logistics' },
+    { key: 'group_size', label: 'Group size label', category: 'Logistics' },
     { key: 'theme', label: 'Trip Theme', category: 'Settings' },
   ];
 
