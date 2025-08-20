@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -2429,19 +2429,19 @@ export type Database = {
     Functions: {
       admin_update_sensei_level: {
         Args: {
-          p_sensei_id: string
+          p_admin_override?: boolean
+          p_admin_user_id?: string
           p_new_level: string
           p_reason?: string
-          p_admin_user_id?: string
-          p_admin_override?: boolean
+          p_sensei_id: string
         }
         Returns: Json
       }
       assign_admin_role: {
         Args: {
-          p_user_email: string
-          p_role: Database["public"]["Enums"]["platform_role"]
           p_assigned_by?: string
+          p_role: Database["public"]["Enums"]["platform_role"]
+          p_user_email: string
         }
         Returns: Json
       }
@@ -2463,26 +2463,26 @@ export type Database = {
       }
       calculate_enhanced_sensei_match_score: {
         Args: {
-          p_sensei_id: string
-          p_trip_theme: string
           p_destination?: string
-          p_trip_months?: string[]
+          p_sensei_id: string
           p_trip_id?: string
+          p_trip_months?: string[]
+          p_trip_theme: string
         }
         Returns: {
-          match_score: number
-          weighted_score: number
-          specialty_matches: string[]
-          certificate_matches: string[]
-          skill_matches: string[]
-          language_matches: string[]
-          destination_context_score: number
-          missing_requirements: string[]
-          contextual_recommendations: string[]
-          requirements_met_percentage: number
-          language_bonus: number
-          cultural_bonus: number
           activity_bonus: number
+          certificate_matches: string[]
+          contextual_recommendations: string[]
+          cultural_bonus: number
+          destination_context_score: number
+          language_bonus: number
+          language_matches: string[]
+          match_score: number
+          missing_requirements: string[]
+          requirements_met_percentage: number
+          skill_matches: string[]
+          specialty_matches: string[]
+          weighted_score: number
         }[]
       }
       calculate_payment_deadline: {
@@ -2500,19 +2500,19 @@ export type Database = {
       calculate_sensei_match_score_enhanced: {
         Args: {
           p_sensei_id: string
-          p_trip_theme: string
-          p_trip_months?: string[]
           p_trip_id?: string
+          p_trip_months?: string[]
+          p_trip_theme: string
         }
         Returns: {
-          match_score: number
-          weighted_score: number
-          specialty_matches: string[]
           certificate_matches: string[]
-          skill_matches: string[]
+          match_score: number
           missing_requirements: string[]
-          requirements_met_percentage: number
           proficiency_bonus: number
+          requirements_met_percentage: number
+          skill_matches: string[]
+          specialty_matches: string[]
+          weighted_score: number
         }[]
       }
       can_manage_finances: {
@@ -2562,35 +2562,35 @@ export type Database = {
       get_configurable_requirements: {
         Args: Record<PropertyKey, never>
         Returns: {
-          level_name: string
-          trips_required: number
-          rating_required: number
           additional_criteria: Json
           is_active: boolean
+          level_name: string
+          rating_required: number
+          trips_required: number
         }[]
       }
       get_customer_travel_stats: {
         Args: { _user_id: string }
         Returns: {
+          avg_rating_given: number
+          preferred_themes: string[]
+          reviews_written: number
+          total_spent: number
           trips_completed: number
           trips_pending: number
-          total_spent: number
           trips_wishlisted: number
-          avg_rating_given: number
-          reviews_written: number
-          preferred_themes: string[]
         }[]
       }
       get_sensei_field_permissions: {
         Args:
+          | { p_field_name?: string; p_sensei_id: string }
           | { p_sensei_id: string }
-          | { p_sensei_id: string; p_field_name?: string }
         Returns: {
+          can_edit: boolean
+          can_view: boolean
+          conditions: Json
           field_category: string
           field_name: string
-          can_view: boolean
-          can_edit: boolean
-          conditions: Json
         }[]
       }
       get_sensei_permissions: {
@@ -2615,10 +2615,10 @@ export type Database = {
       }
       grant_trip_specific_permission: {
         Args: {
-          p_trip_id: string
-          p_sensei_id: string
           p_elevated_level: string
           p_reason?: string
+          p_sensei_id: string
+          p_trip_id: string
         }
         Returns: Json
       }
@@ -2629,47 +2629,47 @@ export type Database = {
       log_admin_action: {
         Args: {
           action_type: string
-          table_name?: string
-          record_id?: string
-          old_values?: Json
           new_values?: Json
+          old_values?: Json
+          record_id?: string
+          table_name?: string
         }
         Returns: undefined
       }
       log_production_alert: {
         Args: {
           p_alert_type: string
-          p_severity: string
-          p_title: string
           p_message: string
           p_metadata?: Json
+          p_severity: string
+          p_title: string
         }
         Returns: string
       }
       request_backup_senseis: {
         Args:
+          | { p_max_requests?: number; p_trip_id: string }
           | { p_trip_id: string }
-          | { p_trip_id: string; p_max_requests?: number }
         Returns: Json
       }
       revoke_admin_role: {
-        Args: { p_role_id: string; p_revoked_by?: string }
+        Args: { p_revoked_by?: string; p_role_id: string }
         Returns: Json
       }
       revoke_trip_specific_permission: {
-        Args: { p_trip_id: string; p_sensei_id: string }
+        Args: { p_sensei_id: string; p_trip_id: string }
         Returns: Json
       }
       search_users_by_email: {
         Args: { email_pattern: string }
         Returns: {
-          user_id: string
-          email: string
           created_at: string
+          email: string
+          user_id: string
         }[]
       }
       send_welcome_message_to_participant: {
-        Args: { trip_booking_id: string; user_id: string; trip_id: string }
+        Args: { trip_booking_id: string; trip_id: string; user_id: string }
         Returns: undefined
       }
       send_welcome_message_to_sensei: {
@@ -2685,24 +2685,24 @@ export type Database = {
         Returns: number
       }
       suggest_senseis_for_trip: {
-        Args: { trip_theme: string; trip_months?: string[] }
+        Args: { trip_months?: string[]; trip_theme: string }
         Returns: {
+          is_available: boolean
+          location: string
+          match_score: number
+          matching_certifications: string[]
+          matching_specialties: string[]
+          rating: number
           sensei_id: string
           sensei_name: string
-          match_score: number
-          matching_specialties: string[]
-          matching_certifications: string[]
-          location: string
-          rating: number
-          is_available: boolean
         }[]
       }
       upgrade_sensei_level: {
-        Args: { p_sensei_id: string; p_new_level: string; p_reason?: string }
+        Args: { p_new_level: string; p_reason?: string; p_sensei_id: string }
         Returns: Json
       }
       validate_sensei_action: {
-        Args: { p_sensei_id: string; p_action: string }
+        Args: { p_action: string; p_sensei_id: string }
         Returns: boolean
       }
     }
