@@ -17,7 +17,10 @@ const AdminDashboard = () => {
     totalSenseis: 0,
     totalRevenue: 0,
     pendingApplications: 0,
-    completedTrips: 0
+    completedTrips: 0,
+    totalApplications: 0,
+    tripProposals: 0,
+    cancellations: 0
   };
 
   const handleTabChange = (tab: string) => {
