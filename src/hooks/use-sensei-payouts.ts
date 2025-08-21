@@ -31,6 +31,10 @@ interface Payout {
   notes?: string;
   paid_at?: string;
   created_at: string;
+  payout_type?: 'advance' | 'final';
+  trip_id?: string;
+  commission_percent?: number;
+  advance_percent?: number;
 }
 
 interface EarningsSummary {
@@ -54,7 +58,7 @@ export const useSenseiPayouts = () => {
 
       const { data, error } = await supabase
         .from("sensei_profiles")
-        .select("id")
+        .select("id, stripe_account_id, stripe_connect_status")
         .eq("user_id", user.id)
         .single();
 
@@ -202,6 +206,7 @@ export const useSenseiPayouts = () => {
     payoutMethods: payoutMethods || [],
     payouts: payouts || [],
     earningsSummary,
+    senseiProfile,
     isLoading: methodsLoading || payoutsLoading || summaryLoading,
     addPayoutMethod: addPayoutMethod.mutate,
     updatePayoutMethod: updatePayoutMethod.mutate,

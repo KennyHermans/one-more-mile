@@ -1527,7 +1527,9 @@ export type Database = {
       }
       sensei_payouts: {
         Row: {
+          advance_percent: number | null
           booking_id: string | null
+          commission_percent: number | null
           created_at: string
           currency: string | null
           gross_amount: number
@@ -1537,16 +1539,20 @@ export type Database = {
           net_amount: number
           notes: string | null
           paid_at: string | null
+          payout_type: string | null
           period_end: string | null
           period_start: string | null
           platform_fee: number | null
+          scheduled_for: string | null
           sensei_id: string
           status: Database["public"]["Enums"]["payout_status"]
           trip_id: string | null
           updated_at: string
         }
         Insert: {
+          advance_percent?: number | null
           booking_id?: string | null
+          commission_percent?: number | null
           created_at?: string
           currency?: string | null
           gross_amount: number
@@ -1556,16 +1562,20 @@ export type Database = {
           net_amount: number
           notes?: string | null
           paid_at?: string | null
+          payout_type?: string | null
           period_end?: string | null
           period_start?: string | null
           platform_fee?: number | null
+          scheduled_for?: string | null
           sensei_id: string
           status?: Database["public"]["Enums"]["payout_status"]
           trip_id?: string | null
           updated_at?: string
         }
         Update: {
+          advance_percent?: number | null
           booking_id?: string | null
+          commission_percent?: number | null
           created_at?: string
           currency?: string | null
           gross_amount?: number
@@ -1575,9 +1585,11 @@ export type Database = {
           net_amount?: number
           notes?: string | null
           paid_at?: string | null
+          payout_type?: string | null
           period_end?: string | null
           period_start?: string | null
           platform_fee?: number | null
+          scheduled_for?: string | null
           sensei_id?: string
           status?: Database["public"]["Enums"]["payout_status"]
           trip_id?: string | null
@@ -1634,6 +1646,8 @@ export type Database = {
           sensei_level: string | null
           specialties: string[]
           specialty: string
+          stripe_account_id: string | null
+          stripe_connect_status: string
           trip_creation_request_date: string | null
           trip_creation_requested: boolean | null
           trip_edit_permissions: Json | null
@@ -1661,6 +1675,8 @@ export type Database = {
           sensei_level?: string | null
           specialties?: string[]
           specialty: string
+          stripe_account_id?: string | null
+          stripe_connect_status?: string
           trip_creation_request_date?: string | null
           trip_creation_requested?: boolean | null
           trip_edit_permissions?: Json | null
@@ -1688,6 +1704,8 @@ export type Database = {
           sensei_level?: string | null
           specialties?: string[]
           specialty?: string
+          stripe_account_id?: string | null
+          stripe_connect_status?: string
           trip_creation_request_date?: string | null
           trip_creation_requested?: boolean | null
           trip_edit_permissions?: Json | null
@@ -2532,6 +2550,7 @@ export type Database = {
           is_active: boolean | null
           last_auto_save: string | null
           max_participants: number
+          min_participants: number
           price: string
           pricing_intelligence: Json | null
           program: Json | null
@@ -2581,6 +2600,7 @@ export type Database = {
           is_active?: boolean | null
           last_auto_save?: string | null
           max_participants?: number
+          min_participants?: number
           price: string
           pricing_intelligence?: Json | null
           program?: Json | null
@@ -2630,6 +2650,7 @@ export type Database = {
           is_active?: boolean | null
           last_auto_save?: string | null
           max_participants?: number
+          min_participants?: number
           price?: string
           pricing_intelligence?: Json | null
           program?: Json | null

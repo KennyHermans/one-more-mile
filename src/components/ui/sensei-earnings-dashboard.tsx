@@ -3,8 +3,9 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Euro, TrendingUp, Clock, CheckCircle, Download } from 'lucide-react';
+import { Euro, TrendingUp, Clock, CheckCircle, Download, CreditCard, Zap } from 'lucide-react';
 import { useSenseiPayouts } from '@/hooks/use-sensei-payouts';
+import { SenseiStripeConnect } from '@/components/ui/sensei-stripe-connect';
 
 export const SenseiEarningsDashboard = () => {
   const { earningsSummary, payouts, isLoading } = useSenseiPayouts();
@@ -52,6 +53,15 @@ export const SenseiEarningsDashboard = () => {
     }
   };
 
+  const getPayoutTypeIcon = (type: string) => {
+    switch (type) {
+      case 'advance':
+        return <Zap className="h-4 w-4 text-orange-500" />;
+      default:
+        return <Euro className="h-4 w-4 text-green-500" />;
+    }
+  };
+
   const formatCurrency = (amount: number, currency = 'EUR') => {
     return new Intl.NumberFormat('en-EU', {
       style: 'currency',
@@ -67,8 +77,15 @@ export const SenseiEarningsDashboard = () => {
     });
   };
 
+  // Separate advance and final payouts
+  const advancePayouts = payouts.filter(p => p.payout_type === 'advance');
+  const finalPayouts = payouts.filter(p => p.payout_type === 'final' || !p.payout_type);
+
   return (
     <div className="space-y-6">
+      {/* Stripe Connect Setup */}
+      <SenseiStripeConnect />
+
       {/* Earnings Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -107,7 +124,24 @@ export const SenseiEarningsDashboard = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Euro className="h-5 w-5 text-orange-600" />
+              <Zap className="h-5 w-5 text-orange-600" />
+              <span className="text-sm font-medium text-muted-foreground">Advance Payouts</span>
+            </div>
+            <div className="mt-2">
+              <span className="text-2xl font-bold">
+                {formatCurrency(advancePayouts.reduce((sum, p) => sum + p.net_amount, 0))}
+              </span>
+              <p className="text-xs text-muted-foreground mt-1">
+                {advancePayouts.length} advance payments
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Euro className="h-5 w-5 text-purple-600" />
               <span className="text-sm font-medium text-muted-foreground">Balance Due</span>
             </div>
             <div className="mt-2">
@@ -119,20 +153,6 @@ export const SenseiEarningsDashboard = () => {
                   Available for next payout
                 </p>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-muted-foreground">Commission Rate</span>
-            </div>
-            <div className="mt-2">
-              <span className="text-2xl font-bold">
-                {earningsSummary ? `${earningsSummary.commission_percent}%` : '80%'}
-              </span>
             </div>
           </CardContent>
         </Card>
@@ -166,7 +186,7 @@ export const SenseiEarningsDashboard = () => {
               {payouts.map((payout) => (
                 <div key={payout.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    {getPayoutTypeIcon(payout.payout_type || 'final')}
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">{formatCurrency(payout.net_amount, payout.currency)}</span>
@@ -176,6 +196,11 @@ export const SenseiEarningsDashboard = () => {
                             <span className="capitalize">{payout.status}</span>
                           </div>
                         </Badge>
+                        {payout.payout_type === 'advance' && (
+                          <Badge variant="outline" className="text-orange-600 border-orange-200">
+                            Advance
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {payout.period_start && payout.period_end ? (
@@ -213,7 +238,7 @@ export const SenseiEarningsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Helpful Information */}
+      {/* Payment Flow Information */}
       <Card>
         <CardHeader>
           <CardTitle>Payment Information</CardTitle>
@@ -221,21 +246,27 @@ export const SenseiEarningsDashboard = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <h4 className="font-medium mb-2">Payout Schedule</h4>
+              <h4 className="font-medium mb-2 flex items-center space-x-2">
+                <Zap className="h-4 w-4 text-orange-500" />
+                <span>Advance Payouts</span>
+              </h4>
               <p className="text-muted-foreground">
-                Payouts are processed weekly on Fridays for the previous week's completed trips.
+                Small advance payment (typically 10%) when your trip reaches minimum participants. Helps cover preparation costs.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2 flex items-center space-x-2">
+                <Euro className="h-4 w-4 text-green-500" />
+                <span>Final Payouts</span>
+              </h4>
+              <p className="text-muted-foreground">
+                Remaining commission paid 7-14 days after trip completion, minus any advance already paid.
               </p>
             </div>
             <div>
               <h4 className="font-medium mb-2">Processing Time</h4>
               <p className="text-muted-foreground">
-                Bank transfers typically take 1-3 business days to appear in your account.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Minimum Payout</h4>
-              <p className="text-muted-foreground">
-                Minimum payout amount is €25. Smaller amounts are carried over to the next payout.
+                Bank transfers typically take 1-3 business days to appear in your account via Stripe.
               </p>
             </div>
             <div>
