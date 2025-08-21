@@ -100,6 +100,13 @@ const getPermissionBasedSidebarItems = (permissions: any) => [
     group: "professional",
     requiredPermission: null
   },
+  {
+    title: "Warranty",
+    value: "warranty",
+    icon: Shield,
+    group: "professional",
+    requiredPermission: null
+  },
   
   // Communication - Always visible
   {

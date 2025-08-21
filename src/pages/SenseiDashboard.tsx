@@ -21,6 +21,7 @@ import { IntegratedBackupManagement } from "@/components/ui/integrated-backup-ma
 import { SenseiCertificatesManagement } from "@/components/ui/sensei-certificates-management";
 import { SenseiAnalyticsDashboard } from "@/components/ui/sensei-analytics-dashboard";
 import { SenseiPayoutsTab } from "@/components/ui/sensei-payouts-tab";
+import { SenseiWarrantyTab } from "@/components/ui/sensei-warranty-tab";
 
 import { SenseiDashboardLayout } from "@/components/ui/sensei-dashboard-layout";
 import { SenseiGamificationDashboard } from "@/components/ui/sensei-gamification-dashboard";
@@ -1901,6 +1902,9 @@ const SenseiDashboard = () => {
 
       case "payouts":
         return <SenseiPayoutsTab />;
+
+      case "warranty":
+        return <SenseiWarrantyTab />;
 
       default:
         return <div>Tab not found</div>;
