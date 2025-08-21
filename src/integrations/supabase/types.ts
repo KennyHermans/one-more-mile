@@ -2855,6 +2855,10 @@ export type Database = {
           trips_wishlisted: number
         }[]
       }
+      get_payout_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_sensei_earnings_summary: {
         Args: { p_sensei_id?: string }
         Returns: Json

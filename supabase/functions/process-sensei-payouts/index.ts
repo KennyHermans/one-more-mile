@@ -44,23 +44,19 @@ serve(async (req) => {
       throw new Error("Trip not found");
     }
 
-    // Get payment settings
-    const { data: settings } = await supabaseServiceClient
-      .from("payment_settings")
-      .select("*")
-      .in("setting_name", ["sensei_commission_percents", "advance_payout_percents"])
-      .order("created_at", { ascending: false });
+    // Get payout settings using the new RPC
+    const { data: payoutSettings, error: settingsError } = await supabaseServiceClient
+      .rpc("get_payout_settings");
 
-    const commissionSettings = settings?.find(s => s.setting_name === "sensei_commission_percents")?.setting_value;
-    const advanceSettings = settings?.find(s => s.setting_name === "advance_payout_percents")?.setting_value;
-
-    if (!commissionSettings || !advanceSettings) {
-      throw new Error("Payment settings not configured");
+    if (settingsError || !payoutSettings) {
+      throw new Error("Payout settings not configured");
     }
 
     const senseiLevel = trip.sensei_profiles.sensei_level;
-    const commissionPercent = commissionSettings[senseiLevel] || 80;
-    const advancePercent = advanceSettings[senseiLevel] || 0;
+    const senseiCommission = payoutSettings.sensei_commission_percents?.[senseiLevel] || 80;
+    const platformCommission = payoutSettings.platform_commission_percents?.[senseiLevel] || 20;
+    const advancePercent = payoutSettings.advance_payout_percents?.[senseiLevel] || 0;
+    const day1Percent = payoutSettings.day1_payout_percents?.[senseiLevel] || 40;
 
     // Check if Sensei has Stripe Connect set up
     if (!trip.sensei_profiles.stripe_account_id || trip.sensei_profiles.stripe_connect_status !== "complete") {
@@ -69,28 +65,65 @@ serve(async (req) => {
 
     // Calculate amounts
     const tripPrice = parseFloat(trip.price);
-    const totalCommission = Math.round(tripPrice * (commissionPercent / 100) * 100); // in cents
+    const totalSenseiCommission = Math.round(tripPrice * (senseiCommission / 100) * 100); // in cents
+    const platformFee = Math.round(tripPrice * (platformCommission / 100) * 100); // in cents
     
-    let payoutAmount = totalCommission;
+    let payoutAmount = 0;
+    let description = "";
     
-    if (payout_type === "advance") {
-      payoutAmount = Math.round(totalCommission * (advancePercent / 100));
-      
-      // Check if trip has reached minimum participants
-      if (trip.current_participants < trip.min_participants) {
-        throw new Error("Trip has not reached minimum participants for advance payout");
-      }
-    } else if (payout_type === "final") {
-      // Check if advance was already paid
-      const { data: existingAdvance } = await supabaseServiceClient
-        .from("sensei_payouts")
-        .select("net_amount")
-        .eq("trip_id", trip_id)
-        .eq("payout_type", "advance")
-        .eq("status", "paid");
+    // Calculate payout amount based on type
+    switch (payout_type) {
+      case "advance":
+        payoutAmount = Math.round(totalSenseiCommission * (advancePercent / 100));
+        description = `Advance payout (${advancePercent}% of commission)`;
+        
+        // Check if trip has reached minimum participants
+        if (trip.current_participants < trip.min_participants) {
+          throw new Error("Trip has not reached minimum participants for advance payout");
+        }
+        break;
+        
+      case "day1":
+        payoutAmount = Math.round(totalSenseiCommission * (day1Percent / 100));
+        description = `Day 1 payout (${day1Percent}% of commission)`;
+        
+        // Check if trip has started (start_date should be today or in the past)
+        const tripStartDate = new Date(trip.start_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        tripStartDate.setHours(0, 0, 0, 0);
+        
+        if (tripStartDate > today) {
+          throw new Error("Trip has not started yet for Day 1 payout");
+        }
+        break;
+        
+      case "final":
+        // Calculate final amount after subtracting previous payouts
+        const { data: previousPayouts } = await supabaseServiceClient
+          .from("sensei_payouts")
+          .select("net_amount")
+          .eq("trip_id", trip_id)
+          .eq("status", "paid")
+          .in("payout_type", ["advance", "day1"]);
 
-      const advancePaid = existingAdvance?.reduce((sum, payout) => sum + payout.net_amount, 0) || 0;
-      payoutAmount = totalCommission - advancePaid;
+        const totalPaid = previousPayouts?.reduce((sum, payout) => sum + payout.net_amount, 0) || 0;
+        payoutAmount = totalSenseiCommission - totalPaid;
+        description = `Final payout (remaining ${100 - advancePercent - day1Percent}% of commission)`;
+        
+        // Check if trip has ended (7-14 days after end_date based on settings)
+        const tripEndDate = new Date(trip.end_date);
+        const delayDays = payoutSettings.payout_delay_days?.min || 7;
+        const minPayoutDate = new Date(tripEndDate);
+        minPayoutDate.setDate(minPayoutDate.getDate() + delayDays);
+        
+        if (new Date() < minPayoutDate) {
+          throw new Error(`Final payout not available until ${delayDays} days after trip completion`);
+        }
+        break;
+        
+      default:
+        throw new Error("Invalid payout type");
     }
 
     if (payoutAmount <= 0) {
@@ -103,18 +136,21 @@ serve(async (req) => {
       .insert({
         sensei_id: trip.sensei_profiles.id,
         trip_id: trip_id,
-        gross_amount: totalCommission,
-        platform_fee: Math.round(tripPrice * 100) - totalCommission,
+        gross_amount: totalSenseiCommission,
+        platform_fee: platformFee,
         net_amount: payoutAmount,
         currency: "EUR",
         status: "processing",
         payout_type: payout_type,
-        commission_percent: commissionPercent,
+        commission_percent: senseiCommission,
         advance_percent: payout_type === "advance" ? advancePercent : null,
+        notes: description,
         metadata: {
           trip_title: trip.title,
           trip_price: tripPrice,
-          sensei_level: senseiLevel
+          sensei_level: senseiLevel,
+          payout_stage: payout_type,
+          platform_commission_percent: platformCommission
         }
       })
       .select()
@@ -133,7 +169,8 @@ serve(async (req) => {
         payout_id: payoutRecord.id,
         trip_id: trip_id,
         payout_type: payout_type,
-        sensei_id: trip.sensei_profiles.id
+        sensei_id: trip.sensei_profiles.id,
+        stage: payout_type
       }
     });
 
@@ -150,14 +187,16 @@ serve(async (req) => {
       })
       .eq("id", payoutRecord.id);
 
-    console.log(`Payout processed: ${payoutAmount / 100} EUR to ${trip.sensei_profiles.stripe_account_id}`);
+    console.log(`${payout_type} payout processed: ${payoutAmount / 100} EUR to ${trip.sensei_profiles.stripe_account_id}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         payout_id: payoutRecord.id,
         amount: payoutAmount / 100,
-        transfer_id: transfer.id
+        transfer_id: transfer.id,
+        stage: payout_type,
+        description: description
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -171,7 +210,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+        status: 500,
       }
     );
   }

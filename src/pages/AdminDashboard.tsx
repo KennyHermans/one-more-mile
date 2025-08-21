@@ -5,10 +5,10 @@ import { AdminDashboardOverview } from '@/components/ui/admin-dashboard-overview
 import { AdminTripManagementOverview } from '@/components/ui/admin-trip-management-overview';
 import { AdminSenseiManagement } from '@/components/ui/admin-sensei-management';
 import { AdminPayoutSettings } from '@/components/ui/admin-payout-settings';
+import { AdminPayoutsOverview } from '@/components/ui/admin-payouts-overview';
 import { AdminPaymentSettings } from '@/components/ui/admin-payment-settings';
 import { AdminAccessGuard } from '@/components/ui/admin-access-guard';
 import { AdminWarrantyDashboard } from '@/components/ui/admin-warranty-dashboard';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const AdminDashboard = () => {
   // Mock data for the overview component
@@ -61,7 +61,20 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="payouts" className="space-y-6">
-            <AdminPayoutSettings />
+            <Tabs defaultValue="settings" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="settings">Payout Settings</TabsTrigger>
+                <TabsTrigger value="overview">Payouts Overview</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="settings">
+                <AdminPayoutSettings />
+              </TabsContent>
+
+              <TabsContent value="overview">
+                <AdminPayoutsOverview />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="warranty" className="space-y-6">
