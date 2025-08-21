@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,10 +49,13 @@ export const AdminPayoutSettings = () => {
 
       if (error) throw error;
       return data as PaymentSetting[];
-    },
-    onSuccess: (data) => {
-      // Load current values into state
-      data.forEach(setting => {
+    }
+  });
+
+  // Load settings into state when data is fetched
+  useEffect(() => {
+    if (paymentSettings) {
+      paymentSettings.forEach(setting => {
         if (setting.setting_name === 'sensei_commission_percents') {
           setCommissionRates(setting.setting_value);
         } else if (setting.setting_name === 'advance_payout_percents') {
@@ -62,7 +65,7 @@ export const AdminPayoutSettings = () => {
         }
       });
     }
-  });
+  }, [paymentSettings]);
 
   // Update payment settings mutation
   const updateSettings = useMutation({

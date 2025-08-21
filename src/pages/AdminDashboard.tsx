@@ -5,10 +5,25 @@ import { AdminDashboardOverview } from '@/components/ui/admin-dashboard-overview
 import { AdminTripManagementOverview } from '@/components/ui/admin-trip-management-overview';
 import { AdminSenseiManagement } from '@/components/ui/admin-sensei-management';
 import { AdminPayoutSettings } from '@/components/ui/admin-payout-settings';
+import { AdminPaymentSettings } from '@/components/ui/admin-payment-settings';
 import { AdminAccessGuard } from '@/components/ui/admin-access-guard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const AdminDashboard = () => {
+  // Mock data for the overview component
+  const mockStats = {
+    totalTrips: 0,
+    activeTrips: 0,
+    totalSenseis: 0,
+    totalRevenue: 0,
+    pendingApplications: 0,
+    completedTrips: 0
+  };
+
+  const handleTabChange = (tab: string) => {
+    console.log('Tab changed to:', tab);
+  };
+
   return (
     <AdminAccessGuard>
       <div className="container mx-auto px-4 py-8">
@@ -29,7 +44,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <AdminDashboardOverview />
+            <AdminDashboardOverview stats={mockStats} onTabChange={handleTabChange} />
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
@@ -46,17 +61,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="settings" className="space-y-6">
             <div className="grid gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Settings</CardTitle>
-                  <CardDescription>
-                    Here you can manage general settings.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>This is a placeholder for settings content.</p>
-                </CardContent>
-              </Card>
+              <AdminPaymentSettings />
             </div>
           </TabsContent>
         </Tabs>
