@@ -142,10 +142,10 @@ export const SenseiEarningsDashboard = () => {
     });
   };
 
-  // Separate payouts by type
-  const advancePayouts = payouts.filter(p => p.payout_type === 'advance');
-  const day1Payouts = payouts.filter(p => p.payout_type === 'day1');
-  const finalPayouts = payouts.filter(p => p.payout_type === 'final' || !p.payout_type);
+  // Separate payouts by type (handle all possible payout_type values)
+  const advancePayouts = payouts.filter(p => (p.payout_type as string) === 'advance');
+  const day1Payouts = payouts.filter(p => (p.payout_type as string) === 'day1');
+  const finalPayouts = payouts.filter(p => !p.payout_type || (p.payout_type as string) === 'final' || (p.payout_type as string) === '' || p.payout_type === null);
 
   // Calculate three-stage breakdown
   const advanceTotal = advancePayouts.reduce((sum, p) => sum + p.net_amount, 0);
@@ -370,14 +370,14 @@ export const SenseiEarningsDashboard = () => {
                             <span className="capitalize">{payout.status}</span>
                           </div>
                         </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className={`${
-                            payout.payout_type === 'advance' ? 'text-blue-600 border-blue-200' :
-                            payout.payout_type === 'day1' ? 'text-green-600 border-green-200' :
-                            'text-purple-600 border-purple-200'
-                          }`}
-                        >
+                         <Badge 
+                           variant="outline" 
+                           className={`${
+                             (payout.payout_type as string) === 'advance' ? 'text-blue-600 border-blue-200' :
+                             (payout.payout_type as string) === 'day1' ? 'text-green-600 border-green-200' :
+                             'text-purple-600 border-purple-200'
+                           }`}
+                         >
                           {getPayoutTypeName(payout.payout_type || 'final')}
                         </Badge>
                       </div>

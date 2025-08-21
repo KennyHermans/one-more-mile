@@ -60,20 +60,20 @@ export const AdminPayoutSettings = () => {
   // Load settings into state when data is fetched
   useEffect(() => {
     if (payoutSettings) {
-      if (payoutSettings.sensei_commission_percents) {
-        setSenseiCommissionRates(payoutSettings.sensei_commission_percents);
+      if ((payoutSettings as any).sensei_commission_percents) {
+        setSenseiCommissionRates((payoutSettings as any).sensei_commission_percents);
       }
-      if (payoutSettings.platform_commission_percents) {
-        setPlatformCommissionRates(payoutSettings.platform_commission_percents);
+      if ((payoutSettings as any).platform_commission_percents) {
+        setPlatformCommissionRates((payoutSettings as any).platform_commission_percents);
       }
-      if (payoutSettings.advance_payout_percents) {
-        setAdvanceRates(payoutSettings.advance_payout_percents);
+      if ((payoutSettings as any).advance_payout_percents) {
+        setAdvanceRates((payoutSettings as any).advance_payout_percents);
       }
-      if (payoutSettings.day1_payout_percents) {
-        setDay1Rates(payoutSettings.day1_payout_percents);
+      if ((payoutSettings as any).day1_payout_percents) {
+        setDay1Rates((payoutSettings as any).day1_payout_percents);
       }
-      if (payoutSettings.payout_delay_days) {
-        setPayoutDelay(payoutSettings.payout_delay_days);
+      if ((payoutSettings as any).payout_delay_days) {
+        setPayoutDelay((payoutSettings as any).payout_delay_days);
       }
     }
   }, [payoutSettings]);

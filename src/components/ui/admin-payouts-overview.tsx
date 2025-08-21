@@ -56,7 +56,7 @@ export const AdminPayoutsOverview = () => {
         .order('created_at', { ascending: false });
 
       if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as any);
       }
 
       if (typeFilter !== 'all') {
