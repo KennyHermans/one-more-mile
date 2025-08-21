@@ -105,7 +105,7 @@ const WarrantyCardForm = () => {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4" />
             <span>
-              Maximum warranty amount: €{(warrantySettings?.max_amount?.amount || 50000) / 100}
+              Warranty charges are calculated as a percentage of trip revenue
             </span>
           </div>
 

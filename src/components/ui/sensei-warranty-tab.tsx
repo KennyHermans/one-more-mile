@@ -126,9 +126,6 @@ export function SenseiWarrantyTab() {
           
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              <strong>Warranty Rate:</strong> {warrantyPercentage}% of trip revenue
-            </p>
-            <p className="text-sm text-muted-foreground">
               <strong>When charges occur:</strong> Only for serious issues like no-shows, fraud, or contract breaches
             </p>
             <p className="text-sm text-muted-foreground">
