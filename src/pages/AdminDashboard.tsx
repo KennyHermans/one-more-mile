@@ -7,6 +7,7 @@ import { AdminSenseiManagement } from '@/components/ui/admin-sensei-management';
 import { AdminPayoutSettings } from '@/components/ui/admin-payout-settings';
 import { AdminPaymentSettings } from '@/components/ui/admin-payment-settings';
 import { AdminAccessGuard } from '@/components/ui/admin-access-guard';
+import { AdminWarrantyDashboard } from '@/components/ui/admin-warranty-dashboard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const AdminDashboard = () => {
@@ -38,11 +39,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="trips">Trips</TabsTrigger>
             <TabsTrigger value="senseis">Senseis</TabsTrigger>
             <TabsTrigger value="payouts">Payouts</TabsTrigger>
+            <TabsTrigger value="warranty">Warranty</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -60,6 +62,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="payouts" className="space-y-6">
             <AdminPayoutSettings />
+          </TabsContent>
+
+          <TabsContent value="warranty" className="space-y-6">
+            <AdminWarrantyDashboard />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

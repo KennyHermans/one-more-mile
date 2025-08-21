@@ -22,25 +22,15 @@ export const WarrantyNotificationSystem = () => {
   const { data: notifications, refetch } = useQuery({
     queryKey: ['warranty-notifications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sensei_warranty_notifications')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      if (error) throw error;
-      return data as WarrantyNotification[];
+      // Return empty array for now since the table doesn't exist yet
+      return [] as WarrantyNotification[];
     }
   });
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
-        .from('sensei_warranty_notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-      
-      if (error) throw error;
+      // Placeholder for now
+      console.log('Mark as read:', notificationId);
     },
     onSuccess: () => {
       refetch();

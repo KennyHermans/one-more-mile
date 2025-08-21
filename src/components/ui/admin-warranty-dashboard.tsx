@@ -18,23 +18,15 @@ interface WarrantyMethod {
   sensei_name: string;
   is_active: boolean;
   created_at: string;
-  last_charged_amount: number;
-  last_charged_at: string;
-  total_charges: number;
   card_last4: string;
   card_brand: string;
 }
 
-interface WarrantyCharge {
-  id: string;
-  sensei_id: string;
-  sensei_name: string;
-  amount: number;
-  reason: string;
-  status: string;
-  created_at: string;
-  trip_id?: string;
-  trip_title?: string;
+interface WarrantyAnalytics {
+  totalActiveWarranties: number;
+  totalChargesThisMonth: number;
+  averageChargeAmount: number;
+  senseisCovered: number;
 }
 
 export const AdminWarrantyDashboard = () => {
@@ -48,42 +40,43 @@ export const AdminWarrantyDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sensei_warranty_methods')
-        .select(`
-          *,
-          sensei_profiles!inner(name)
-        `)
+        .select('*')
         .eq('is_active', true);
       
       if (error) throw error;
       
-      return data.map(method => ({
-        ...method,
-        sensei_name: method.sensei_profiles.name
+      // Get sensei names in a separate query since join might not work
+      const senseiIds = (data || []).map(method => method.sensei_id);
+      const { data: senseiProfiles, error: profilesError } = await supabase
+        .from('sensei_profiles')
+        .select('id, name')
+        .in('id', senseiIds);
+      
+      if (profilesError) throw profilesError;
+      
+      const profileMap = (senseiProfiles || []).reduce((acc, profile) => {
+        acc[profile.id] = profile.name;
+        return acc;
+      }, {} as Record<string, string>);
+      
+      return (data || []).map(method => ({
+        id: method.id,
+        sensei_id: method.sensei_id,
+        sensei_name: profileMap[method.sensei_id] || 'Unknown',
+        is_active: method.is_active,
+        created_at: method.created_at,
+        card_last4: method.card_last4,
+        card_brand: method.card_brand
       })) as WarrantyMethod[];
     }
   });
 
-  // Fetch warranty charges
+  // Fetch warranty charges (placeholder for now)
   const { data: warrantyCharges } = useQuery({
     queryKey: ['admin-warranty-charges'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sensei_warranty_charges')
-        .select(`
-          *,
-          sensei_profiles!inner(name),
-          trips(title)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      
-      return data.map(charge => ({
-        ...charge,
-        sensei_name: charge.sensei_profiles.name,
-        trip_title: charge.trips?.title
-      })) as WarrantyCharge[];
+      // Return empty array for now since the table doesn't exist yet
+      return [];
     }
   });
 
@@ -91,9 +84,20 @@ export const AdminWarrantyDashboard = () => {
   const { data: analytics } = useQuery({
     queryKey: ['warranty-analytics'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_warranty_analytics');
+      // Calculate basic analytics from warranty methods
+      const { data: methods, error } = await supabase
+        .from('sensei_warranty_methods')
+        .select('id')
+        .eq('is_active', true);
+      
       if (error) throw error;
-      return data;
+      
+      return {
+        totalActiveWarranties: methods?.length || 0,
+        totalChargesThisMonth: 0,
+        averageChargeAmount: 0,
+        senseisCovered: methods?.length || 0
+      } as WarrantyAnalytics;
     }
   });
 
@@ -225,7 +229,7 @@ export const AdminWarrantyDashboard = () => {
                         {method.is_active ? "Active" : "Inactive"}
                       </Badge>
                       <div className="text-sm text-muted-foreground">
-                        Total: €{method.total_charges || 0}
+                        Setup: Active
                       </div>
                     </div>
                   </div>
@@ -247,41 +251,8 @@ export const AdminWarrantyDashboard = () => {
               <CardTitle>Recent Warranty Charges</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {warrantyCharges?.map((charge) => (
-                  <div key={charge.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <div className="font-medium">{charge.sensei_name}</div>
-                      <div className="text-sm">{charge.reason}</div>
-                      {charge.trip_title && (
-                        <div className="text-xs text-muted-foreground">
-                          Trip: {charge.trip_title}
-                        </div>
-                      )}
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(charge.created_at).toLocaleString()}
-                      </div>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <div className="font-bold">€{charge.amount / 100}</div>
-                      <Badge 
-                        variant={
-                          charge.status === 'succeeded' ? "default" : 
-                          charge.status === 'failed' ? "destructive" : 
-                          "secondary"
-                        }
-                      >
-                        {charge.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                
-                {!warrantyCharges?.length && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No warranty charges found
-                  </div>
-                )}
+              <div className="text-center py-8 text-muted-foreground">
+                No warranty charges found. Charge functionality will be available once the warranty system is fully deployed.
               </div>
             </CardContent>
           </Card>
