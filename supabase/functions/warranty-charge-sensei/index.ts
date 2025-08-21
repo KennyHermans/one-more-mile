@@ -13,8 +13,8 @@ serve(async (req) => {
   }
 
   try {
-    const { sensei_id, amount, reason } = await req.json();
-    console.log("Processing warranty charge:", { sensei_id, amount, reason });
+    const { sensei_id, trip_id, amount, reason, charge_type = 'percentage' } = await req.json();
+    console.log("Processing warranty charge:", { sensei_id, trip_id, amount, reason, charge_type });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -58,8 +58,26 @@ serve(async (req) => {
       .rpc("get_warranty_settings");
 
     const maxAmount = warrantySettings?.max_amount?.amount || 50000; // Default €500
+    const warrantyPercentage = warrantySettings?.warranty_percentage?.percentage || 10;
 
-    if (amount > maxAmount) {
+    let finalAmount = amount;
+
+    // Calculate amount based on charge type
+    if (charge_type === 'percentage' && trip_id) {
+      // Get total trip revenue (sum of all paid bookings)
+      const { data: tripRevenue } = await supabaseClient
+        .from("trip_bookings")
+        .select("total_amount")
+        .eq("trip_id", trip_id)
+        .eq("payment_status", "paid");
+
+      const totalRevenue = tripRevenue?.reduce((sum, booking) => sum + (booking.total_amount || 0), 0) || 0;
+      finalAmount = Math.round(totalRevenue * (warrantyPercentage / 100));
+      
+      console.log("Calculated warranty charge:", { totalRevenue, warrantyPercentage, finalAmount });
+    }
+
+    if (finalAmount > maxAmount) {
       throw new Error(`Amount exceeds maximum warranty limit of ${maxAmount / 100}€`);
     }
 
@@ -79,7 +97,7 @@ serve(async (req) => {
 
     // Create payment intent with saved payment method
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
+      amount: finalAmount,
       currency: "eur",
       customer: warrantyMethod.stripe_payment_method_id.startsWith('pm_') 
         ? undefined 
@@ -87,12 +105,14 @@ serve(async (req) => {
       payment_method: warrantyMethod.stripe_payment_method_id,
       confirm: true,
       off_session: true,
-      description: `Warranty charge: ${reason}`,
+      description: `Warranty charge: ${reason}${trip_id ? ` (Trip: ${trip_id})` : ''}`,
       metadata: {
         sensei_id: sensei_id,
         warranty_method_id: warrantyMethod.id,
         charged_by_admin: userData.user.id,
         reason: reason,
+        trip_id: trip_id || '',
+        charge_type: charge_type,
       },
     });
 
@@ -105,11 +125,12 @@ serve(async (req) => {
         sensei_id: sensei_id,
         warranty_method_id: warrantyMethod.id,
         stripe_payment_intent_id: paymentIntent.id,
-        amount_charged: amount,
+        amount_charged: finalAmount,
         currency: "eur",
         charge_reason: reason,
         charged_by_admin: userData.user.id,
         charge_status: paymentIntent.status,
+        trip_id: trip_id || null,
       })
       .select()
       .single();

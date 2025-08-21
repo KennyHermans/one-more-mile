@@ -38,6 +38,9 @@ interface WarrantySettings {
   disclosure_text: {
     text: string;
   };
+  warranty_percentage: {
+    percentage: number;
+  };
 }
 
 export const useSenseiWarranty = () => {
@@ -154,6 +157,7 @@ export const useSenseiWarranty = () => {
 
   const hasWarrantyMethod = !!warrantyMethod;
   const isLoading = isLoadingMethod || isLoadingCharges;
+  const warrantyPercentage = warrantySettings?.warranty_percentage?.percentage || 10;
 
   return {
     senseiProfile,
@@ -164,5 +168,6 @@ export const useSenseiWarranty = () => {
     isLoading,
     createSetupIntent,
     saveWarrantyMethod,
+    warrantyPercentage,
   };
 };

@@ -1766,6 +1766,7 @@ export type Database = {
           id: string
           sensei_id: string
           stripe_payment_intent_id: string
+          trip_id: string | null
           updated_at: string
           warranty_method_id: string
         }
@@ -1780,6 +1781,7 @@ export type Database = {
           id?: string
           sensei_id: string
           stripe_payment_intent_id: string
+          trip_id?: string | null
           updated_at?: string
           warranty_method_id: string
         }
@@ -1794,10 +1796,18 @@ export type Database = {
           id?: string
           sensei_id?: string
           stripe_payment_intent_id?: string
+          trip_id?: string | null
           updated_at?: string
           warranty_method_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sensei_warranty_charges_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sensei_warranty_charges_warranty_method_id_fkey"
             columns: ["warranty_method_id"]

@@ -7,8 +7,8 @@ import { useSenseiWarranty } from '@/hooks/use-sensei-warranty';
 import { SenseiWarrantySetup } from './sensei-warranty-setup';
 import { formatDistance } from 'date-fns';
 
-export const SenseiWarrantyTab = () => {
-  const { warrantyMethod, warrantyCharges, isLoading, hasWarrantyMethod } = useSenseiWarranty();
+export function SenseiWarrantyTab() {
+  const { warrantyMethod, warrantyCharges, warrantySettings, isLoading, hasWarrantyMethod, warrantyPercentage } = useSenseiWarranty();
 
   const getChargeStatusIcon = (status: string) => {
     switch (status) {
@@ -113,28 +113,30 @@ export const SenseiWarrantyTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            Important Information
+            <Shield className="h-5 w-5" />
+            Warranty System
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            • Your warranty card is only charged in case of violations of the Sensei Agreement.
-          </p>
-          <p>
-            • Common reasons for charges include trip cancellations without sufficient notice, 
-            damage to provided equipment, or other breaches of agreement.
-          </p>
-          <p>
-            • You will be notified before any charge is made, and you can contest charges 
-            through our support system.
-          </p>
-          <p>
-            • You can update your warranty card at any time by adding a new one. 
-            The previous card will be automatically deactivated.
-          </p>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-muted rounded-lg">
+            <p className="text-sm leading-relaxed">
+              {warrantySettings?.disclosure_text?.text || "At One More Mile, we want to keep things safe and fair for everyone — travelers, the platform, and you as a Sensei. That's why we use a warranty system. The warranty is not an upfront payment. You don't lose any money unless something goes seriously wrong (like a no-show, fraud or theft). The warranty is a percentage (10%) of the total trip revenue, so it scales fairly. This ensures: Security for the platform, No upfront cost for Senseis, Trust for travelers → trips are always safeguarded"}
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>Warranty Rate:</strong> {warrantyPercentage}% of trip revenue
+            </p>
+            <p className="text-sm text-muted-foreground">
+              <strong>When charges occur:</strong> Only for serious issues like no-shows, fraud, or contract breaches
+            </p>
+            <p className="text-sm text-muted-foreground">
+              <strong>Notifications:</strong> You'll always be notified before any charge is processed
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
-};
+}

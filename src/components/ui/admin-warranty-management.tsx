@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from './button';
+import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Badge } from './badge';
+import { Input } from './input';
+import { Textarea } from './textarea';
+import { Label } from './label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, CreditCard, AlertTriangle, CheckCircle2, Clock, Euro, User } from 'lucide-react';
+import { Shield, CreditCard, AlertTriangle, CheckCircle2, Clock, Euro, User, Calculator, ExternalLink } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 
 interface SenseiWarranty {
@@ -42,6 +43,8 @@ export const AdminWarrantyManagement = () => {
   const [selectedSensei, setSelectedSensei] = useState<SenseiWarranty | null>(null);
   const [chargeAmount, setChargeAmount] = useState('');
   const [chargeReason, setChargeReason] = useState('');
+  const [chargeType, setChargeType] = useState<'percentage' | 'manual'>('percentage');
+  const [selectedTripId, setSelectedTripId] = useState<string>('');
 
   // Fetch senseis with warranty methods
   const { data: senseiWarranties, isLoading } = useQuery({
@@ -100,14 +103,46 @@ export const AdminWarrantyManagement = () => {
     },
   });
 
+  // Fetch sensei trips for the dropdown
+  const { data: senseiTrips } = useQuery({
+    queryKey: ["senseiTrips", selectedSensei?.sensei_id],
+    queryFn: async () => {
+      if (!selectedSensei?.sensei_id) return [];
+      
+      const { data } = await supabase
+        .from("trips")
+        .select("id, title, destination, dates")
+        .eq("sensei_id", selectedSensei.sensei_id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      
+      return data || [];
+    },
+    enabled: !!selectedSensei?.sensei_id
+  });
+
   // Charge sensei mutation
   const chargeSensei = useMutation({
-    mutationFn: async ({ senseiId, amount, reason }: { senseiId: string; amount: number; reason: string }) => {
+    mutationFn: async ({ 
+      senseiId, 
+      amount, 
+      reason, 
+      tripId, 
+      chargeType 
+    }: { 
+      senseiId: string; 
+      amount: number; 
+      reason: string; 
+      tripId?: string; 
+      chargeType: 'percentage' | 'manual' 
+    }) => {
       const { data, error } = await supabase.functions.invoke('warranty-charge-sensei', {
         body: {
           sensei_id: senseiId,
-          amount: amount * 100, // Convert to cents
+          amount: chargeType === 'manual' ? amount * 100 : amount, // Convert to cents for manual
           reason,
+          trip_id: tripId,
+          charge_type: chargeType,
         },
       });
       if (error) throw error;
@@ -119,6 +154,8 @@ export const AdminWarrantyManagement = () => {
       setSelectedSensei(null);
       setChargeAmount('');
       setChargeReason('');
+      setChargeType('percentage');
+      setSelectedTripId('');
       toast({
         title: 'Success',
         description: 'Warranty charge processed successfully.',
@@ -135,28 +172,50 @@ export const AdminWarrantyManagement = () => {
 
   const handleChargeClick = (sensei: SenseiWarranty) => {
     setSelectedSensei(sensei);
+    setChargeAmount('');
+    setChargeReason('');
+    setChargeType('percentage');
+    setSelectedTripId('');
     setChargeDialogOpen(true);
   };
 
   const handleSubmitCharge = () => {
-    if (!selectedSensei || !chargeAmount || !chargeReason) return;
-
-    const amount = parseFloat(chargeAmount);
-    const maxAmount = ((warrantySettings as any)?.max_amount?.amount || 50000) / 100;
-
-    if (amount > maxAmount) {
-      toast({
-        title: 'Error',
-        description: `Amount exceeds maximum warranty limit of €${maxAmount}`,
-        variant: 'destructive',
-      });
-      return;
+    if (!selectedSensei || !chargeReason) return;
+    
+    let amount: number;
+    
+    if (chargeType === 'manual') {
+      if (!chargeAmount) return;
+      amount = parseFloat(chargeAmount);
+      const maxAmount = ((warrantySettings as any)?.max_amount?.amount || 50000) / 100;
+      
+      if (amount > maxAmount) {
+        toast({
+          title: 'Error',
+          description: `Amount exceeds maximum warranty limit of €${maxAmount}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    } else {
+      // For percentage charges, we pass 0 as the edge function will calculate it
+      if (!selectedTripId) {
+        toast({
+          title: 'Error',
+          description: 'Please select a trip for percentage-based charging',
+          variant: 'destructive',
+        });
+        return;
+      }
+      amount = 0;
     }
 
     chargeSensei.mutate({
       senseiId: selectedSensei.sensei_id,
       amount,
       reason: chargeReason,
+      tripId: selectedTripId,
+      chargeType
     });
   };
 
@@ -261,13 +320,17 @@ export const AdminWarrantyManagement = () => {
                     <div key={charge.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
                       <div className="flex items-center gap-2">
                         {getStatusIcon(charge.charge_status)}
-                        <span>€{(charge.amount_charged / 100).toFixed(2)}</span>
-                        <Badge variant="outline" className={getStatusColor(charge.charge_status)}>
-                          {charge.charge_status}
-                        </Badge>
-                      </div>
-                      <div className="text-muted-foreground">
-                        {formatDistance(new Date(charge.created_at), new Date(), { addSuffix: true })}
+                        <div className="space-y-1">
+                          <p className="text-sm">
+                            <span className="font-medium">€{(charge.amount_charged / 100).toFixed(2)}</span> - {charge.charge_reason}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{formatDistance(new Date(charge.created_at), new Date(), { addSuffix: true })}</span>
+                            <Badge variant="outline" className={getStatusColor(charge.charge_status)}>
+                              {charge.charge_status}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -290,17 +353,61 @@ export const AdminWarrantyManagement = () => {
           
           <div className="space-y-4">
             <div>
-              <Label htmlFor="amount">Amount (€)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                max={((warrantySettings as any)?.max_amount?.amount || 50000) / 100}
-                value={chargeAmount}
-                onChange={(e) => setChargeAmount(e.target.value)}
-                placeholder="Enter amount"
-              />
+              <Label>Charge Type</Label>
+              <Select value={chargeType} onValueChange={(value: 'percentage' | 'manual') => setChargeType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-4 w-4" />
+                      Percentage of Trip Revenue ({(warrantySettings as any)?.warranty_percentage?.percentage || 10}%)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="manual">Manual Amount</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {chargeType === 'percentage' && (
+              <div>
+                <Label htmlFor="trip-select">Select Trip</Label>
+                <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a trip" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {senseiTrips?.map((trip: any) => (
+                      <SelectItem key={trip.id} value={trip.id}>
+                        {trip.title} - {trip.destination} ({trip.dates})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  The charge will be {(warrantySettings as any)?.warranty_percentage?.percentage || 10}% of the total paid bookings for this trip.
+                </p>
+              </div>
+            )}
+
+            {chargeType === 'manual' && (
+              <div>
+                <Label htmlFor="amount">Manual Amount (€)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  max={((warrantySettings as any)?.max_amount?.amount || 50000) / 100}
+                  value={chargeAmount}
+                  onChange={(e) => setChargeAmount(e.target.value)}
+                  placeholder="Enter amount"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Maximum: €{((warrantySettings as any)?.max_amount?.amount || 50000) / 100}
+                </p>
+              </div>
+            )}
             
             <div>
               <Label htmlFor="reason">Reason for Charge</Label>
@@ -322,16 +429,24 @@ export const AdminWarrantyManagement = () => {
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="destructive"
-                  disabled={!chargeAmount || !chargeReason || chargeSensei.isPending}
+                  disabled={
+                    !chargeReason || 
+                    chargeSensei.isPending || 
+                    (chargeType === 'manual' && !chargeAmount) ||
+                    (chargeType === 'percentage' && !selectedTripId)
+                  }
                 >
-                  Charge €{chargeAmount || '0.00'}
+                  Charge {chargeType === 'manual' ? `€${chargeAmount || '0.00'}` : 'Warranty'}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm Warranty Charge</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You are about to charge €{chargeAmount} to {selectedSensei?.sensei_name}'s warranty card.
+                    {chargeType === 'percentage' 
+                      ? `You are about to charge ${(warrantySettings as any)?.warranty_percentage?.percentage || 10}% of the selected trip's revenue to ${selectedSensei?.sensei_name}'s warranty card.`
+                      : `You are about to charge €${chargeAmount} to ${selectedSensei?.sensei_name}'s warranty card.`
+                    }
                     This action cannot be undone. Are you sure?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
