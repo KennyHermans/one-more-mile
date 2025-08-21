@@ -1754,6 +1754,101 @@ export type Database = {
           },
         ]
       }
+      sensei_warranty_charges: {
+        Row: {
+          amount_charged: number
+          charge_reason: string
+          charge_status: string
+          charged_by_admin: string | null
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          sensei_id: string
+          stripe_payment_intent_id: string
+          updated_at: string
+          warranty_method_id: string
+        }
+        Insert: {
+          amount_charged: number
+          charge_reason: string
+          charge_status?: string
+          charged_by_admin?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          sensei_id: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+          warranty_method_id: string
+        }
+        Update: {
+          amount_charged?: number
+          charge_reason?: string
+          charge_status?: string
+          charged_by_admin?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          sensei_id?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+          warranty_method_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensei_warranty_charges_warranty_method_id_fkey"
+            columns: ["warranty_method_id"]
+            isOneToOne: false
+            referencedRelation: "sensei_warranty_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sensei_warranty_methods: {
+        Row: {
+          card_brand: string | null
+          card_exp_month: number | null
+          card_exp_year: number | null
+          card_last4: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          sensei_id: string
+          stripe_payment_method_id: string
+          stripe_setup_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sensei_id: string
+          stripe_payment_method_id: string
+          stripe_setup_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sensei_id?: string
+          stripe_payment_method_id?: string
+          stripe_setup_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       skill_verification_requests: {
         Row: {
           created_at: string
@@ -2764,6 +2859,10 @@ export type Database = {
       get_user_platform_role: {
         Args: { user_id?: string }
         Returns: Database["public"]["Enums"]["platform_role"]
+      }
+      get_warranty_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       grant_trip_specific_permission: {
         Args: {
