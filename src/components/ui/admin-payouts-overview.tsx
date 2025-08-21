@@ -9,6 +9,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Euro, TrendingUp, Calendar, CheckCircle, Target, Download, Filter, Play } from 'lucide-react';
+import { RealTimeNotifications } from './real-time-notifications';
+import { EnhancedRealTimeDashboard } from './enhanced-real-time-dashboard';
 
 interface PayoutWithDetails {
   id: string;
@@ -172,12 +174,18 @@ export const AdminPayoutsOverview = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Payouts Overview</h2>
-        <p className="text-muted-foreground">
-          Monitor and manage all Sensei payouts across the three-stage payment system.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Payouts Overview</h2>
+          <p className="text-muted-foreground">
+            Monitor and manage all Sensei payouts across the three-stage payment system.
+          </p>
+        </div>
+        <RealTimeNotifications />
       </div>
+
+      {/* Enhanced Real-time Dashboard */}
+      <EnhancedRealTimeDashboard />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

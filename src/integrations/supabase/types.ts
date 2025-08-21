@@ -944,6 +944,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_automation_status: {
+        Row: {
+          attempts: number | null
+          created_at: string
+          error_message: string | null
+          id: string
+          last_attempt_at: string | null
+          payout_type: string
+          scheduled_for: string
+          sensei_id: string
+          status: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          payout_type: string
+          scheduled_for: string
+          sensei_id: string
+          status?: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          payout_type?: string
+          scheduled_for?: string
+          sensei_id?: string
+          status?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       production_alerts: {
         Row: {
           alert_type: string
@@ -980,6 +1022,42 @@ export type Database = {
           severity?: string
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      realtime_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2942,6 +3020,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      process_payout_idempotent: {
+        Args: {
+          p_idempotency_key?: string
+          p_payout_type: string
+          p_sensei_id: string
+          p_trip_id: string
+        }
+        Returns: Json
+      }
       request_backup_senseis: {
         Args:
           | { p_max_requests?: number; p_trip_id: string }
@@ -2954,6 +3041,10 @@ export type Database = {
       }
       revoke_trip_specific_permission: {
         Args: { p_sensei_id: string; p_trip_id: string }
+        Returns: Json
+      }
+      schedule_automatic_payouts: {
+        Args: { p_trip_id: string }
         Returns: Json
       }
       search_users_by_email: {

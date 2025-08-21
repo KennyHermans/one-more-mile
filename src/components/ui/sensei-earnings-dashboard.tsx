@@ -1,15 +1,62 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Euro, TrendingUp, Clock, CheckCircle, Download, CreditCard, Zap, Calendar, Target } from 'lucide-react';
+import { Euro, TrendingUp, Clock, CheckCircle, Download, CreditCard, Zap, Calendar, Target, Wifi } from 'lucide-react';
 import { useSenseiPayouts } from '@/hooks/use-sensei-payouts';
 import { SenseiStripeConnect } from '@/components/ui/sensei-stripe-connect';
+import { RealTimeNotifications } from './real-time-notifications';
+import { useRealtimeNotifications } from '@/hooks/use-realtime-notifications';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const SenseiEarningsDashboard = () => {
   const { earningsSummary, payouts, isLoading } = useSenseiPayouts();
+  const { isConnected } = useRealtimeNotifications();
+  const queryClient = useQueryClient();
+
+  // Real-time updates for payouts
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get sensei profile
+      const { data: senseiProfile } = await supabase
+        .from('sensei_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!senseiProfile) return;
+
+      const channel = supabase
+        .channel('sensei-payout-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sensei_payouts',
+            filter: `sensei_id=eq.${senseiProfile.id}`
+          },
+          () => {
+            // Refresh payout data when changes occur
+            queryClient.invalidateQueries({ queryKey: ['sensei-payouts'] });
+            queryClient.invalidateQueries({ queryKey: ['sensei-earnings-summary'] });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    getUser();
+  }, [queryClient]);
 
   if (isLoading) {
     return (
@@ -108,6 +155,20 @@ export const SenseiEarningsDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with real-time notifications */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold">Earnings Dashboard</h2>
+          {isConnected && (
+            <Badge variant="outline" className="text-xs">
+              <Wifi className="h-3 w-3 mr-1" />
+              Live Updates
+            </Badge>
+          )}
+        </div>
+        <RealTimeNotifications />
+      </div>
+
       {/* Stripe Connect Setup */}
       <SenseiStripeConnect />
 
