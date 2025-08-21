@@ -74,8 +74,7 @@ const WarrantyCardForm = () => {
           <CardTitle>Add Warranty Card</CardTitle>
         </div>
         <CardDescription>
-          {warrantySettings?.disclosure_text?.text || 
-           "At One More Mile, we want to keep things safe and fair for everyone — travelers, the platform, and you as a Sensei. That's why we use a warranty system. The warranty is not an upfront payment. You don't lose any money unless something goes seriously wrong (like a no-show, fraud or theft). The warranty is a percentage (10%) of the total trip revenue, so it scales fairly. This ensures: Security for the platform, No upfront cost for Senseis, Trust for travelers → trips are always safeguarded"}
+          This card will only be charged if there are serious violations like no-shows, fraud, or contract breaches.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -154,8 +153,7 @@ export const SenseiWarrantySetup = () => {
           <Alert className="mt-4">
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              At One More Mile, we want to keep things safe and fair for everyone. 
-              The warranty is a percentage (10%) of trip revenue and only applies for serious issues.
+              Warranty charges are percentage-based (10% of trip revenue) and only apply for serious violations.
             </AlertDescription>
           </Alert>
         </CardContent>
