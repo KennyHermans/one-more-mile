@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminDashboardOverview } from '@/components/ui/admin-dashboard-overview';
-import { AdminTripsManagement } from '@/components/ui/admin-trip-management-overview';
+import { AdminTripManagementOverview } from '@/components/ui/admin-trip-management-overview';
 import { AdminSenseiManagement } from '@/components/ui/admin-sensei-management';
 import { AdminPayoutSettings } from '@/components/ui/admin-payout-settings';
 import { AdminAccessGuard } from '@/components/ui/admin-access-guard';
@@ -32,7 +33,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
-            <AdminTripsManagement />
+            <AdminTripManagementOverview />
           </TabsContent>
 
           <TabsContent value="senseis" className="space-y-6">
